@@ -1,0 +1,16 @@
+{
+  "on save adapter restarts with new config immediately": "При сохранении настроек адаптера он сразу же перезапускается",
+  "clientId": "Client ID",
+  "clientSecret": "Client Secret",
+  "manual1": "Зарегистрируйтесь также https://developer.spotify.com",
+  "manual2": "Создайте приложение, получите Client ID и Client Secret",
+  "manual3": "в настройках приложения вашего приложения введите 'http://localhost' в Redirect URIs",
+  "manual4": "введите свои Cliend ID и Client Secret здесь",
+  "manual5": "Запустить экземпляр",
+  "manual6": "перейдите на вкладку Объекты и нажмите кнопку Get_Authorization в разделе 'spotify-premium.X.Authorization'",
+  "manual7": "Скопируйте URL-адрес, отображаемый в разделе 'spotify-premium.X.Authorization.Authorization_URL' в веб-браузер и перейдите к нему.",
+  "manual8": "Вам может потребоваться войти в Spotify и разрешить доступ.",
+  "manual9": "Браузер отклонит соединение и вернет URL-адрес в адресной строке.",
+  "manual10": "Теперь скопируйте этот URL-адрес и вставьте его в состояние 'spotify-premium.X.Authorization.Authorization_Return_URI'",
+  "manual11": "все правильно настроено, если true в 'spotify-premium.X.Authorization.Authorized'"
+}
