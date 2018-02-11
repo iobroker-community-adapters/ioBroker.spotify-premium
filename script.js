@@ -1,18 +1,21 @@
-/*Version 0.5.0
-letzte änderung 26.01.2018 16:48
+/*Version 0.5.3
+letzte Ã¤nderung 11.02.2018 19:25
 
 Read Me !!!!!!!
 wie bekomme ich dieses Skript zum laufen ? 
 
+Es muÃŸ das NPM Modul querystring im Javascript Adapter hinzugefÃ¼gt werden !
+
 1.Registriere dich auch https://developer.spotify.com
-2.Erstelle einen Application, du erhällst einen Client ID und eine Client Secret
+2.Erstelle einen Application, du erhÃ¤llst einen Client ID und eine Client Secret
 3.trage in den App Settings deiner Application bei Redirect URIs 'http://localhost' ein
 4.trage hier in diesem Skript deine Cliend ID und Client Secret ein
 5.Starte dieses Skript
 6.wechsle zum Tap Objekte und klicke unter 'javascript.0.Spotify.Authorization.Authorized' auf den Button Get_Authorization
 7.Kopiere die unter 'javascript.0.Spotify.Authorization.Authorization_URL' angezeigte URL in einen  Webbrowser und rufe sie auf.
-8.Der Browser wird die Verbindung ablehnen und in der Adresszeile eine URL zurückgeben
-9.kopiere jetzt wider diese URL und füge sie im State 'javascript.0.Spotify.Authorization.Authorization_Return_URI' ein
+8.Der Browser wird die Verbindung ablehnen und in der Adresszeile eine URL zurÃ¼ckgeben
+9.kopiere jetzt wider diese URL und fÃ¼ge sie im State 'javascript.0.Spotify.Authorization.Authorization_Return_URI' ein
+10.wenn alles funktioniert hat wechselt 'javascript.0.Spotify.Authorization.Authorized' auf true 
 
 */
 createState('javascript.0.Spotify.Player.Play', false, {
@@ -155,6 +158,11 @@ createState('javascript.0.Spotify.PlaybackInfo.duration', 0, {
     role: "duration",
     write: false
 });
+createState('javascript.0.Spotify.PlaybackInfo.Playlist', '', {
+    type: "string",
+    role: "Playlist",
+    write: false
+});
 createState('javascript.0.Spotify.PlaybackInfo.Device.id', '', {
     type: "string",
     role: "id",
@@ -185,26 +193,29 @@ createState('javascript.0.Spotify.PlaybackInfo.Device.volume_percent', 0, {
     role: "volume_percent",
     write: false
 });
+//createState('javascript.0.Spotify.Playlist_Names','',{type: "string", role: "String of Playlist Names",write:false});
+//createState('javascript.0.Spotify.Playlist_Index',0 ,{type: "number", role: "Playlist_Index"});
 var request = require('request');
 var querystring = require('querystring');
 var fs = require('fs');
 var Application = {
     User_ID: '', //Nichts eintragen !!
     BaseURL: 'https://api.spotify.com',
-    Client_ID: 'HIER DEINE CLIENT ID',
+    Client_ID: 'HIER DEINE CLIENT ID !!',
     Client_Secret: 'HIER DEIN CLIENT SECRET',
-    redirect_uri: 'http://localhost', // in älteren Versionen wird 'https://example.com/callback/' verwendet, 'http://localhost' ist eine Sichere Variante
+    redirect_uri: 'http://localhost', // in Ã¤lteren Versionen wird 'https://example.com/callback/' verwendet, 'http://localhost' ist eine Sichere Variante
     Token: '', //Nichts eintragen !!
     refresh_token: '', //Nichts eintragen !!
     code: '', //Nichts eintragen !!
-    State: '' //Nichts eintragen !!
+    State: '', //Nichts eintragen !!
+    TokenFilePath: '/opt/Spotify.token'
 };
 var Device_Data = {
     last_active_device_id: '',
     last_select_device_id: '',
 };
 //############### Initial ##########
-ReadTokenFiles(function(err, Token) { //23.01.2018 Funktion überarbeitet 
+ReadTokenFiles(function(err, Token) { //23.01.2018 Funktion Ã¼berarbeitet 
     if (!err) {
         Application.Token = Token.AccessToken;
         Application.refresh_token = Token.RefreshToken;
@@ -231,8 +242,7 @@ ReadTokenFiles(function(err, Token) { //23.01.2018 Funktion überarbeitet
 });
 //#################################
 function ReadTokenFiles(callback) {
-    var TokenFilePath = 'Spotify.token';
-    fs.readFile(TokenFilePath, 'utf8', function(err, data) {
+    fs.readFile(Application.TokenFilePath, 'utf8', function(err, data) {
         if (!err) { //wenn keine Fehler
             var Token = JSON.parse(data);
             var ATF = "undefined" !== typeof Token.AccessToken && (Token.AccessToken !== '');
@@ -244,7 +254,8 @@ function ReadTokenFiles(callback) {
                 return callback('Keine Token in Datei gefunden !', null)
             }
         } else {
-            return callback('keine Token-Datei gefunden !, wird erstellt nach Autorisierung  ', null)
+            console.log(err);
+            return callback('keine Token-Datei gefunden !, wird erstellt nach Autorisierung  ', null);
         }
     });
 } // End of Function ReadTokenFiles 
@@ -278,9 +289,31 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                 case 401: //Unauthorized 
                     if (JSON.parse(body).error.message == 'The access token expired') {
                         console.log('Access Token Abgelaufen!!');
-                        Refresh_Token(Endpoint, Method, Send_Body, function(err, NewData) { //Daten des Akuellen Request werden Refresh_Token übergeben
+                        setState('javascript.0.Spotify.Authorization.Authorized', val = false, akt =
+                            true); // neu 05.02.2018
+                        Refresh_Token(function(err) {
                             if (!err) {
-                                return callback(null, NewData); //Daten mit neuen Token
+                                setState('javascript.0.Spotify.Authorization.Authorized', val =
+                                    true, akt = true);
+                                SendRequest(Endpoint, Method, Send_Body, function(err, data) { // dieser Request holt die Daten die zuvor mit altem Token gefordert wurden
+                                    if (!err) {
+                                        console.log('Daten mit neuem Token');
+                                        return callback(null, data);
+                                    } else if (err == 202) {
+                                        console.log(err +
+                                            ' Anfrage akzeptiert, keine Daten in Antwort, veruch es nochnal ;-)'
+                                        );
+                                        return callback(err, null);
+                                    } else {
+                                        console.error(
+                                            'FEHLER BEIM ERNEUTEN DATEN ANFORDERN ! ' +
+                                            err);
+                                        return callback(err, null);
+                                    }
+                                });
+                            } else { //05.02.2018 19:43
+                                console.error(err);
+                                return callback(err, null);
                             }
                         });
                     } else { //wenn anderer Fehler mit Code 401
@@ -302,35 +335,66 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
 } //End of Function SendRequest
 //###################################################################################### END OF FUNCTION SEND REQUEST ###################################################################################
 function CreatePlaybackInfo(P_Body) {
-    setState('javascript.0.Spotify.PlaybackInfo.is_playing', val = P_Body.is_playing, akt = true);
-    if ("undefined" !== typeof P_Body.device) {
+    //console.log(JSON.stringify(P_Body))
+    if (P_Body.hasOwnProperty('device')) {
         Device_Data.last_active_device_id = P_Body.device.id;
         setState('javascript.0.Spotify.PlaybackInfo.Device.id', val = P_Body.device.id, akt = true);
     }
-    if (P_Body.is_playing === true) {
-        setState('javascript.0.Spotify.PlaybackInfo.Track_Id', val = P_Body.item.id, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.Artist_Name', val = P_Body.item.artists[0].name, akt =
-            true);
-        setState('javascript.0.Spotify.PlaybackInfo.Type', val = P_Body.item.type, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.Album', val = P_Body.item.album.name, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.timestamp', val = P_Body.timestamp, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.progress_ms', val = P_Body.progress_ms, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.image_url', val = P_Body.item.album.images[0].url, akt =
-            true);
-        setState('javascript.0.Spotify.PlaybackInfo.Track_Name', val = P_Body.item.name, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.duration_ms', val = P_Body.item.duration_ms, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.duration', val = DigiClock(P_Body.item.duration_ms), akt =
-            true);
-        setState('javascript.0.Spotify.PlaybackInfo.progress', val = DigiClock(P_Body.progress_ms), akt =
-            true);
-        setState('javascript.0.Spotify.PlaybackInfo.Device.is_active', val = P_Body.device.is_active, akt =
-            true);
-        setState('javascript.0.Spotify.PlaybackInfo.Device.is_restricted', val = P_Body.device.is_restricted,
-            akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.Device.name', val = P_Body.device.name, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.Device.type', val = P_Body.device.type, akt = true);
-        setState('javascript.0.Spotify.PlaybackInfo.Device.volume_percent', val = P_Body.device.volume_percent,
-            akt = true);
+    if (P_Body.hasOwnProperty('is_playing')) {
+        setState('javascript.0.Spotify.PlaybackInfo.is_playing', val = P_Body.is_playing, akt = true);
+        if (P_Body.is_playing === true) {
+            setState('javascript.0.Spotify.PlaybackInfo.Track_Id', val = P_Body.item.id, akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.Artist_Name', val = P_Body.item.artists[0].name, akt =
+                true);
+            if (P_Body.context !== null) {
+                setState('javascript.0.Spotify.PlaybackInfo.Type', val = P_Body.context.type, akt = true);
+                if (P_Body.context.type == 'playlist') {
+                    var IndexOfUser = P_Body.context.uri.indexOf("user:") + 5;
+                    var EndIndexOfUser = P_Body.context.uri.indexOf(":", IndexOfUser);
+                    var IndexOfPlaylistID = P_Body.context.uri.indexOf("playlist:") + 9;
+                    var query = {
+                        fields: 'name',
+                    };
+                    SendRequest('/v1/users/' + P_Body.context.uri.substring(IndexOfUser, EndIndexOfUser) +
+                        '/playlists/' + P_Body.context.uri.slice(IndexOfPlaylistID) + '?' + querystring.stringify(
+                            query), 'GET', '',
+                        function(err, P_Body) {
+                            if (!err && P_Body.hasOwnProperty('name')) {
+                                setState('javascript.0.Spotify.PlaybackInfo.Playlist', val = P_Body.name,
+                                    akt = true);
+                                //console.log(JSON.stringify(P_Body))
+                            } else {
+                                console.warn(err + ' function CreatePlaybackInfo')
+                            }
+                        });
+                } else {
+                    setState('javascript.0.Spotify.PlaybackInfo.Playlist', val = '', akt = true)
+                }
+            } else {
+                setState('javascript.0.Spotify.PlaybackInfo.Type', val = P_Body.item.type, akt = true);
+                setState('javascript.0.Spotify.PlaybackInfo.Playlist', val = '', akt = true);
+            }
+            setState('javascript.0.Spotify.PlaybackInfo.Album', val = P_Body.item.album.name, akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.timestamp', val = P_Body.timestamp, akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.progress_ms', val = P_Body.progress_ms, akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.image_url', val = P_Body.item.album.images[0].url,
+                akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.Track_Name', val = P_Body.item.name, akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.duration_ms', val = P_Body.item.duration_ms, akt =
+                true);
+            setState('javascript.0.Spotify.PlaybackInfo.duration', val = DigiClock(P_Body.item.duration_ms),
+                akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.progress', val = DigiClock(P_Body.progress_ms), akt =
+                true);
+            setState('javascript.0.Spotify.PlaybackInfo.Device.is_active', val = P_Body.device.is_active, akt =
+                true);
+            setState('javascript.0.Spotify.PlaybackInfo.Device.is_restricted', val = P_Body.device.is_restricted,
+                akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.Device.name', val = P_Body.device.name, akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.Device.type', val = P_Body.device.type, akt = true);
+            setState('javascript.0.Spotify.PlaybackInfo.Device.volume_percent', val = P_Body.device.volume_percent,
+                akt = true);
+        }
     }
 } //End of Function CreatePlaybackInfo
 function DigiClock(ms) {
@@ -350,9 +414,10 @@ function GetUserInformation(P_Body) {
     setState('javascript.0.Spotify.Authorization.User_ID', val = P_Body.id, akt = true);
 } //End of Function GetUserInformation
 function GetUsersPlaylist(offset) {
+    var PlaylistString;
     if (Application.User_ID !== '') {
         var query = {
-            limit: 10,
+            limit: 30,
             offset: offset
         };
         SendRequest('/v1/users/' + Application.User_ID + '/playlists?' + querystring.stringify(query), 'GET',
@@ -362,7 +427,8 @@ function GetUsersPlaylist(offset) {
                     for (i = 0; i < P_Body.items.length; i++) {
                         var Pfad = 'javascript.0.Spotify.Playlists.' + P_Body.items[i].name.replace(
                             /\s+/g, '');
-                        if (getObject(Pfad + '.id') === null) { //verursacht Warnung 
+                        PlaylistString = P_Body.items[i].name + ';' + PlaylistString;
+                        if (getObject(Pfad + '.id') === null) {
                             createState(Pfad + '.Play_this_List', false, {
                                 type: 'boolean',
                                 role: 'button'
@@ -398,7 +464,8 @@ function GetUsersPlaylist(offset) {
                     if (P_Body.items.length !== 0 && (P_Body['next'] !== null)) {
                         GetUsersPlaylist(P_Body.offset + P_Body.limit)
                     }
-                } //if !err
+                    //setState('javascript.0.Spotify.Playlist_Names',PlaylistString);
+                }
             });
     }
 } // End of Function GetUsersPlaylist
@@ -420,18 +487,33 @@ function Get_Playlist_Tracks(owner, id, Pfad) { //NEU
     SendRequest('/v1/users/' + reg_param + '?' + querystring.stringify(query), 'GET', '', function(err, data) {
         if (!err) {
             var StateString = '';
+            var ListString = '';
             var Track_ID_String = '';
             for (i = 0; i < data.items.length; i++) {
                 StateString = StateString + i.toString() + ':' + data.items[i].track.name + '-' +
                     data.items[i].track.artists[0].name + ';';
+                ListString = ListString + data.items[i].track.name + '-' + data.items[i].track.artists[
+                    0].name + ';';
                 Track_ID_String = Track_ID_String + i.toString() + ':' + data.items[i].track.id + ';';
             }
-            createState(Pfad + '.Track_List', -1, {
-                type: "number",
-                role: "Tracks",
-                states: StateString,
-                Track_ID: Track_ID_String
-            });
+            if (getObject(Pfad + '.Track_List') === null) {
+                createState(Pfad + '.Track_List', -1, {
+                    type: "number",
+                    role: "Tracks",
+                    states: StateString,
+                    Track_ID: Track_ID_String
+                });
+            } else {
+                //setState(Pfad+'.Track_List',StateString,Track_ID=Track_ID_String,akt=true);
+            }
+            if (getObject(Pfad + '.Track_List_Sting') === null) {
+                createState(Pfad + '.Track_List_Sting', ListString, {
+                    type: "string",
+                    role: "Tracks List String"
+                });
+            } else {
+                setState(Pfad + '.Track_List_Sting', ListString, akt = true);
+            }
         }
     });
 } //End of Function Get_Playlist_Tracks
@@ -526,7 +608,7 @@ function GetToken() {
         });
     });
 } //End of Function GetToken
-function Refresh_Token(Endpoint, Method, Send_Body, callback) {
+function Refresh_Token(callback) {
     console.log('Token wird erneut angefordert ! ');
     var options = {
         url: 'https://accounts.spotify.com/api/token',
@@ -553,25 +635,16 @@ function Refresh_Token(Endpoint, Method, Send_Body, callback) {
                 SaveToken(P_Body, function(err, Token) {
                     if (!err) {
                         Application.Token = Token.AccessToken;
+                        return callback(null);
                         //Application.refresh_token=Token.refresh_token;
-                        SendRequest(Endpoint, Method, Send_Body, function(err, data) { // dieser Request holt die Daten die zuvor mit altem Token gefordert wurden
-                            if (!err) {
-                                console.log('Daten mit neuem Token');
-                                return callback(null, data);
-                            } else {
-                                console.error(
-                                    'FEHLER BEIM ERNEUTEN DATEN ANFORDERN !');
-                                console.error('Fehler ' + err +
-                                    ' Function Refresh_Token');
-                                return callback(err, null);
-                            }
-                        });
                     } else {
                         console.log(err);
-                        return callback(err, null);
+                        return callback(err);
                     }
                 });
-            }
+            } else {
+                return callback(response.statusCode)
+            } //05.02.2018 19:37
         });
     } // end if   
 } //End of Function Refresh_Token
@@ -583,7 +656,7 @@ function SaveToken(P_Body, callback) {
             AccessToken: P_Body.access_token,
             RefreshToken: P_Body.refresh_token
         };
-        fs.writeFile('Spotify.token', JSON.stringify(Token), 'utf8', function(err) {
+        fs.writeFile(Application.TokenFilePath, JSON.stringify(Token), 'utf8', function(err) {
             if (!err) {
                 console.log('Token Saved!');
                 return callback(null, Token);
@@ -622,9 +695,11 @@ on({
     Device_Data.last_select_device_id = getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.id').val;
     var send = {
         device_ids: [Device_Data.last_select_device_id], //Divice IDs als Array !
-        //play:false  //True = Wiedergabe startet sofort auf diesem Gerät, FALSE = Wiedergabe anhängig von Playback State
+        //play:false  //True = Wiedergabe startet sofort auf diesem GerÃ¤t, FALSE = Wiedergabe anhÃ¤ngig von Playback State
     };
-    SendRequest('/v1/me/player', 'PUT', JSON.stringify(send), function(err, data) {});
+    SendRequest('/v1/me/player', 'PUT', JSON.stringify(send), function(err, data) {
+        //if(!err){Device_Data.last_select_device_id=getState(obj.id.slice(0,obj.id.lastIndexOf("."))+'.id').val}
+    });
 });
 on({
     id: /\.Track_List$/,
@@ -683,6 +758,7 @@ on({
     var query = {
         device_id: Device_Handel(Device_Data)
     };
+    console.log(Device_Handel(Device_Data))
     SendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', '', function() {});
 });
 on({
@@ -804,17 +880,18 @@ on({
     if (obj.state.val === true) {
         Intervall = setInterval(function() {
             SendRequest('/v1/me/player', 'GET', '', function(err, data) {
+                //console.log('Intervall'+err)
                 if (!err) {
                     CreatePlaybackInfo(data)
-                } else if (err == 202 || (err == 502)) {
+                } else if (err == 202 || (err == 502) || (err = 401)) { //202,401 und 502 lassen den Interval  weiter laufen
                     DummyBody = {
                         is_playing: false
-                    }; //tritt ein wenn kein Player geöffnet ist
+                    }; //tritt ein wenn kein Player geÃ¶ffnet ist
                     CreatePlaybackInfo(DummyBody)
-                } else {
+                } else { //andere Fehler stoppen den Intervall
                     clearInterval(Intervall);
                     console.warn('Spotify Intervall gestoppt !');
-                } // ein 502 Bad Gateway würde den intervall stoppen !! ändern ????
+                }
             });
         }, 5000);
     } else {
@@ -823,9 +900,7 @@ on({
         }
     }
 });
-on({
-    id: 'javascript.0.Spotify.Authorization.Login'
-}, function(obj) {});
+// on({id:'javascript.0.Spotify.Authorization.Login'}, function (obj){});
 onStop(function() {
     setState('javascript.0.Spotify.Authorization.Authorization_URL', val = '', akt = true);
     setState('javascript.0.Spotify.Authorization.Authorization_Return_URI', val = '', akt = true);
