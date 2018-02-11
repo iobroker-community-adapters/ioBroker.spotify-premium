@@ -10,8 +10,11 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.0.2 (2018.02.11)
+* (twonky) merge original script v0.5.3 by [Lucky](http://forum.iobroker.net/viewtopic.php?f=21&t=8173)
+
 ### 0.0.1 (2018.02.07)
-* (twonky) initial adapter, original script (v0.5.1) by [Lucky](http://forum.iobroker.net/viewtopic.php?f=21&t=8173)
+* (twonky) initial adapter, original script v0.5.1 by [Lucky](http://forum.iobroker.net/viewtopic.php?f=21&t=8173)
 
 ## License
 The MIT License (MIT)

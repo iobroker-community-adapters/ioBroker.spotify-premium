@@ -2,13 +2,10 @@
 // jshint strict:false
 /*jslint node: true */
 'use strict';
-
 var utils = require(__dirname + '/lib/utils');
 var request = require('request');
 var querystring = require('querystring');
-
 var adapter = new utils.Adapter('spotify-premium');
-
 var Application = {
     User_ID: '',
     BaseURL: 'https://api.spotify.com',
@@ -21,7 +18,6 @@ var Application = {
     refresh_token: '',
     code: ''
 };
-
 var Device_Data = {
     last_active_device_id: '',
     last_select_device_id: '',
@@ -30,9 +26,7 @@ var Device_Data = {
 function main() {
     Application.Client_ID = adapter.config.client_id;
     Application.Client_Secret = adapter.config.client_secret;
-    
     adapter.subscribeStates('*');
-
     ReadTokenFiles(function(err, Token) {
         if (!err) {
             Application.Token = Token.AccessToken;
@@ -134,15 +128,38 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                         // Unauthorized
                         if (JSON.parse(body).error.message == 'The access token expired') {
                             adapter.log.debug('Access Token Abgelaufen!!');
-                            Refresh_Token(Endpoint, Method, Send_Body,
-                                function(err, NewData) {
-                                    // Daten des Akuellen Request werden
-                                    // Refresh_Token übergeben
-                                    if (!err) {
-                                        return callback(null, NewData);
-                                        // Daten mit neuen Token
-                                    }
-                                });
+                            adapter.setState('Authorization.Authorized', {
+                                val: false,
+                                ack: true
+                            });
+                            Refresh_Token(function(err) {
+                                if (!err) {
+                                    adapter.setState('Authorization.Authorized', {
+                                        val: true,
+                                        ack: true
+                                    });
+                                    SendRequest(Endpoint, Method, Send_Body, function(err, data) {
+                                        // dieser Request holt die Daten die zuvor mit altem Token gefordert wurden
+                                        if (!err) {
+                                            adapter.log.debug('Daten mit neuem Token');
+                                            return callback(null, data);
+                                        } else if (err == 202) {
+                                            adapter.log.debug(err +
+                                                ' Anfrage akzeptiert, keine Daten in Antwort, versuch es nochmal ;-)'
+                                            );
+                                            return callback(err, null);
+                                        } else {
+                                            console.error(
+                                                'FEHLER BEIM ERNEUTEN DATEN ANFORDERN ! ' +
+                                                err);
+                                            return callback(err, null);
+                                        }
+                                    });
+                                } else {
+                                    console.error(err);
+                                    return callback(err, null);
+                                }
+                            });
                         } else {
                             // wenn anderer Fehler mit Code 401
                             adapter.setState('Authorization.Authorized', {
@@ -449,9 +466,15 @@ function Get_Playlist_Tracks(owner, id, Pfad) {
         function(err, data) {
             if (!err) {
                 var StateString = '';
+                var ListString = '';
                 var Track_ID_String = '';
                 var songs = []
                 for (var i = 0; i < data.items.length; i++) {
+                    StateString = StateString + i.toString() + ':' + data.items[i].track.name + '-' +
+                        data.items[i].track.artists[0].name + ';';
+                    ListString = ListString + data.items[i].track.name + '-' + data.items[i].track.artists[
+                        0].name + ';';
+                    Track_ID_String = Track_ID_String + i.toString() + ':' + data.items[i].track.id + ';';
                     var a = {
                         id: data.items[i].track.id,
                         title: data.items[i].track.name,
@@ -463,14 +486,27 @@ function Get_Playlist_Tracks(owner, id, Pfad) {
                     type: 'state',
                     common: {
                         name: 'Tracks',
-                        type: 'object',
+                        type: 'string',
                         role: 'Tracks',
-                        write: false,
-                    },
-                    native: {}
+                        states: StateString,
+                        Track_ID: Track_ID_String
+                    }
                 });
                 adapter.setState(Pfad + '.Track_List', {
                     val: songs,
+                    ack: true
+                });
+                adapter.setObject(Pfad + '.Track_List_String', {
+                    type: 'state',
+                    common: {
+                        name: 'Tracks List String',
+                        type: 'string',
+                        role: 'Tracks List String'
+                    },
+                    native: {}
+                });
+                adapter.setState(Pfad + '.Track_List_String', {
+                    val: ListString,
                     ack: true
                 });
             }
@@ -559,7 +595,6 @@ function request_authorization() {
     adapter.setState('Authorization.Authorization_URL', {
         val: options.url
     });
-
     var debug = false;
     if (debug) {
         request(options, function(error, response, body, formData) {
@@ -653,43 +688,15 @@ function Refresh_Token(Endpoint, Method, Send_Body, callback) {
                         function(err, Token) {
                             if (!err) {
                                 Application.Token = Token.AccessToken;
+                                return callback(null);
                                 // Application.refresh_token=Token.refresh_token;
-                                SendRequest(
-                                    Endpoint,
-                                    Method,
-                                    Send_Body,
-                                    function(err, data) {
-                                        // dieser Request holt die
-                                        // Daten die zuvor mit altem
-                                        // Token gefordert wurden
-                                        if (!err) {
-                                            adapter.log
-                                                .debug('Daten mit neuem Token');
-                                            return callback(null,
-                                                data);
-                                        } else if (err == 202) {
-                                            adapter.log
-                                                .warn(err +
-                                                    ' Anfrage akzeptiert, keine Daten in Antwort'
-                                                );
-                                            return callback(err,
-                                                null);
-                                        } else {
-                                            adapter.log
-                                                .error('FEHLER BEIM ERNEUTEN DATEN ANFORDERN !');
-                                            adapter.log
-                                                .error('Fehler ' +
-                                                    err +
-                                                    ' Function Refresh_Token');
-                                            return callback(err,
-                                                null);
-                                        }
-                                    });
                             } else {
                                 adapter.log.debug(err);
                                 return callback(err, null);
                             }
                         });
+                } else {
+                    return callback(response.statusCode)
                 }
             });
     }
@@ -722,7 +729,6 @@ function on(str, obj) {
     };
     listener.push(a);
 }
-
 on('Authorization.Authorization_Return_URI', function(obj) {
     if (!obj.state.ack) {
         adapter.getState('Authorization.State', function(err, state) {
@@ -741,7 +747,6 @@ on('Authorization.Authorization_Return_URI', function(obj) {
         adapter.log.debug('ack: ' + obj.state.ack);
     }
 });
-
 on('Authorization.Get_Authorization', function(obj) {
     if (obj.state.val) {
         adapter.log.debug('request_authorization');
@@ -752,7 +757,6 @@ on('Authorization.Get_Authorization', function(obj) {
         });
     }
 });
-
 on(/\.Use_for_Playback$/, function(obj) {
     if (obj.state.val) {
         adapter.getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.id', function(err, state) {
@@ -771,7 +775,6 @@ on(/\.Use_for_Playback$/, function(obj) {
         });
     }
 });
-
 on(/\.Track_List$/, function(obj) {
     if (!obj.state.ack && obj.state.val != null && obj.state.val >= 0) {
         // eine bestimmten Track aus Playliste sofort abspielen
@@ -801,7 +804,6 @@ on(/\.Track_List$/, function(obj) {
         }
     }
 });
-
 on(/\.Play_this_List$/,
     function(obj) {
         if (obj.state.val) {
@@ -838,7 +840,6 @@ on(/\.Play_this_List$/,
             });
         }
     });
-
 on('Player.Play', function(obj) {
     if (obj.state.val) {
         var query = {
@@ -850,7 +851,6 @@ on('Player.Play', function(obj) {
             function() {});
     }
 });
-
 on('Player.Pause', function(obj) {
     if (obj.state.val) {
         var query = {
@@ -861,7 +861,6 @@ on('Player.Pause', function(obj) {
             function() {});
     }
 });
-
 on('Player.Skip_Plus', function(obj) {
     if (obj.state.val) {
         var query = {
@@ -872,7 +871,6 @@ on('Player.Skip_Plus', function(obj) {
             function(err, data) {});
     }
 });
-
 on('Player.Skip_Minus', function(obj) {
     if (obj.state.val) {
         var query = {
@@ -883,26 +881,22 @@ on('Player.Skip_Minus', function(obj) {
             function() {});
     }
 });
-
 on('Player.Repeat_Track', function(obj) {
     if (obj.state.val) {
         SendRequest('/v1/me/player/repeat?state=track', 'PUT', '', function() {});
     }
 });
-
 on('Player.Repeat_Context', function(obj) {
     if (obj.state.val) {
         SendRequest('/v1/me/player/repeat?state=context', 'PUT', '',
             function() {});
     }
 });
-
 on('Player.Repeat_off', function(obj) {
     if (obj.state.val) {
         SendRequest('/v1/me/player/repeat?state=off', 'PUT', '', function() {});
     }
 });
-
 on('Player.Volume', function(obj) {
     SendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT',
         '',
@@ -912,13 +906,11 @@ on('Player.Volume', function(obj) {
             }
         });
 });
-
 on('Player.Seek', function(obj) {
     SendRequest('/v1/me/player/seek?position_ms=' + obj.state.val * 1000,
         'PUT', '',
         function() {});
 });
-
 on('Player.Shuffle', function(obj) {
     if (obj.state.val === true) {
         SendRequest('/v1/me/player/shuffle?state=true', 'PUT', '', function() {})
@@ -926,7 +918,6 @@ on('Player.Shuffle', function(obj) {
         SendRequest('/v1/me/player/shuffle?state=false', 'PUT', '', function() {})
     }
 });
-
 on('Player.TrackId', function(obj) {
     var send = {
         uris: ['spotify:track:' + obj.state.val],
@@ -936,7 +927,6 @@ on('Player.TrackId', function(obj) {
     };
     SendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function() {});
 });
-
 on('Player.Playlist_ID', function(obj) {
     var send = {
         context_uri: 'spotify:user:' + Application.User_ID + ':playlist:' +
@@ -947,11 +937,9 @@ on('Player.Playlist_ID', function(obj) {
     };
     SendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function() {});
 });
-
 on('Get_User_Playlists', function(obj) {
     GetUsersPlaylist(0)
 });
-
 on('Devices.Get_Devices', function(obj) {
     SendRequest('/v1/me/player/devices', 'GET', '', function(err, data) {
         if (!err) {
@@ -959,7 +947,6 @@ on('Devices.Get_Devices', function(obj) {
         }
     });
 });
-
 on('Get_Playback_Info', function(obj) {
     SendRequest('/v1/me/player', 'GET', '', function(err, data) {
         if (!err) {
@@ -967,20 +954,21 @@ on('Get_Playback_Info', function(obj) {
         }
     });
 });
-
 on('Authorization.Authorized', function(obj) {
     if (obj.state.val === true) {
         Application.Intervall = setInterval(function() {
             SendRequest('/v1/me/player', 'GET', '', function(err, data) {
+                adapter.log.debug('Intervall' + err)
                 if (!err) {
                     CreatePlaybackInfo(data)
-                } else if (err == 202 || (err == 502)) {
+                } else if (err == 202 || err == 502 || err == 401) { //202, 401 und 502 lassen den Interval  weiter laufen
                     DummyBody = {
                         is_playing: false
                     };
                     // tritt ein wenn kein Player geöffnet ist
                     CreatePlaybackInfo(DummyBody)
                 } else {
+                    // andere Fehler stoppen den Intervall
                     clearInterval(Application.Intervall);
                     adapter.log.warn('Spotify Intervall gestoppt !');
                 }
@@ -994,19 +982,15 @@ on('Authorization.Authorized', function(obj) {
         }
     }
 });
-
 // on('Authorization.Login', function (obj){});
-
 adapter.on('ready', function() {
     main();
 });
-
 adapter.on('stateChange', function(id, state) {
     adapter.log.debug('stateChange ' + id + ' ' + JSON.stringify(state));
     var found = false;
-    var re = new RegExp(adapter.namespace + '*\.' , 'g');
+    var re = new RegExp(adapter.namespace + '*\.', 'g');
     var shrikId = id.replace(re, '');
-
     listener.forEach(function(value) {
         if ((value.name instanceof RegExp && value.name.test(shrikId)) || value.name ==
             shrikId) {
@@ -1022,7 +1006,6 @@ adapter.on('stateChange', function(id, state) {
         adapter.log.debug('no listener for ' + shrikId + ' found');
     }
 });
-
 adapter.on('unload', function(callback) {
     try {
         adapter.log.debug('cleaned everything up...');
