@@ -12,5 +12,6 @@
   "manual8": "U moet mogelijk inloggen op Spotify en toegang toestaan.",
   "manual9": "De browser weigert de verbinding en retourneert een URL in de adresbalk",
   "manual10": "Kopieer deze URL opnieuw en plak deze in de status 'spotify-premium.X.Authorization.Authorization_Return_URI'",
-  "manual11": "alles is correct ingesteld als het waar is in 'spotify-premium.X.Authorization.Authorized'"
+  "manual11": "alles is correct ingesteld als het waar is in 'spotify-premium.X.Authorization.Authorized'",
+  "manual12": "als de knoppen 'Get_Devices' en 'Get_User_Playlists' niet werken, probeer dan de adapter opnieuw op te starten"
 }

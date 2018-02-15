@@ -12,5 +12,6 @@
   "manual8": "You maybe need to sign in to spotify and grant access",
   "manual9": "the browser will redirected to an invalid URL",
   "manual10": "copy that url and put it to 'spotify-premium.X.Authorization.Authorization_Return_URI'",
-  "manual11": "the value in 'spotify-premium.X.Authorization.Authorized' turns to true if everything was successful"
+  "manual11": "the value in 'spotify-premium.X.Authorization.Authorized' turns to true if everything was successful",
+  "manual12": "if the buttons 'Get_Devices' & 'Get_User_Playlists' doesn't work try to restart the adapter"
 }

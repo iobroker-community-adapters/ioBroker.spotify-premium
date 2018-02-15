@@ -12,5 +12,6 @@
   "manual8": "Вам может потребоваться войти в Spotify и разрешить доступ.",
   "manual9": "Браузер отклонит соединение и вернет URL-адрес в адресной строке.",
   "manual10": "Теперь скопируйте этот URL-адрес и вставьте его в состояние 'spotify-premium.X.Authorization.Authorization_Return_URI'",
-  "manual11": "все правильно настроено, если true в 'spotify-premium.X.Authorization.Authorized'"
+  "manual11": "все правильно настроено, если true в 'spotify-premium.X.Authorization.Authorized'",
+  "manual12": "если кнопки 'Get_Devices' и 'Get_User_Playlists' не работают, попробуйте перезагрузить адаптер"
 }
