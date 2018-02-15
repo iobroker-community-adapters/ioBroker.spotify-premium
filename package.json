@@ -1,6 +1,6 @@
 {
   "name": "iobroker.spotify-premium",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "ioBroker spotify-premium Adapter",
   "author": {
     "name": "Alexander Kose",

@@ -10,6 +10,9 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.0.3 (2018.02.15)
+* (wendy2702) improved manual
+
 ### 0.0.2 (2018.02.11)
 * (twonky) merge original script v0.5.3 by [Lucky](http://forum.iobroker.net/viewtopic.php?f=21&t=8173)
 
