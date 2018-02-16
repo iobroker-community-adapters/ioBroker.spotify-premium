@@ -10,6 +10,9 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.0.5 (2018.02.16)
+* (twonky) fix: fatal error if no open player
+
 ### 0.0.4 (2018.02.16)
 * (twonky) check configuration
 * (twonky) fix: adapter configuration in admin2

@@ -970,7 +970,7 @@ on('Authorization.Authorized', function(obj) {
                     adapter.log.debug('Intervall ' + err)
                     CreatePlaybackInfo(data)
                 } else if (err == 202 || err == 502 || err == 401) { //202, 401 und 502 lassen den Interval  weiter laufen
-                    DummyBody = {
+                    var DummyBody = {
                         is_playing: false
                     };
                     // tritt ein wenn kein Player geöffnet ist
