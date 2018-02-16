@@ -10,6 +10,9 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.0.6 (2018.02.16)
+* (twonky) fix: playlist loading
+
 ### 0.0.5 (2018.02.16)
 * (twonky) fix: fatal error if no open player
 

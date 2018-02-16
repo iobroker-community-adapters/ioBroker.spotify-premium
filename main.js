@@ -20,7 +20,7 @@ var Application = {
 };
 var Device_Data = {
     last_active_device_id: '',
-    last_select_device_id: '',
+    last_select_device_id: ''
 };
 
 function isEmpty(str) {
@@ -328,10 +328,10 @@ function DigiClock(ms) {
     var Min = Math.floor(ms / 60000);
     var Sec = Math.floor(((ms % 360000) % 60000) / 1000);
     if (Min < 10) {
-        Min = '0' + Min
+        Min = '0' + Min;
     }
     if (Sec < 10) {
-        Sec = '0' + Sec
+        Sec = '0' + Sec;
     }
     return Min + ':' + Sec;
 }
@@ -355,102 +355,83 @@ function GetUsersPlaylist(offset) {
             querystring.stringify(query), 'GET', '',
             function(err, P_Body) {
                 if (!err) {
-                    for (var i = 0; i < P_Body.items.length; i++) {
+                    P_Body.items.forEach(function(item) {
                         var Pfad = 'Playlists.' +
-                            P_Body.items[i].name.replace(/\s+/g, '');
-                        PlaylistString = P_Body.items[i].name + ';' +
+                            item.name.replace(/\s+/g, '');
+                        PlaylistString = item.name + ';' +
                             PlaylistString;
-                        if (adapter.getObject(Pfad + '.id') === null) {
-                            adapter.setObject(Pfad + '.Play_this_List', {
-                                type: 'state',
-                                common: {
-                                    name: 'button',
-                                    type: 'boolean',
-                                    role: 'button'
-                                },
-                                native: {}
-                            });
-                            adapter.setState(Pfad + '.Play_this_List', {
-                                val: false,
-                                ack: true
-                            });
-                            adapter.setObject(Pfad + '.id', {
-                                type: 'state',
-                                common: {
-                                    name: 'id',
-                                    type: 'string',
-                                    role: 'id',
-                                    write: false,
-                                },
-                                native: {}
-                            });
-                            adapter.setState(Pfad + '.id', {
-                                val: P_Body.items[i].id,
-                                ack: true
-                            });
-                            adapter.setObject(Pfad + '.owner', {
-                                type: 'state',
-                                common: {
-                                    name: 'owner',
-                                    type: 'string',
-                                    role: 'owner',
-                                    write: false,
-                                },
-                                native: {}
-                            });
-                            adapter.setState(Pfad + '.owner', {
-                                val: P_Body.items[i].name,
-                                ack: true
-                            });
-                            adapter.setObject(Pfad + '.name', {
-                                type: 'state',
-                                common: {
-                                    name: 'Name',
-                                    type: 'string',
-                                    role: 'string',
-                                    write: false,
-                                },
-                                native: {}
-                            });
-                            adapter.setState(Pfad + '.name', {
-                                val: P_Body.items[i].name,
-                                ack: true
-                            });
-                            adapter.setObject(Pfad + '.tracks_total', {
-                                type: 'state',
-                                common: {
-                                    name: 'tracks_total',
-                                    type: 'number',
-                                    role: 'tracks_total',
-                                    write: false,
-                                },
-                                native: {}
-                            });
-                            adapter.setState(Pfad + '.tracks_total', {
-                                val: P_Body.items[i].tracks.total,
-                                ack: true
-                            });
-                        } else {
-                            adapter.setState(Pfad + '.id', {
-                                val: P_Body.items[i].id,
-                                ack: true
-                            });
-                            adapter.setState(Pfad + '.owner', {
-                                val: P_Body.items[i].owner.id,
-                                ack: true
-                            });
-                            adapter.setState(Pfad + '.name', {
-                                val: P_Body.items[i].name,
-                                ack: true
-                            });
-                            adapter.setState(Pfad + '.tracks_total', {
-                                val: P_Body.items[i].tracks.total,
-                                ack: true
-                            });
-                        }
-                        Get_Playlist_Tracks(P_Body.items[i].owner.id,
-                            P_Body.items[i].id, Pfad);
-                    }
+                        adapter.setObjectNotExists(Pfad + '.Play_this_List', {
+                            type: 'state',
+                            common: {
+                                name: 'button',
+                                type: 'boolean',
+                                role: 'button'
+                            },
+                            native: {}
+                        });
+                        adapter.setObjectNotExists(Pfad + '.id', {
+                            type: 'state',
+                            common: {
+                                name: 'id',
+                                type: 'string',
+                                role: 'id',
+                                write: false
+                            },
+                            native: {}
+                        });
+                        adapter.setObjectNotExists(Pfad + '.owner', {
+                            type: 'state',
+                            common: {
+                                name: 'owner',
+                                type: 'string',
+                                role: 'owner',
+                                write: false
+                            },
+                            native: {}
+                        });
+                        adapter.setObjectNotExists(Pfad + '.name', {
+                            type: 'state',
+                            common: {
+                                name: 'Name',
+                                type: 'string',
+                                role: 'string',
+                                write: false
+                            },
+                            native: {}
+                        });
+                        adapter.setObjectNotExists(Pfad + '.tracks_total', {
+                            type: 'state',
+                            common: {
+                                name: 'tracks_total',
+                                type: 'number',
+                                role: 'tracks_total',
+                                write: false
+                            },
+                            native: {}
+                        });
+                        adapter.setState(Pfad + '.Play_this_List', {
+                            val: false,
+                            ack: true
+                        });
+                        adapter.setState(Pfad + '.id', {
+                            val: item.id,
+                            ack: true
+                        });
+                        adapter.setState(Pfad + '.owner', {
+                            val: item.owner.id,
+                            ack: true
+                        });
+                        adapter.setState(Pfad + '.name', {
+                            val: item.name,
+                            ack: true
+                        });
+                        adapter.setState(Pfad + '.tracks_total', {
+                            val: item.tracks.total,
+                            ack: true
+                        });
+                        Get_Playlist_Tracks(item.owner.id,
+                            item.id, Pfad);
+                    });
                     if (P_Body.items.length !== 0 &&
                         (P_Body['next'] !== null)) {
                         GetUsersPlaylist(P_Body.offset + P_Body.limit)
@@ -488,20 +469,22 @@ function Get_Playlist_Tracks(owner, id, Pfad) {
                 var StateString = '';
                 var ListString = '';
                 var Track_ID_String = '';
-                var songs = []
-                for (var i = 0; i < data.items.length; i++) {
-                    StateString = StateString + i.toString() + ':' + data.items[i].track.name + '-' +
-                        data.items[i].track.artists[0].name + ';';
-                    ListString = ListString + data.items[i].track.name + '-' + data.items[i].track.artists[
-                        0].name + ';';
-                    Track_ID_String = Track_ID_String + i.toString() + ':' + data.items[i].track.id + ';';
+                var songs = [];
+                var i = 0;
+                data.items.forEach(function(item) {
+                    StateString = StateString + i.toString() + ':' + item.track.name + '-' + item
+                        .track.artists[0].name + ';';
+                    ListString = ListString + item.track.name + '-' + item.track.artists[0].name +
+                        ';';
+                    Track_ID_String = Track_ID_String + i.toString() + ':' + item.track.id + ';';
                     var a = {
-                        id: data.items[i].track.id,
-                        title: data.items[i].track.name,
-                        artist: data.items[i].track.artists[0].name
+                        id: item.track.id,
+                        title: item.track.name,
+                        artist: item.track.artists[0].name
                     };
                     songs.push(a);
-                }
+                    i++;
+                });
                 adapter.setObject(Pfad + '.Track_List', {
                     type: 'state',
                     common: {
@@ -535,55 +518,45 @@ function Get_Playlist_Tracks(owner, id, Pfad) {
 }
 
 function CreateDevices(P_Body) {
-    for (var i = 0; i < P_Body.devices.length; i++) {
-        for (var ObjName in P_Body.devices[i]) {
-            if (!adapter.getObject('Devices.' +
-                    P_Body.devices[i].name.replace(/\s+/g, '') + '.' +
-                    ObjName)) {
-                adapter.setObject('Devices.' +
-                    P_Body.devices[i].name.replace(/\s+/g, '') + '.' +
-                    ObjName, {
-                        type: 'state',
-                        common: {
-                            name: ObjName,
-                            type: typeof P_Body.devices[i][ObjName],
-                            role: ObjName
-                        },
-                        native: {}
-                    });
-                adapter.setState('Devices.' +
-                    P_Body.devices[i].name.replace(/\s+/g, '') + '.' +
-                    ObjName, {
-                        val: P_Body.devices[i][ObjName],
-                        ack: true
-                    });
-                adapter.setObject('Devices.' +
-                    P_Body.devices[i].name.replace(/\s+/g, '') + '.' +
-                    'Use_for_Playback', {
-                        type: 'state',
-                        common: {
-                            name: 'Use_for_Playback',
-                            type: 'boolean',
-                            role: 'button'
-                        },
-                        native: {}
-                    });
-                adapter.setState('Devices.' +
-                    P_Body.devices[i].name.replace(/\s+/g, '') + '.' +
-                    'Use_for_Playback', {
-                        val: false,
-                        ack: true
-                    });
-            } else {
-                adapter.setState('Devices.' +
-                    P_Body.devices[i].name.replace(/\s+/g, '') + '.' +
-                    ObjName, {
-                        val: P_Body.devices[i][ObjName],
-                        ack: true
-                    })
-            }
+    adapter.log.info(JSON.stringify(P_Body));
+    P_Body.devices.forEach(function(device) {
+        for (var ObjName in device) {
+            adapter.setObjectNotExists('Devices.' +
+                device.name.replace(/\s+/g, '') + '.' +
+                ObjName, {
+                    type: 'state',
+                    common: {
+                        name: ObjName,
+                        type: typeof device[ObjName],
+                        role: ObjName
+                    },
+                    native: {}
+                });
+            adapter.setObjectNotExists('Devices.' +
+                device.name.replace(/\s+/g, '') + '.' +
+                'Use_for_Playback', {
+                    type: 'state',
+                    common: {
+                        name: 'Use_for_Playback',
+                        type: 'boolean',
+                        role: 'button'
+                    },
+                    native: {}
+                });
+            adapter.setState('Devices.' +
+                device.name.replace(/\s+/g, '') + '.' +
+                'Use_for_Playback', {
+                    val: false,
+                    ack: true
+                });
+            adapter.setState('Devices.' +
+                device.name.replace(/\s+/g, '') + '.' +
+                ObjName, {
+                    val: device[ObjName],
+                    ack: true
+                });
         }
-    }
+    });
 }
 
 function generateRandomString(length) {
@@ -661,7 +634,7 @@ function GetToken() {
 }
 
 function Refresh_Token(Endpoint, Method, Send_Body, callback) {
-    adapter.log.debug('Token wird erneut angefordert ! ');
+    adapter.log.debug('Token wird erneut angefordert !');
     var options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
@@ -703,7 +676,7 @@ function Refresh_Token(Endpoint, Method, Send_Body, callback) {
                             }
                         });
                 } else {
-                    return callback(response.statusCode)
+                    return callback(response.statusCode);
                 }
             });
     }
@@ -724,7 +697,7 @@ function SaveToken(P_Body, callback) {
             callback(null, Token);
         });
     } else {
-    	adapter.log.error(JSON.stringify(P_Body));
+        adapter.log.error(JSON.stringify(P_Body));
         return callback('keine Token in Serverantwort gefunden ! ', null)
     }
 }
@@ -767,12 +740,12 @@ on('Authorization.Get_Authorization', function(obj) {
     }
 });
 on(/\.Use_for_Playback$/, function(obj) {
-    if (obj.state.val) {
+    if (obj.state != null && obj.state.val) {
         adapter.getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.id', function(err, state) {
             Device_Data.last_select_device_id = state.val;
             var send = {
                 device_ids: [Device_Data.last_select_device_id],
-                // Divice IDs als Array ! play:false
+                // Divice IDs als Array! play:false
                 // True = Wiedergabe
                 // startet sofort auf diesem Gerät, FALSE = Wiedergabe
                 // anhängig von Playback State
@@ -785,7 +758,7 @@ on(/\.Use_for_Playback$/, function(obj) {
     }
 });
 on(/\.Track_List$/, function(obj) {
-    if (!obj.state.ack && obj.state.val != null && obj.state.val >= 0) {
+    if (obj.state != null && !obj.state.ack && obj.state.val != null && obj.state.val >= 0) {
         // eine bestimmten Track aus Playliste sofort abspielen
         var StateName = obj.common.Track_ID.split(';');
         var StateArr = [];
@@ -815,7 +788,7 @@ on(/\.Track_List$/, function(obj) {
 });
 on(/\.Play_this_List$/,
     function(obj) {
-        if (obj.state.val) {
+        if (obj.state != null && obj.state.val) {
             // eine bestimmte Playlist sofort abspielen
             adapter.getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.owner', function(err, state) {
                 var owner = state;
