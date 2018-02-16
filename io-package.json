@@ -72,14 +72,14 @@
             "es": "Spotify Premium adapter"
         },
         "desc": {
-            "en": "ioBroker Spotify Premium Adapter",
-            "de": "ioBroker Spotify Premium Adapter",
-            "ru": "ioBroker Spotify Premium драйвер",
-            "pt": "Spotify Premium adaptador para o ioBroker",
-            "fr": "ioBroker Spotify Premium adaptateur",
-            "nl": "ioBroker Spotify Premium Adapter",
-            "it": "Adattatore Spotify Premium ioBroker",
-            "es": "Spotify Premium Adaptador ioBroker"
+            "en": "Spotify Premium Adapter",
+            "de": "Spotify Premium Adapter",
+            "ru": "Spotify Premium драйвер",
+            "pt": "Spotify Premium adaptador",
+            "fr": "Spotify Premium adaptateur",
+            "nl": "Spotify Premium Adapter",
+            "it": "Adattatore Spotify Premium",
+            "es": "Spotify Premium Adaptador"
         },
         "authors": [
             "Lucky",
