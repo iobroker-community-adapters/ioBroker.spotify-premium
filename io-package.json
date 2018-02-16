@@ -1,15 +1,23 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.0.3",
+        "version": "0.0.4",
         "news": {
+        	"0.0.4": {
+                "en": "check configuration",
+                "de": "Konfiguration überprüfen",
+                "ru": "проверить конфигурацию",
+                "pt": "verificar a configuração",
+                "fr": "vérifier la configuration",
+                "nl": "controleer de configuratie"
+            },
             "0.0.3": {
-                "en": "merge script version 0.5.3",
-                "de": "Skript Version 0.5.3 eingearbeitet",
-                "ru": "Сценарий версии 0.5.3 включен",
-                "pt": "Versão de script 0.5.3 incorporada",
-                "fr": "Script version 0.5.3 incorporé",
-                "nl": "Script-versie 0.5.3 opgenomen"
+                "en": "improved manual",
+                "de": "Anleitung verbessert",
+                "ru": "улучшенное руководство",
+                "pt": "manual melhorado",
+                "fr": "manuel amélioré",
+                "nl": "verbeterde handleiding"
             },
             "0.0.2": {
                 "en": "merge script version 0.5.3",

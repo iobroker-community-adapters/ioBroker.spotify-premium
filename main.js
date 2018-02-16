@@ -23,9 +23,21 @@ var Device_Data = {
     last_select_device_id: '',
 };
 
+function isEmpty(str) {
+    return (!str || 0 === str.length);
+}
+
 function main() {
     Application.Client_ID = adapter.config.client_id;
     Application.Client_Secret = adapter.config.client_secret;
+    if (isEmpty(Application.Client_ID)) {
+        adapter.log.error('Client_ID is not filled');
+        return;
+    }
+    if (isEmpty(Application.Client_Secret)) {
+        adapter.log.error('Client_Secret is not filled');
+        return;
+    }
     adapter.subscribeStates('*');
     ReadTokenFiles(function(err, Token) {
         if (!err) {
