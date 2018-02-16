@@ -39,6 +39,10 @@ function main() {
         return;
     }
     adapter.subscribeStates('*');
+    start();
+}
+
+function start() {
     ReadTokenFiles(function(err, Token) {
         if (!err) {
             Application.Token = Token.AccessToken;
@@ -342,7 +346,7 @@ function GetUserInformation(P_Body) {
 
 function GetUsersPlaylist(offset) {
     var PlaylistString;
-    if (Application.User_ID !== '') {
+    if (!isEmpty(Application.User_ID)) {
         var query = {
             limit: 30,
             offset: offset
@@ -453,8 +457,12 @@ function GetUsersPlaylist(offset) {
                     }
                     // adapter.setState('Playlist_Names', { val:
                     // PlaylistString});
+                } else {
+                    adapter.log.error('playlist error ' + playlists);
                 }
             });
+    } else {
+        adapter.log.error('no User_ID');
     }
 }
 
@@ -502,7 +510,8 @@ function Get_Playlist_Tracks(owner, id, Pfad) {
                         role: 'Tracks',
                         states: StateString,
                         Track_ID: Track_ID_String
-                    }
+                    },
+                    native: {}
                 });
                 adapter.setState(Pfad + '.Track_List', {
                     val: songs,
@@ -607,21 +616,6 @@ function request_authorization() {
     adapter.setState('Authorization.Authorization_URL', {
         val: options.url
     });
-    var debug = false;
-    if (debug) {
-        request(options, function(error, response, body, formData) {
-            adapter.log.debug(options.url);
-            adapter.log.debug('STATUS_CODE ' + response.statusCode);
-            adapter.log.debug('RESPONSE*************' +
-                JSON.stringify(response));
-            adapter.log.debug('BODY*****' + body);
-            adapter.log.debug('ERROR' + error);
-            adapter.log.debug('FORM' + request.form);
-            adapter.log.debug('HEADERS *****' +
-                JSON.stringify(response.headers));
-            adapter.log.debug('HTML *****' + JSON.stringify(response.html));
-        });
-    }
 }
 
 function GetToken() {
@@ -658,6 +652,7 @@ function GetToken() {
                 });
                 Application.Token = Token.AccessToken;
                 Application.refresh_token = Token.RefreshToken;
+                start();
             } else {
                 adapter.log.debug(err)
             }
@@ -751,8 +746,9 @@ on('Authorization.Authorization_Return_URI', function(obj) {
                 Application.code = return_uri.code;
                 GetToken();
             } else {
-                adapter.log.debug('State not equals: ' + return_uri.state + ' - ' +
-                    Application.State);
+                adapter.log.error(
+                    'invalid session. You need to open the actual Authorization.Authorization_URL'
+                );
             }
         });
     } else {
@@ -970,8 +966,8 @@ on('Authorization.Authorized', function(obj) {
     if (obj.state.val === true) {
         Application.Intervall = setInterval(function() {
             SendRequest('/v1/me/player', 'GET', '', function(err, data) {
-                adapter.log.debug('Intervall' + err)
                 if (!err) {
+                    adapter.log.debug('Intervall ' + err)
                     CreatePlaybackInfo(data)
                 } else if (err == 202 || err == 502 || err == 401) { //202, 401 und 502 lassen den Interval  weiter laufen
                     DummyBody = {

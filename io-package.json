@@ -4,12 +4,12 @@
         "version": "0.0.4",
         "news": {
         	"0.0.4": {
-                "en": "check configuration",
-                "de": "Konfiguration überprüfen",
-                "ru": "проверить конфигурацию",
-                "pt": "verificar a configuração",
-                "fr": "vérifier la configuration",
-                "nl": "controleer de configuratie"
+                "en": "check configuration; fix: adapter configuration in admin2; fix: restart after authorization need",
+                "de": "Konfiguration überprüfen; Behoben: Adapter Konfiguration in admin2; Behoben: Neustart nach Autorisation nicht mehr nötig",
+                "ru": "Проверьте конфигурацию; Исправлено: Конфигурация адаптера в admin2; Исправлено: Перезапуск после авторизации больше не нужен",
+                "pt": "Verifique a configuração; Corrigido: configuração do adaptador em admin2; Corrigido: reiniciar após a autorização, não é mais necessário",
+                "fr": "Vérifier la configuration Corrigé: Configuration de l'adaptateur dans admin2; Correction: Redémarrage après l'autorisation n'est plus nécessaire",
+                "nl": "Controleer de configuratie; Opgelost: adapterconfiguratie in admin2; Opgelost: opnieuw opstarten na autorisatie niet meer nodig"
             },
             "0.0.3": {
                 "en": "improved manual",

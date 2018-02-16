@@ -10,8 +10,10 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
-### 0.0.4 (2018.02.15)
+### 0.0.4 (2018.02.16)
 * (twonky) check configuration
+* (twonky) fix: adapter configuration in admin2
+* (twonky) fix: restart after authorization need
 
 ### 0.0.3 (2018.02.15)
 * (wendy2702) improved manual

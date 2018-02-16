@@ -12,6 +12,5 @@
   "manual8": "Du musst dich nun ggf. bei Spotify einloggen und den Zugriff erlauben.",
   "manual9": "Der Browser wird die Verbindung ablehnen und in der Adresszeile eine URL zurückgeben",
   "manual10": "Kopiere diese URL und füge sie im Tab Objekte unter dem State 'spotify-premium.X.Authorization.Authorization_Return_URI' ein",
-  "manual11": "Es ist alles korrekt eingerichtet wenn in 'spotify-premium.X.Authorization.Authorized' true erscheint",
-  "manual12": "Sollten die Button 'Get_Devices' & 'Get_User_Playlists' nicht funktionieren muss der Adapter noch einmal neu gestartet werden"
+  "manual11": "Es ist alles korrekt eingerichtet wenn in 'spotify-premium.X.Authorization.Authorized' true erscheint"
 }
