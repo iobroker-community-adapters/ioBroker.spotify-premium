@@ -724,6 +724,7 @@ function SaveToken(P_Body, callback) {
             callback(null, Token);
         });
     } else {
+    	adapter.log.error(JSON.stringify(P_Body));
         return callback('keine Token in Serverantwort gefunden ! ', null)
     }
 }
