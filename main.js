@@ -633,7 +633,7 @@ function GetToken() {
     });
 }
 
-function Refresh_Token(Endpoint, Method, Send_Body, callback) {
+function Refresh_Token(callback) {
     adapter.log.debug('Token wird erneut angefordert !');
     var options = {
         url: 'https://accounts.spotify.com/api/token',

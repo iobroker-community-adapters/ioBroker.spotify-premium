@@ -10,6 +10,9 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.0.7 (2018.02.16)
+* (twonky) fix: auto refresh token
+
 ### 0.0.6 (2018.02.16)
 * (twonky) fix: playlist loading
 
