@@ -1,5 +1,12 @@
 ![Logo](admin/spotify-premium.png)
 # ioBroker.spotify-premium
+
+[![NPM version](https://img.shields.io/npm/v/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
+[![Tests](http://img.shields.io/travis/twonky4/ioBroker.spotify-premium/master.svg)](https://travis-ci.org/twonky4/ioBroker.spotify-premium)
+
+[![NPM](https://nodei.co/npm/iobroker.spotify-premium.png?downloads=true)](https://nodei.co/npm/iobroker.spotify-premium/)
+
 =================
 
 Connection to [Spotify Premium API](https://www.spotify.com/).
