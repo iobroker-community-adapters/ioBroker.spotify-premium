@@ -212,7 +212,6 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
 }
 
 function CreatePlaybackInfo(P_Body) {
-    adapter.log.debug(JSON.stringify(P_Body));
     if (isEmpty(P_Body)) {
         adapter.log.warn('no playback content')
         return;
@@ -263,7 +262,6 @@ function CreatePlaybackInfo(P_Body) {
                                     val: P_Body.name,
                                     ack: true
                                 });
-                                adapter.log.debug(JSON.stringify(P_Body));
                             } else {
                                 adapter.log.warn(err);
                             }
@@ -518,7 +516,7 @@ function Get_Playlist_Tracks(owner, id, path, offset, playListObject) {
         function(err, data) {
             if (!err) {
                 var i = offset;
-                adapter.log.info(JSON.stringify(data));
+
                 data.items.forEach(function(item) {
                     playListObject.StateString += i.toString() + ':' + item.track.name + '-' +
                         item
@@ -564,12 +562,6 @@ function Get_Playlist_Tracks(owner, id, path, offset, playListObject) {
                     adapter.setState(path + '.Track_List_String', {
                         val: playListObject.ListString,
                         ack: true
-                    });
-                    adapter.getStates(path + '.Track_List*', function(err, state) {
-                        adapter.log.info('State_list: ' + JSON.stringify(state));
-                    });
-                    adapter.getObject(path + '.Track_List', function(err, obj) {
-                        adapter.log.info('obj_list: ' + JSON.stringify(obj));
                     });
                 }
             } else {
@@ -619,7 +611,6 @@ function DeleteDevices(callback) {
 }
 
 function CreateDevices(P_Body) {
-    adapter.log.info('CreateDevices: ' + JSON.stringify(P_Body));
     P_Body.devices.forEach(function(device) {
         for (var ObjName in device) {
             adapter.setObjectNotExists('Devices.' +
