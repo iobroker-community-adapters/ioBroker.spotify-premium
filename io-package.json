@@ -569,6 +569,33 @@
             "native": {}
         },
         {
+            "_id": "PlaybackInfo.shuffle",
+            "type": "state",
+            "common": {
+                "role": "shuffle",
+                "name": "shuffle",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "PlaybackInfo.repeat",
+            "type": "state",
+            "common": {
+                "role": "repeat",
+                "name": "repeat",
+                "type": "string",
+                "read": true,
+                "write": false,
+                "def": false,
+                "states": "{\"off\": \"off\",\"context\": \"context\",\"track\": \"track\"}"
+            },
+            "native": {}
+        },
+        {
             "_id": "PlaybackInfo.Device.id",
             "type": "state",
             "common": {

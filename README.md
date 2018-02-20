@@ -17,6 +17,12 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.0.9 (2018.02.20)
+* (twonky) new state `PlaybackInfo.repeat` with possible values: off, context, track
+* (twonky) new state `PlaybackInfo.shuffle` with possible values: true, false
+* (twonky) states for the playing device will also updated in 5s intervals
+* (twonky) states in `PlaybackInfo` are now updated also if no device is active playing
+
 ### 0.0.8 (2018.02.20)
 * (twonky) new adapter option to delete no longer existing devices and playlists
 * (twonky) load complete playlists (limitation of 100 first tracks was removed)
