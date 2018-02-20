@@ -13,8 +13,6 @@ var Application = {
     Client_Secret: '',
     Delete_Devices: false,
     Delete_Playlists: false,
-    // older versions uses 'https://example.com/callback/', use
-    // 'http://localhost' instead for safety reasons
     redirect_uri: 'http://localhost',
     Token: '',
     refresh_token: '',
@@ -155,7 +153,7 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                     case 401:
                         // Unauthorized
                         if (JSON.parse(body).error.message == 'The access token expired') {
-                            adapter.log.debug('Access Token Abgelaufen!!');
+                            adapter.log.debug('Access Token expired!');
                             adapter.setState('Authorization.Authorized', {
                                 val: false,
                                 ack: true
@@ -178,7 +176,7 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                                             return callback(err, null);
                                         } else {
                                             console.error(
-                                                'FEHLER BEIM ERNEUTEN DATEN ANFORDERN ! ' +
+                                                'Fehler beim erneuten Daten anfordern! ' +
                                                 err);
                                             return callback(err, null);
                                         }
@@ -303,14 +301,12 @@ function CreatePlaybackInfo(data) {
             });
         });
     }
-
     if (data.hasOwnProperty('is_playing')) {
         adapter.setState('PlaybackInfo.is_playing', {
             val: data.is_playing,
             ack: true
         });
     }
-
     if (data.hasOwnProperty('item')) {
         adapter.setState('PlaybackInfo.Track_Id', {
             val: data.item.id,
@@ -382,7 +378,7 @@ function CreatePlaybackInfo(data) {
             var IndexOfPlaylistID = data.context.uri
                 .indexOf("playlist:") + 9;
             var query = {
-                fields: 'name',
+                fields: 'name,id,owner.id,tracks.total',
             };
             SendRequest('/v1/users/' +
                 data.context.uri.substring(IndexOfUser,
@@ -394,6 +390,13 @@ function CreatePlaybackInfo(data) {
                         adapter.setState('PlaybackInfo.Playlist', {
                             val: parseJson.name,
                             ack: true
+                        });
+                        adapter.getState('Playlists.' + parseJson.name + '.name', function(err, state) {
+                            if (state === null) {
+                                persistPlaylist({
+                                    items: [parseJson]
+                                });
+                            }
                         });
                     } else {
                         adapter.log.warn(err);
@@ -415,7 +418,7 @@ function CreatePlaybackInfo(data) {
             adapter.setState('PlaybackInfo.Type', {
                 val: '',
                 ack: true
-            });        	
+            });
         }
         adapter.setState('PlaybackInfo.Playlist', {
             val: '',
@@ -461,7 +464,7 @@ function CreatePlaybackInfo(data) {
         adapter.setState('PlaybackInfo.shuffle', {
             val: false,
             ack: true
-        });    	
+        });
     }
     if (data.hasOwnProperty('repeat_state')) {
         adapter.setState('PlaybackInfo.repeat', {
@@ -472,7 +475,7 @@ function CreatePlaybackInfo(data) {
         adapter.setState('PlaybackInfo.repeat', {
             val: false,
             ack: true
-        });    	
+        });
     }
 }
 
@@ -525,8 +528,88 @@ function DeleteUsersPlaylist(callback) {
     });
 }
 
+function persistPlaylist(parseJson, autoContinue) {
+    parseJson.items.forEach(function(item) {
+        var path = 'Playlists.' +
+            item.name.replace(/\s+/g, '');
+        adapter.setObjectNotExists(path + '.Play_this_List', {
+            type: 'state',
+            common: {
+                name: 'button',
+                type: 'boolean',
+                role: 'button'
+            },
+            native: {}
+        });
+        adapter.setObjectNotExists(path + '.id', {
+            type: 'state',
+            common: {
+                name: 'id',
+                type: 'string',
+                role: 'id',
+                write: false
+            },
+            native: {}
+        });
+        adapter.setObjectNotExists(path + '.owner', {
+            type: 'state',
+            common: {
+                name: 'owner',
+                type: 'string',
+                role: 'owner',
+                write: false
+            },
+            native: {}
+        });
+        adapter.setObjectNotExists(path + '.name', {
+            type: 'state',
+            common: {
+                name: 'Name',
+                type: 'string',
+                role: 'string',
+                write: false
+            },
+            native: {}
+        });
+        adapter.setObjectNotExists(path + '.tracks_total', {
+            type: 'state',
+            common: {
+                name: 'tracks_total',
+                type: 'number',
+                role: 'tracks_total',
+                write: false
+            },
+            native: {}
+        });
+        adapter.setState(path + '.Play_this_List', {
+            val: false,
+            ack: true
+        });
+        adapter.setState(path + '.id', {
+            val: item.id,
+            ack: true
+        });
+        adapter.setState(path + '.owner', {
+            val: item.owner.id,
+            ack: true
+        });
+        adapter.setState(path + '.name', {
+            val: item.name,
+            ack: true
+        });
+        adapter.setState(path + '.tracks_total', {
+            val: item.tracks.total,
+            ack: true
+        });
+        Get_Playlist_Tracks(item.owner.id,
+            item.id, path, 0);
+    });
+    if (autoContinue && parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
+        GetUsersPlaylist(parseJson.offset + parseJson.limit);
+    }
+}
+
 function GetUsersPlaylist(offset) {
-    var PlaylistString;
     if (!isEmpty(Application.User_ID)) {
         var query = {
             limit: 30,
@@ -534,94 +617,15 @@ function GetUsersPlaylist(offset) {
         };
         SendRequest('/v1/users/' + Application.User_ID + '/playlists?' +
             querystring.stringify(query), 'GET', '',
-            function(err, parseJson) {
+            function(err, parsedJson) {
                 if (!err) {
-                    parseJson.items.forEach(function(item) {
-                        var path = 'Playlists.' +
-                            item.name.replace(/\s+/g, '');
-                        PlaylistString = item.name + ';' +
-                            PlaylistString;
-                        adapter.setObjectNotExists(path + '.Play_this_List', {
-                            type: 'state',
-                            common: {
-                                name: 'button',
-                                type: 'boolean',
-                                role: 'button'
-                            },
-                            native: {}
-                        });
-                        adapter.setObjectNotExists(path + '.id', {
-                            type: 'state',
-                            common: {
-                                name: 'id',
-                                type: 'string',
-                                role: 'id',
-                                write: false
-                            },
-                            native: {}
-                        });
-                        adapter.setObjectNotExists(path + '.owner', {
-                            type: 'state',
-                            common: {
-                                name: 'owner',
-                                type: 'string',
-                                role: 'owner',
-                                write: false
-                            },
-                            native: {}
-                        });
-                        adapter.setObjectNotExists(path + '.name', {
-                            type: 'state',
-                            common: {
-                                name: 'Name',
-                                type: 'string',
-                                role: 'string',
-                                write: false
-                            },
-                            native: {}
-                        });
-                        adapter.setObjectNotExists(path + '.tracks_total', {
-                            type: 'state',
-                            common: {
-                                name: 'tracks_total',
-                                type: 'number',
-                                role: 'tracks_total',
-                                write: false
-                            },
-                            native: {}
-                        });
-                        adapter.setState(path + '.Play_this_List', {
-                            val: false,
-                            ack: true
-                        });
-                        adapter.setState(path + '.id', {
-                            val: item.id,
-                            ack: true
-                        });
-                        adapter.setState(path + '.owner', {
-                            val: item.owner.id,
-                            ack: true
-                        });
-                        adapter.setState(path + '.name', {
-                            val: item.name,
-                            ack: true
-                        });
-                        adapter.setState(path + '.tracks_total', {
-                            val: item.tracks.total,
-                            ack: true
-                        });
-                        Get_Playlist_Tracks(item.owner.id,
-                            item.id, path, 0);
-                    });
-                    if (parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
-                        GetUsersPlaylist(parseJson.offset + parseJson.limit);
-                    }
+                    persistPlaylist(parsedJson, true);
                 } else {
                     adapter.log.error('playlist error ' + playlists);
                 }
             });
     } else {
-        adapter.log.error('no User_ID');
+        adapter.log.warn('no User_ID');
     }
 }
 
