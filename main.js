@@ -173,7 +173,7 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                                             return callback(null, data);
                                         } else if (err == 202) {
                                             adapter.log.debug(err +
-                                                ' Anfrage akzeptiert, keine Daten in Antwort, versuch es nochmal ;-)'
+                                                ' Anfrage akzeptiert, keine Daten in Antwort, versuch es nochmal'
                                             );
                                             return callback(err, null);
                                         } else {
@@ -265,117 +265,214 @@ function CreatePlaybackInfo(data) {
                 volume_percent: data.device.volume_percent
             }]
         });
+    } else {
+        adapter.setState('PlaybackInfo.Device.id', {
+            val: '',
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Device.is_active', {
+            val: false,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Device.is_restricted', {
+            val: false,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Device.name', {
+            val: '',
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Device.type', {
+            val: '',
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Device.volume_percent', {
+            val: 100,
+            ack: true
+        });
+        adapter.getStates('Devices.*.is_active', function(err, state) {
+            var keys = Object.keys(state);
+            keys.forEach(function(key) {
+                key = removeNameSpace(key);
+                if (key.endsWith('.is_active')) {
+                    adapter.setState(key, {
+                        val: false,
+                        ack: true
+                    });
+                }
+            });
+        });
     }
+
     if (data.hasOwnProperty('is_playing')) {
         adapter.setState('PlaybackInfo.is_playing', {
             val: data.is_playing,
             ack: true
         });
-        if (data.hasOwnProperty('item')) {
-            adapter.setState('PlaybackInfo.Track_Id', {
-                val: data.item.id,
-                ack: true
-            });
-            adapter.setState('PlaybackInfo.Artist_Name', {
-                val: data.item.artists[0].name,
-                ack: true
-            });
-            adapter.setState('PlaybackInfo.Album', {
-                val: data.item.album.name,
-                ack: true
-            });
-            adapter.setState('PlaybackInfo.image_url', {
-                val: data.item.album.images[0].url,
-                ack: true
-            });
-            adapter.setState('PlaybackInfo.Track_Name', {
-                val: data.item.name,
-                ack: true
-            });
-            adapter.setState('PlaybackInfo.duration_ms', {
-                val: data.item.duration_ms,
-                ack: true
-            });
-            adapter.setState('PlaybackInfo.duration', {
-                val: DigiClock(data.item.duration_ms),
-                ack: true
-            });
-        }
-        if (data.hasOwnProperty('context') && data.context !== null) {
-            adapter.setState('PlaybackInfo.Type', {
-                val: data.context.type,
-                ack: true
-            });
-            if (data.context.type == 'playlist') {
-                var IndexOfUser = data.context.uri.indexOf("user:") + 5;
-                var EndIndexOfUser = data.context.uri.indexOf(":",
-                    IndexOfUser);
-                var IndexOfPlaylistID = data.context.uri
-                    .indexOf("playlist:") + 9;
-                var query = {
-                    fields: 'name',
-                };
-                SendRequest('/v1/users/' +
-                    data.context.uri.substring(IndexOfUser,
-                        EndIndexOfUser) + '/playlists/' +
-                    data.context.uri.slice(IndexOfPlaylistID) + '?' +
-                    querystring.stringify(query), 'GET', '',
-                    function(err, parseJson) {
-                        if (!err && parseJson.hasOwnProperty('name')) {
-                            adapter.setState('PlaybackInfo.Playlist', {
-                                val: parseJson.name,
-                                ack: true
-                            });
-                        } else {
-                            adapter.log.warn(err);
-                        }
-                    });
-            } else {
-                adapter.setState('PlaybackInfo.Playlist', {
-                    val: '',
-                    ack: true
+    }
+
+    if (data.hasOwnProperty('item')) {
+        adapter.setState('PlaybackInfo.Track_Id', {
+            val: data.item.id,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Artist_Name', {
+            val: data.item.artists[0].name,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Album', {
+            val: data.item.album.name,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.image_url', {
+            val: data.item.album.images[0].url,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Track_Name', {
+            val: data.item.name,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.duration_ms', {
+            val: data.item.duration_ms,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.duration', {
+            val: DigiClock(data.item.duration_ms),
+            ack: true
+        });
+    } else {
+        adapter.setState('PlaybackInfo.Track_Id', {
+            val: '',
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Artist_Name', {
+            val: '',
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Album', {
+            val: '',
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.image_url', {
+            val: '',
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.Track_Name', {
+            val: '',
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.duration_ms', {
+            val: 0,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.duration', {
+            val: DigiClock(0),
+            ack: true
+        });
+    }
+    if (data.hasOwnProperty('context') && data.context !== null) {
+        adapter.setState('PlaybackInfo.Type', {
+            val: data.context.type,
+            ack: true
+        });
+        if (data.context.type == 'playlist') {
+            var IndexOfUser = data.context.uri.indexOf("user:") + 5;
+            var EndIndexOfUser = data.context.uri.indexOf(":",
+                IndexOfUser);
+            var IndexOfPlaylistID = data.context.uri
+                .indexOf("playlist:") + 9;
+            var query = {
+                fields: 'name',
+            };
+            SendRequest('/v1/users/' +
+                data.context.uri.substring(IndexOfUser,
+                    EndIndexOfUser) + '/playlists/' +
+                data.context.uri.slice(IndexOfPlaylistID) + '?' +
+                querystring.stringify(query), 'GET', '',
+                function(err, parseJson) {
+                    if (!err && parseJson.hasOwnProperty('name')) {
+                        adapter.setState('PlaybackInfo.Playlist', {
+                            val: parseJson.name,
+                            ack: true
+                        });
+                    } else {
+                        adapter.log.warn(err);
+                    }
                 });
-            }
         } else {
-            if (data.hasOwnProperty('item')) {
-                adapter.setState('PlaybackInfo.Type', {
-                    val: data.item.type,
-                    ack: true
-                });
-            }
             adapter.setState('PlaybackInfo.Playlist', {
                 val: '',
                 ack: true
             });
         }
-        if (data.hasOwnProperty('timestamp')) {
-            adapter.setState('PlaybackInfo.timestamp', {
-                val: data.timestamp,
+    } else {
+        if (data.hasOwnProperty('item')) {
+            adapter.setState('PlaybackInfo.Type', {
+                val: data.item.type,
                 ack: true
             });
+        } else {
+            adapter.setState('PlaybackInfo.Type', {
+                val: '',
+                ack: true
+            });        	
         }
-        if (data.hasOwnProperty('progress_ms')) {
-            adapter.setState('PlaybackInfo.progress_ms', {
-                val: data.progress_ms,
-                ack: true
-            });
-            adapter.setState('PlaybackInfo.progress', {
-                val: DigiClock(data.progress_ms),
-                ack: true
-            });
-        }
-        if (data.hasOwnProperty('shuffle_state')) {
-            adapter.setState('PlaybackInfo.shuffle', {
-                val: data.shuffle_state,
-                ack: true
-            });
-        }
-        if (data.hasOwnProperty('repeat_state')) {
-            adapter.setState('PlaybackInfo.repeat', {
-                val: data.repeat_state,
-                ack: true
-            });
-        }
+        adapter.setState('PlaybackInfo.Playlist', {
+            val: '',
+            ack: true
+        });
+    }
+    if (data.hasOwnProperty('timestamp')) {
+        adapter.setState('PlaybackInfo.timestamp', {
+            val: data.timestamp,
+            ack: true
+        });
+    } else {
+        adapter.setState('PlaybackInfo.timestamp', {
+            val: 0,
+            ack: true
+        });
+    }
+    if (data.hasOwnProperty('progress_ms')) {
+        adapter.setState('PlaybackInfo.progress_ms', {
+            val: data.progress_ms,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.progress', {
+            val: DigiClock(data.progress_ms),
+            ack: true
+        });
+    } else {
+        adapter.setState('PlaybackInfo.progress_ms', {
+            val: 0,
+            ack: true
+        });
+        adapter.setState('PlaybackInfo.progress', {
+            val: DigiClock(0),
+            ack: true
+        });
+    }
+    if (data.hasOwnProperty('shuffle_state')) {
+        adapter.setState('PlaybackInfo.shuffle', {
+            val: data.shuffle_state,
+            ack: true
+        });
+    } else {
+        adapter.setState('PlaybackInfo.shuffle', {
+            val: false,
+            ack: true
+        });    	
+    }
+    if (data.hasOwnProperty('repeat_state')) {
+        adapter.setState('PlaybackInfo.repeat', {
+            val: data.repeat_state,
+            ack: true
+        });
+    } else {
+        adapter.setState('PlaybackInfo.repeat', {
+            val: false,
+            ack: true
+        });    	
     }
 }
 
@@ -519,8 +616,6 @@ function GetUsersPlaylist(offset) {
                     if (parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
                         GetUsersPlaylist(parseJson.offset + parseJson.limit);
                     }
-                    // adapter.setState('Playlist_Names', { val:
-                    // PlaylistString});
                 } else {
                     adapter.log.error('playlist error ' + playlists);
                 }
@@ -530,7 +625,7 @@ function GetUsersPlaylist(offset) {
     }
 }
 
-function Device_Handel(Device_Data) {
+function Device_Handle(Device_Data) {
     if (Device_Data.last_select_device_id === "") {
         return Device_Data.last_active_device_id;
     } else {
@@ -939,7 +1034,7 @@ on(/\.Play_this_List$/,
                         }
                     };
                     var query = {
-                        device_id: Device_Handel(Device_Data)
+                        device_id: Device_Handle(Device_Data)
                     };
                     SendRequest('/v1/me/player/play?' +
                         querystring.stringify(query), 'PUT', JSON
@@ -959,9 +1054,9 @@ on(/\.Play_this_List$/,
 on('Player.Play', function(obj) {
     if (obj.state.val) {
         var query = {
-            device_id: Device_Handel(Device_Data)
+            device_id: Device_Handle(Device_Data)
         };
-        adapter.log.debug(Device_Handel(Device_Data))
+        adapter.log.debug(Device_Handle(Device_Data))
         SendRequest('/v1/me/player/play?' + querystring.stringify(query),
             'PUT', '',
             function() {});
@@ -970,7 +1065,7 @@ on('Player.Play', function(obj) {
 on('Player.Pause', function(obj) {
     if (obj.state.val) {
         var query = {
-            device_id: Device_Handel(Device_Data)
+            device_id: Device_Handle(Device_Data)
         };
         SendRequest('/v1/me/player/pause?' + querystring.stringify(query),
             'PUT', '',
@@ -980,7 +1075,7 @@ on('Player.Pause', function(obj) {
 on('Player.Skip_Plus', function(obj) {
     if (obj.state.val) {
         var query = {
-            device_id: Device_Handel(Device_Data)
+            device_id: Device_Handle(Device_Data)
         };
         SendRequest('/v1/me/player/next?' + querystring.stringify(query),
             'POST', '',
@@ -990,7 +1085,7 @@ on('Player.Skip_Plus', function(obj) {
 on('Player.Skip_Minus', function(obj) {
     if (obj.state.val) {
         var query = {
-            device_id: Device_Handel(Device_Data)
+            device_id: Device_Handle(Device_Data)
         };
         SendRequest('/v1/me/player/previous?' + querystring.stringify(query),
             'POST', '',

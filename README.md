@@ -22,6 +22,7 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 * (twonky) new state `PlaybackInfo.shuffle` with possible values: true, false
 * (twonky) states for the playing device will also updated in 5s intervals
 * (twonky) states in `PlaybackInfo` are now updated also if no device is active playing
+* (twonky) states in `PlaybackInfo` are now cleared if no device is available
 
 ### 0.0.8 (2018.02.20)
 * (twonky) new adapter option to delete no longer existing devices and playlists
