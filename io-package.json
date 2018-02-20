@@ -4,12 +4,12 @@
         "version": "0.0.8",
         "news": {
         	"0.0.8": {
-                "en": "new option to delete no longer existing devices and playlists",
-                "de": "Neue Option zum Löschen nicht mehr vorhandener Devices und Playlisten",
-                "ru": "новая опция для удаления уже существующих устройств и плейлистов",
-                "pt": "nova opção para excluir mais dispositivos e listas de reprodução existentes",
-                "fr": "nouvelle option pour supprimer les appareils et les listes de lecture existants",
-                "nl": "nieuwe optie om niet langer bestaande apparaten en afspeellijsten te verwijderen"
+                "en": "new option to delete no longer existing devices and playlists; load complete playlists",
+                "de": "Neue Option zum Löschen nicht mehr vorhandener Devices und Playlisten; Playlisten werden nun komplett geladen",
+                "ru": "новая опция для удаления уже существующих устройств и плейлистов; Плейлисты теперь полностью загружены",
+                "pt": "nova opção para excluir mais dispositivos e listas de reprodução existentes; As listas de reprodução estão agora completamente carregadas",
+                "fr": "nouvelle option pour supprimer les appareils et les listes de lecture existants; Les listes de lecture sont maintenant complètement chargées",
+                "nl": "nieuwe optie om niet langer bestaande apparaten en afspeellijsten te verwijderen; Afspeellijsten zijn nu volledig geladen"
             },
         	"0.0.7": {
                 "en": "fix: auto refresh token",

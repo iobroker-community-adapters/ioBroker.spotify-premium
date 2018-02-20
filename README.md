@@ -17,6 +17,10 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.0.8 (2018.02.20)
+* (twonky) new adapter option to delete no longer existing devices and playlists
+* (twonky) load complete playlists (limitation of 100 first tracks was removed)
+
 ### 0.0.7 (2018.02.16)
 * (twonky) fix: auto refresh token
 

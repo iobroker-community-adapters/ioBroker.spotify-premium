@@ -43,10 +43,10 @@ function main() {
         return;
     }
     if (isEmpty(Application.Delete_Devices)) {
-    	Application.Delete_Devices = false;
+        Application.Delete_Devices = false;
     }
     if (isEmpty(Application.Delete_Playlists)) {
-    	Application.Delete_Playlists = false;
+        Application.Delete_Playlists = false;
     }
     adapter.subscribeStates('*');
     start();
@@ -67,7 +67,7 @@ function start() {
                     SendRequest('/v1/me/player/devices', 'GET', '', function(err,
                         data) {
                         if (!err) {
-                        	ReloadDevices(data);
+                            ReloadDevices(data);
                         }
                     });
                 } else {
@@ -141,8 +141,8 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                     case 400:
                         // Bad Request, message body will contain more
                         // information
-                    // case 429:
-                    	// Too Many Requests
+                        // case 429:
+                        // Too Many Requests
                     case 500:
                         // Server Error
                     case 503:
@@ -213,9 +213,9 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
 
 function CreatePlaybackInfo(P_Body) {
     adapter.log.debug(JSON.stringify(P_Body));
-    if(isEmpty(P_Body)) {
-    	adapter.log.warn('no playback content')
-    	return;
+    if (isEmpty(P_Body)) {
+        adapter.log.warn('no playback content')
+        return;
     }
     if (P_Body.hasOwnProperty('device')) {
         Device_Data.last_active_device_id = P_Body.device.id;
@@ -362,31 +362,31 @@ function GetUserInformation(P_Body) {
 }
 
 function ReloadUsersPlaylist() {
-	if(Application.Delete_Playlists) {
-		DeleteUsersPlaylist(function () {
-			GetUsersPlaylist(0);
-		});
-	} else {
-		GetUsersPlaylist(0);
-	}
+    if (Application.Delete_Playlists) {
+        DeleteUsersPlaylist(function() {
+            GetUsersPlaylist(0);
+        });
+    } else {
+        GetUsersPlaylist(0);
+    }
 }
 
 function DeleteUsersPlaylist(callback) {
-	var stateCount = 0;
-	var deletedCount = 0;
-	adapter.getStates('Playlists.*', function (err, obj) {
-		var keys = Object.keys(obj);
-		stateCount = keys.length;
-		keys.forEach(function(key) {
-			key = removeNameSpace(key);
-			adapter.delObject(key, function (err, obj) {
-				deletedCount++;
-				if(stateCount == deletedCount) {
-					callback();
-				}
-			});
-		});
-	});
+    var stateCount = 0;
+    var deletedCount = 0;
+    adapter.getStates('Playlists.*', function(err, state) {
+        var keys = Object.keys(state);
+        stateCount = keys.length;
+        keys.forEach(function(key) {
+            key = removeNameSpace(key);
+            adapter.delObject(key, function(err, obj) {
+                deletedCount++;
+                if (stateCount == deletedCount) {
+                    callback();
+                }
+            });
+        });
+    });
 }
 
 function GetUsersPlaylist(offset) {
@@ -401,11 +401,11 @@ function GetUsersPlaylist(offset) {
             function(err, P_Body) {
                 if (!err) {
                     P_Body.items.forEach(function(item) {
-                        var Pfad = 'Playlists.' +
+                        var path = 'Playlists.' +
                             item.name.replace(/\s+/g, '');
                         PlaylistString = item.name + ';' +
                             PlaylistString;
-                        adapter.setObjectNotExists(Pfad + '.Play_this_List', {
+                        adapter.setObjectNotExists(path + '.Play_this_List', {
                             type: 'state',
                             common: {
                                 name: 'button',
@@ -414,7 +414,7 @@ function GetUsersPlaylist(offset) {
                             },
                             native: {}
                         });
-                        adapter.setObjectNotExists(Pfad + '.id', {
+                        adapter.setObjectNotExists(path + '.id', {
                             type: 'state',
                             common: {
                                 name: 'id',
@@ -424,7 +424,7 @@ function GetUsersPlaylist(offset) {
                             },
                             native: {}
                         });
-                        adapter.setObjectNotExists(Pfad + '.owner', {
+                        adapter.setObjectNotExists(path + '.owner', {
                             type: 'state',
                             common: {
                                 name: 'owner',
@@ -434,7 +434,7 @@ function GetUsersPlaylist(offset) {
                             },
                             native: {}
                         });
-                        adapter.setObjectNotExists(Pfad + '.name', {
+                        adapter.setObjectNotExists(path + '.name', {
                             type: 'state',
                             common: {
                                 name: 'Name',
@@ -444,7 +444,7 @@ function GetUsersPlaylist(offset) {
                             },
                             native: {}
                         });
-                        adapter.setObjectNotExists(Pfad + '.tracks_total', {
+                        adapter.setObjectNotExists(path + '.tracks_total', {
                             type: 'state',
                             common: {
                                 name: 'tracks_total',
@@ -454,28 +454,28 @@ function GetUsersPlaylist(offset) {
                             },
                             native: {}
                         });
-                        adapter.setState(Pfad + '.Play_this_List', {
+                        adapter.setState(path + '.Play_this_List', {
                             val: false,
                             ack: true
                         });
-                        adapter.setState(Pfad + '.id', {
+                        adapter.setState(path + '.id', {
                             val: item.id,
                             ack: true
                         });
-                        adapter.setState(Pfad + '.owner', {
+                        adapter.setState(path + '.owner', {
                             val: item.owner.id,
                             ack: true
                         });
-                        adapter.setState(Pfad + '.name', {
+                        adapter.setState(path + '.name', {
                             val: item.name,
                             ack: true
                         });
-                        adapter.setState(Pfad + '.tracks_total', {
+                        adapter.setState(path + '.tracks_total', {
                             val: item.tracks.total,
                             ack: true
                         });
                         Get_Playlist_Tracks(item.owner.id,
-                            item.id, Pfad);
+                            item.id, path, 0);
                     });
                     if (P_Body.items.length !== 0 &&
                         (P_Body['next'] !== null)) {
@@ -500,64 +500,80 @@ function Device_Handel(Device_Data) {
     }
 }
 
-function Get_Playlist_Tracks(owner, id, Pfad) {
+function Get_Playlist_Tracks(owner, id, path, offset, playListObject) {
+    playListObject = playListObject && playListObject !== undefined ? playListObject : {
+        StateString: '',
+        ListString: '',
+        Track_ID_String: '',
+        songs: []
+    };
     var reg_param = owner + '/playlists/' + id + '/tracks';
     var query = {
         fields: 'items.track.name,items.track.id,items.track.artists.name,total,offset',
         limit: 100,
-        offset: 0
+        offset: offset
     };
     SendRequest('/v1/users/' + reg_param + '?' + querystring.stringify(query),
         'GET', '',
         function(err, data) {
             if (!err) {
-                var StateString = '';
-                var ListString = '';
-                var Track_ID_String = '';
-                var songs = [];
-                var i = 0;
+                var i = offset;
+                adapter.log.info(JSON.stringify(data));
                 data.items.forEach(function(item) {
-                    StateString = StateString + i.toString() + ':' + item.track.name + '-' + item
+                    playListObject.StateString += i.toString() + ':' + item.track.name + '-' +
+                        item
                         .track.artists[0].name + ';';
-                    ListString = ListString + item.track.name + '-' + item.track.artists[0].name +
+                    playListObject.ListString += item.track.name + '-' + item.track.artists[0].name +
                         ';';
-                    Track_ID_String = Track_ID_String + i.toString() + ':' + item.track.id + ';';
+                    playListObject.Track_ID_String += i.toString() + ':' + item.track.id + ';';
                     var a = {
                         id: item.track.id,
                         title: item.track.name,
                         artist: item.track.artists[0].name
                     };
-                    songs.push(a);
+                    playListObject.songs.push(a);
                     i++;
                 });
-                adapter.setObject(Pfad + '.Track_List', {
-                    type: 'state',
-                    common: {
-                        name: 'Tracks',
-                        type: 'string',
-                        role: 'Tracks',
-                        states: StateString,
-                        Track_ID: Track_ID_String
-                    },
-                    native: {}
-                });
-                adapter.setState(Pfad + '.Track_List', {
-                    val: songs,
-                    ack: true
-                });
-                adapter.setObject(Pfad + '.Track_List_String', {
-                    type: 'state',
-                    common: {
-                        name: 'Tracks List String',
-                        type: 'string',
-                        role: 'Tracks List String'
-                    },
-                    native: {}
-                });
-                adapter.setState(Pfad + '.Track_List_String', {
-                    val: ListString,
-                    ack: true
-                });
+                if (offset + 100 >= data.total) {
+                    Get_Playlist_Tracks(owner, id, path, offset + 100, playListObject);
+                } else {
+                    adapter.setObject(path + '.Track_List', {
+                        type: 'state',
+                        common: {
+                            name: 'Tracks',
+                            type: 'string',
+                            role: 'Tracks',
+                            states: playListObject.StateString,
+                            Track_ID: playListObject.Track_ID_String
+                        },
+                        native: {}
+                    });
+                    adapter.setState(path + '.Track_List', {
+                        val: playListObject.songs,
+                        ack: true
+                    });
+                    adapter.setObject(path + '.Track_List_String', {
+                        type: 'state',
+                        common: {
+                            name: 'Tracks List String',
+                            type: 'string',
+                            role: 'Tracks List String'
+                        },
+                        native: {}
+                    });
+                    adapter.setState(path + '.Track_List_String', {
+                        val: playListObject.ListString,
+                        ack: true
+                    });
+                    adapter.getStates(path + '.Track_List*', function(err, state) {
+                        adapter.log.info('State_list: ' + JSON.stringify(state));
+                    });
+                    adapter.getObject(path + '.Track_List', function(err, obj) {
+                        adapter.log.info('obj_list: ' + JSON.stringify(obj));
+                    });
+                }
+            } else {
+                adapter.log.warn('error on load tracks: ' + err);
             }
         });
 }
@@ -568,42 +584,42 @@ function removeNameSpace(id) {
 }
 
 function ReloadDevices(P_Body) {
-	if(Application.Delete_Devices) {		
-		DeleteDevices(function() {		
-			CreateDevices(P_Body);
-		});
-	} else {
-		CreateDevices(P_Body);
-	}
+    if (Application.Delete_Devices) {
+        DeleteDevices(function() {
+            CreateDevices(P_Body);
+        });
+    } else {
+        CreateDevices(P_Body);
+    }
 }
 
 function DeleteDevices(callback) {
-	var stateCount = 0;
-	var deletedCount = 0;
-	adapter.getStates('Devices.*', function (err, obj) {
-		var keys = Object.keys(obj);
-		stateCount = keys.length;
-		keys.forEach(function(key) {
-			key = removeNameSpace(key);
-			if(key == 'Devices.Get_Devices') {
-				deletedCount++
-				if(stateCount == deletedCount) {
-					callback();
-				}
-				return;
-			}
-			adapter.delObject(key, function (err, obj) {
-				deletedCount++;
-				if(stateCount == deletedCount) {
-					callback();
-				}
-			});
-		});
-	});
+    var stateCount = 0;
+    var deletedCount = 0;
+    adapter.getStates('Devices.*', function(err, state) {
+        var keys = Object.keys(state);
+        stateCount = keys.length;
+        keys.forEach(function(key) {
+            key = removeNameSpace(key);
+            if (key == 'Devices.Get_Devices') {
+                deletedCount++
+                if (stateCount == deletedCount) {
+                    callback();
+                }
+                return;
+            }
+            adapter.delObject(key, function(err, obj) {
+                deletedCount++;
+                if (stateCount == deletedCount) {
+                    callback();
+                }
+            });
+        });
+    });
 }
 
 function CreateDevices(P_Body) {
-	adapter.log.info('CreateDevices: '+ JSON.stringify(P_Body));
+    adapter.log.info('CreateDevices: ' + JSON.stringify(P_Body));
     P_Body.devices.forEach(function(device) {
         for (var ObjName in device) {
             adapter.setObjectNotExists('Devices.' +
@@ -1008,12 +1024,12 @@ on('Player.Playlist_ID', function(obj) {
     SendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function() {});
 });
 on('Get_User_Playlists', function(obj) {
-	ReloadUsersPlaylist();
+    ReloadUsersPlaylist();
 });
 on('Devices.Get_Devices', function(obj) {
     SendRequest('/v1/me/player/devices', 'GET', '', function(err, data) {
         if (!err) {
-        	ReloadDevices(data);
+            ReloadDevices(data);
         }
     });
 });
@@ -1032,7 +1048,7 @@ on('Authorization.Authorized', function(obj) {
                     adapter.log.debug('Intervall ' + err)
                     CreatePlaybackInfo(data)
                 } else if (err == 202 || err == 401 || err == 502) {
-                	// 202, 401 und 502 lassen den Interval  weiter laufen
+                    // 202, 401 und 502 lassen den Interval  weiter laufen
                     var DummyBody = {
                         is_playing: false
                     };
