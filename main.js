@@ -15,6 +15,7 @@ var Application = {
     Delete_Playlists: false,
     // older versions uses 'https://example.com/callback/', use
     // 'http://localhost' instead for safety reasons
+    // should remove #_=_
     redirect_uri: 'http://localhost',
     Token: '',
     refresh_token: '',
@@ -359,6 +360,34 @@ function GetUserInformation(P_Body) {
         val: P_Body.id,
         ack: true
     });
+}
+
+function ReloadUsersPlaylist() {
+	if(Application.Delete_Playlists) {
+		DeleteUsersPlaylist(function () {
+			GetUsersPlaylist(0);
+		});
+	} else {
+		GetUsersPlaylist(0);
+	}
+}
+
+function DeleteUsersPlaylist(callback) {
+	var stateCount = 0;
+	var deletedCount = 0;
+	adapter.getStates('Playlists.*', function (err, obj) {
+		var keys = Object.keys(obj);
+		stateCount = keys.length;
+		keys.forEach(function(key) {
+			key = removeNameSpace(key);
+			adapter.delObject(key, function (err, obj) {
+				deletedCount++;
+				if(stateCount == deletedCount) {
+					callback();
+				}
+			});
+		});
+	});
 }
 
 function GetUsersPlaylist(offset) {
@@ -780,6 +809,9 @@ on('Authorization.Authorization_Return_URI', function(obj) {
                 adapter.log.error(
                     'invalid session. You need to open the actual Authorization.Authorization_URL'
                 );
+                adapter.setState('Authorization.Authorization_Return_URI', {
+                    val: 'invalid session. You need to open the actual Authorization.Authorization_URL again'
+                });
             }
         });
     } else {
@@ -977,7 +1009,7 @@ on('Player.Playlist_ID', function(obj) {
     SendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function() {});
 });
 on('Get_User_Playlists', function(obj) {
-    GetUsersPlaylist(0)
+	ReloadUsersPlaylist();
 });
 on('Devices.Get_Devices', function(obj) {
     SendRequest('/v1/me/player/devices', 'GET', '', function(err, data) {
