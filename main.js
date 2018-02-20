@@ -532,7 +532,8 @@ function Get_Playlist_Tracks(owner, id, path, offset, playListObject) {
                     playListObject.songs.push(a);
                     i++;
                 });
-                if (offset + 100 >= data.total) {
+
+                if (offset + 100 < data.total) {
                     Get_Playlist_Tracks(owner, id, path, offset + 100, playListObject);
                 } else {
                     adapter.setObject(path + '.Track_List', {
