@@ -131,6 +131,8 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                     case 400:
                         // Bad Request, message body will contain more
                         // information
+                    // case 429:
+                    	// Too Many Requests
                     case 500:
                         // Server Error
                     case 503:
@@ -188,7 +190,8 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                         break;
                     default:
                         adapter.log
-                            .warn('HTTP Request Fehler wird nicht behandelt, bitte Debuggen !!');
+                            .warn('HTTP Request Fehler wird nicht behandelt, bitte Debuggen!');
+                        adapter.log.warn(new Error().stack);
                         return callback(response.statusCode, null);
                 }
             } else {
@@ -943,7 +946,8 @@ on('Authorization.Authorized', function(obj) {
                 if (!err) {
                     adapter.log.debug('Intervall ' + err)
                     CreatePlaybackInfo(data)
-                } else if (err == 202 || err == 502 || err == 401) { //202, 401 und 502 lassen den Interval  weiter laufen
+                } else if (err == 202 || err == 401 || err == 502) {
+                	// 202, 401 und 502 lassen den Interval  weiter laufen
                     var DummyBody = {
                         is_playing: false
                     };
@@ -952,14 +956,12 @@ on('Authorization.Authorized', function(obj) {
                 } else {
                     // andere Fehler stoppen den Intervall
                     clearInterval(Application.Intervall);
-                    adapter.log.warn('Spotify Intervall gestoppt !');
+                    adapter.log.warn('Spotify Intervall gestoppt!');
                 }
-                // ein 502 Bad Gateway würde den intervall stoppen !! ändern
-                // ????
             });
         }, 5000);
     } else {
-        if ("undefined" !== typeof ApplicationIntervall) {
+        if ("undefined" !== typeof Application.Intervall) {
             clearInterval(Application.Intervall)
         }
     }
