@@ -15,7 +15,6 @@ var Application = {
     Delete_Playlists: false,
     // older versions uses 'https://example.com/callback/', use
     // 'http://localhost' instead for safety reasons
-    // should remove #_=_
     redirect_uri: 'http://localhost',
     Token: '',
     refresh_token: '',
@@ -801,6 +800,7 @@ on('Authorization.Authorization_Return_URI', function(obj) {
         adapter.getState('Authorization.State', function(err, state) {
             var return_uri = querystring.parse(obj.state.val.slice(obj.state.val
                 .search('[?]') + 1, obj.state.val.length));
+            return_uri.state = return_uri.state.replace(/#_=_$/g, '');
             if (return_uri.state == state.val) {
                 adapter.log.debug('GetToken');
                 Application.code = return_uri.code;
@@ -810,12 +810,11 @@ on('Authorization.Authorization_Return_URI', function(obj) {
                     'invalid session. You need to open the actual Authorization.Authorization_URL'
                 );
                 adapter.setState('Authorization.Authorization_Return_URI', {
-                    val: 'invalid session. You need to open the actual Authorization.Authorization_URL again'
+                    val: 'invalid session. You need to open the actual Authorization.Authorization_URL again',
+                    ack: true
                 });
             }
         });
-    } else {
-        adapter.log.debug('ack: ' + obj.state.ack);
     }
 });
 on('Authorization.Get_Authorization', function(obj) {
