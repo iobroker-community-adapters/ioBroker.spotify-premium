@@ -213,6 +213,10 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
 
 function CreatePlaybackInfo(P_Body) {
     adapter.log.debug(JSON.stringify(P_Body));
+    if(isEmpty(P_Body)) {
+    	adapter.log.warn('no playback content')
+    	return;
+    }
     if (P_Body.hasOwnProperty('device')) {
         Device_Data.last_active_device_id = P_Body.device.id;
         adapter.setState('PlaybackInfo.Device.id', {
