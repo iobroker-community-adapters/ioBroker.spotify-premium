@@ -2,6 +2,8 @@
   "on save adapter restarts with new config immediately": "su save adapter si riavvia immediatamente con la nuova configurazione",
   "clientId": "Client ID",
   "clientSecret": "Client Secret",
+  "delete_devices": "Elimina i dispositivi che non esistono più",
+  "delete_playlists": "Elimina playlist non più esistenti",
   "manual1": "Iscriviti anche a https://developer.spotify.com",
   "manual2": "Crea un'applicazione, ottieni un Client ID e un Client Secret",
   "manual3": "nelle impostazioni dell'app dell'applicazione, immettere \"http://localhost\" su Redirect URIs",

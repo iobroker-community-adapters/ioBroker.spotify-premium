@@ -11,6 +11,8 @@ var Application = {
     BaseURL: 'https://api.spotify.com',
     Client_ID: '',
     Client_Secret: '',
+    Delete_Devices: false,
+    Delete_Playlists: false,
     // older versions uses 'https://example.com/callback/', use
     // 'http://localhost' instead for safety reasons
     redirect_uri: 'http://localhost',
@@ -30,6 +32,8 @@ function isEmpty(str) {
 function main() {
     Application.Client_ID = adapter.config.client_id;
     Application.Client_Secret = adapter.config.client_secret;
+    Application.Delete_Devices = adapter.config.delete_devices;
+    Application.Delete_Playlists = adapter.config.delete_playlists;
     if (isEmpty(Application.Client_ID)) {
         adapter.log.error('Client_ID is not filled');
         return;
@@ -37,6 +41,12 @@ function main() {
     if (isEmpty(Application.Client_Secret)) {
         adapter.log.error('Client_Secret is not filled');
         return;
+    }
+    if (isEmpty(Application.Delete_Devices)) {
+    	Application.Delete_Devices = false;
+    }
+    if (isEmpty(Application.Delete_Playlists)) {
+    	Application.Delete_Playlists = false;
     }
     adapter.subscribeStates('*');
     start();
@@ -57,7 +67,7 @@ function start() {
                     SendRequest('/v1/me/player/devices', 'GET', '', function(err,
                         data) {
                         if (!err) {
-                            CreateDevices(data)
+                        	ReloadDevices(data);
                         }
                     });
                 } else {
@@ -520,8 +530,48 @@ function Get_Playlist_Tracks(owner, id, Pfad) {
         });
 }
 
+function removeNameSpace(id) {
+    var re = new RegExp(adapter.namespace + '*\.', 'g');
+    return id.replace(re, '');
+}
+
+function ReloadDevices(P_Body) {
+	if(Application.Delete_Devices) {		
+		DeleteDevices(function() {		
+			CreateDevices(P_Body);
+		});
+	} else {
+		CreateDevices(P_Body);
+	}
+}
+
+function DeleteDevices(callback) {
+	var stateCount = 0;
+	var deletedCount = 0;
+	adapter.getStates('Devices.*', function (err, obj) {
+		var keys = Object.keys(obj);
+		stateCount = keys.length;
+		keys.forEach(function(key) {
+			key = removeNameSpace(key);
+			if(key == 'Devices.Get_Devices') {
+				deletedCount++
+				if(stateCount == deletedCount) {
+					callback();
+				}
+				return;
+			}
+			adapter.delObject(key, function (err, obj) {
+				deletedCount++;
+				if(stateCount == deletedCount) {
+					callback();
+				}
+			});
+		});
+	});
+}
+
 function CreateDevices(P_Body) {
-    adapter.log.info(JSON.stringify(P_Body));
+	adapter.log.info('CreateDevices: '+ JSON.stringify(P_Body));
     P_Body.devices.forEach(function(device) {
         for (var ObjName in device) {
             adapter.setObjectNotExists('Devices.' +
@@ -928,14 +978,14 @@ on('Get_User_Playlists', function(obj) {
 on('Devices.Get_Devices', function(obj) {
     SendRequest('/v1/me/player/devices', 'GET', '', function(err, data) {
         if (!err) {
-            CreateDevices(data)
+        	ReloadDevices(data);
         }
     });
 });
 on('Get_Playback_Info', function(obj) {
     SendRequest('/v1/me/player', 'GET', '', function(err, data) {
         if (!err) {
-            CreatePlaybackInfo(data)
+            CreatePlaybackInfo(data);
         }
     });
 });
@@ -973,8 +1023,7 @@ adapter.on('ready', function() {
 adapter.on('stateChange', function(id, state) {
     adapter.log.debug('stateChange ' + id + ' ' + JSON.stringify(state));
     var found = false;
-    var re = new RegExp(adapter.namespace + '*\.', 'g');
-    var shrikId = id.replace(re, '');
+    var shrikId = removeNameSpace(id);
     listener.forEach(function(value) {
         if ((value.name instanceof RegExp && value.name.test(shrikId)) || value.name ==
             shrikId) {

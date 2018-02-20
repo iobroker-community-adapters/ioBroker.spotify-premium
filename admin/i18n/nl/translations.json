@@ -2,6 +2,8 @@
   "on save adapter restarts with new config immediately": "on save-adapter wordt onmiddellijk opnieuw opgestart met nieuwe config",
   "clientId": "Client ID",
   "clientSecret": "Client Secret",
+  "delete_devices": "Verwijder apparaten die niet meer bestaan",
+  "delete_playlists": "Verwijder niet langer bestaande afspeellijsten",
   "manual1": "Meld u ook aan op https://developer.spotify.com",
   "manual2": "Maak een applicatie, krijg een Client ID en een Client Secret",
   "manual3": "Voer in de app-instellingen van uw toepassing 'http://localhost' in bij Redirect URIs",
