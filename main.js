@@ -245,7 +245,7 @@ function CreatePlaybackInfo(data) {
             var keys = Object.keys(state);
             keys.forEach(function(key) {
                 key = removeNameSpace(key);
-                if (key !== 'Devices.' + data.device.name + '.is_active' && key.endsWith(
+                if (key !== 'Devices.' + data.device.name.replace(/\s+/g, '') + '.is_active' && key.endsWith(
                         '.is_active')) {
                     adapter.setState(key, {
                         val: false,
