@@ -121,6 +121,7 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
     };
     adapter.log.debug(options.form);
     adapter.log.debug('Spotify API Call...' + Endpoint);
+    var callStack = new Error().stack;
     request(
         options,
         function(error, response, body) {
@@ -174,14 +175,14 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                                             );
                                             return callback(err, null);
                                         } else {
-                                            console.error(
+                                            adapter.log.error(
                                                 'Error on request data again. ' +
                                                 err);
                                             return callback(err, null);
                                         }
                                     });
                                 } else {
-                                    console.error(err);
+                                	adapter.log.error(err);
                                     return callback(err, null);
                                 }
                             });
@@ -198,6 +199,7 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                     default:
                         adapter.log
                             .warn('HTTP Request Error not handled, please debug');
+                    	adapter.log.warn(callStack);
                         adapter.log.warn(new Error().stack);
                         return callback(response.statusCode, null);
                 }
@@ -620,7 +622,7 @@ function GetUsersPlaylist(offset) {
                 if (!err) {
                     persistPlaylist(parsedJson, true);
                 } else {
-                    adapter.log.error('playlist error ' + playlists);
+                    adapter.log.error('playlist error ' + err);
                 }
             });
     } else {
