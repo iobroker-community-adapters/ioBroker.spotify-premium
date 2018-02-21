@@ -512,20 +512,13 @@ function ReloadUsersPlaylist() {
 }
 
 function DeleteUsersPlaylist(callback) {
-    var stateCount = 0;
-    var deletedCount = 0;
     adapter.getStates('Playlists.*', function(err, state) {
         var keys = Object.keys(state);
-        stateCount = keys.length;
         keys.forEach(function(key) {
             key = removeNameSpace(key);
-            adapter.delObject(key, function(err, obj) {
-                deletedCount++;
-                if (stateCount == deletedCount) {
-                    callback();
-                }
-            });
+            adapter.delObject(key);
         });
+        callback();
     });
 }
 
@@ -725,27 +718,16 @@ function ReloadDevices(data) {
 }
 
 function DeleteDevices(callback) {
-    var stateCount = 0;
-    var deletedCount = 0;
     adapter.getStates('Devices.*', function(err, state) {
         var keys = Object.keys(state);
-        stateCount = keys.length;
         keys.forEach(function(key) {
             key = removeNameSpace(key);
             if (key == 'Devices.Get_Devices') {
-                deletedCount++
-                if (stateCount == deletedCount) {
-                    callback();
-                }
                 return;
             }
-            adapter.delObject(key, function(err, obj) {
-                deletedCount++;
-                if (stateCount == deletedCount) {
-                    callback();
-                }
-            });
+            adapter.delObject(key);
         });
+        callback();
     });
 }
 
