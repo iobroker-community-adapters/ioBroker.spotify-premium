@@ -17,7 +17,7 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
-### 0.0.9 (2018.02.20)
+### 0.0.9 (2018.02.21)
 * (twonky) new state `PlaybackInfo.repeat` with possible values: off, context, track
 * (twonky) new state `PlaybackInfo.shuffle` with possible values: true, false
 * (twonky) states for the playing device will also updated in 5s intervals
