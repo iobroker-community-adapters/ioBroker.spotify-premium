@@ -392,7 +392,7 @@ function CreatePlaybackInfo(data) {
                             val: parseJson.name,
                             ack: true
                         });
-                        adapter.getState('Playlists.' + parseJson.name + '.name', function(err, state) {
+                        adapter.getState('Playlists.' + parseJson.name.replace(/\s+/g, '') + '.name', function(err, state) {
                             if (state === null) {
                                 persistPlaylist({
                                     items: [parseJson]
