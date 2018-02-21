@@ -95,11 +95,10 @@ function ReadTokenFiles(callback) {
             var RTF = "undefined" !== typeof Token.RefreshToken &&
                 (Token.RefreshToken !== '');
             if (ATF && RTF) {
-                adapter.log
-                    .debug('Spotify Token aus Datei gelesen !');
+                adapter.log.debug('spotify token readed');
                 return callback(null, Token);
             } else {
-                return callback('Keine Token in Datei gefunden !', null);
+                return callback('no spotify token', null);
             }
         } else {
             adapter.setState('Authorization.Authorized', {
@@ -167,16 +166,16 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                                     SendRequest(Endpoint, Method, Send_Body, function(err, data) {
                                         // dieser Request holt die Daten die zuvor mit altem Token gefordert wurden
                                         if (!err) {
-                                            adapter.log.debug('Daten mit neuem Token');
+                                            adapter.log.debug('data with new token');
                                             return callback(null, data);
                                         } else if (err == 202) {
                                             adapter.log.debug(err +
-                                                ' Anfrage akzeptiert, keine Daten in Antwort, versuch es nochmal'
+                                                ' Request accepted but no data, try again'
                                             );
                                             return callback(err, null);
                                         } else {
                                             console.error(
-                                                'Fehler beim erneuten Daten anfordern! ' +
+                                                'Error on request data again. ' +
                                                 err);
                                             return callback(err, null);
                                         }
@@ -198,7 +197,7 @@ function SendRequest(Endpoint, Method, Send_Body, callback) {
                         break;
                     default:
                         adapter.log
-                            .warn('HTTP Request Fehler wird nicht behandelt, bitte Debuggen!');
+                            .warn('HTTP Request Error not handled, please debug');
                         adapter.log.warn(new Error().stack);
                         return callback(response.statusCode, null);
                 }
@@ -480,7 +479,7 @@ function CreatePlaybackInfo(data) {
 }
 
 function DigiClock(ms) {
-    // Millisekunden zu Digitaluhr, Beispiel 3:59=238759
+	// milliseconds to digital time, e.g. 3:59=238759
     var Min = Math.floor(ms / 60000);
     var Sec = Math.floor(((ms % 360000) % 60000) / 1000);
     if (Min < 10) {
@@ -864,7 +863,7 @@ function GetToken() {
 }
 
 function Refresh_Token(callback) {
-    adapter.log.debug('Token wird erneut angefordert !');
+    adapter.log.debug('Token is requested again');
     var options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
@@ -884,7 +883,7 @@ function Refresh_Token(callback) {
         request(
             options,
             function(error, response, body) {
-                // dieser Request holt den neuen Token
+                // this request gets the new token
                 if (response.statusCode == 200) {
                     adapter.log.debug('neuer Token eingetroffen');
                     adapter.log.debug(body);
@@ -899,7 +898,6 @@ function Refresh_Token(callback) {
                             if (!err) {
                                 Application.Token = Token.AccessToken;
                                 return callback(null);
-                                // Application.refresh_token=Token.refresh_token;
                             } else {
                                 adapter.log.debug(err);
                                 return callback(err, null);
@@ -928,7 +926,7 @@ function SaveToken(data, callback) {
         });
     } else {
         adapter.log.error(JSON.stringify(data));
-        return callback('keine Token in Serverantwort gefunden ! ', null)
+        return callback('no tokens found in server response', null)
     }
 }
 var listener = [];
@@ -978,21 +976,16 @@ on(/\.Use_for_Playback$/, function(obj) {
             Device_Data.last_select_device_id = state.val;
             var send = {
                 device_ids: [Device_Data.last_select_device_id],
-                // Divice IDs als Array! play:false
-                // True = Wiedergabe
-                // startet sofort auf diesem Gerät, FALSE = Wiedergabe
-                // anhängig von Playback State
             };
             SendRequest('/v1/me/player', 'PUT', JSON.stringify(send), function(err,
                 data) {
-                // if(!err){Device_Data.last_select_device_id=getState(obj.id.slice(0,obj.id.lastIndexOf("."))+'.id').val}
             });
         });
     }
 });
 on(/\.Track_List$/, function(obj) {
     if (obj.state != null && !obj.state.ack && obj.state.val != null && obj.state.val >= 0) {
-        // eine bestimmten Track aus Playliste sofort abspielen
+        // Play a specific track from Playlist immediately
         var StateName = obj.common.Track_ID.split(';');
         var StateArr = [];
         for (var i = 0; i < StateName.length; i++) {
@@ -1022,7 +1015,7 @@ on(/\.Track_List$/, function(obj) {
 on(/\.Play_this_List$/,
     function(obj) {
         if (obj.state != null && obj.state.val) {
-            // eine bestimmte Playlist sofort abspielen
+            // Play a specific playlist immediately
             adapter.getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.owner', function(err, state) {
                 var owner = state;
                 adapter.getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.id', function(err,
@@ -1209,16 +1202,16 @@ on('Authorization.Authorized', function(obj) {
                     adapter.log.debug('Intervall');
                     CreatePlaybackInfo(data);
                 } else if (err == 202 || err == 401 || err == 502) {
-                    // 202, 401 und 502 lassen den Interval weiter laufen
+                    // 202, 401 and 502 keep the interval running
                     var DummyBody = {
                         is_playing: false
                     };
-                    // tritt ein wenn kein Player geöffnet ist
+                    // occurs when no player is open
                     CreatePlaybackInfo(DummyBody);
                 } else {
-                    // andere Fehler stoppen den Intervall
+                    // other errors stop the interval
                     clearInterval(Application.Intervall);
-                    adapter.log.warn('Spotify Intervall gestoppt! -> ' + err);
+                    adapter.log.warn('Spotify interval stopped! -> ' + err);
                 }
             });
         }, 5000);
