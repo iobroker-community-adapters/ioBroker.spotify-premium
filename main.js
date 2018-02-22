@@ -166,7 +166,7 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                                         ack: true
                                     });
                                     sendRequest(Endpoint, Method, Send_Body, function(err, data) {
-                                    	// this Request get the data which requested with the old token
+                                        // this Request get the data which requested with the old token
                                         if (!err) {
                                             adapter.log.debug('data with new token');
                                             return callback(null, data);
@@ -183,7 +183,7 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                                         }
                                     });
                                 } else {
-                                	adapter.log.error(err);
+                                    adapter.log.error(err);
                                     return callback(err, null);
                                 }
                             });
@@ -200,7 +200,7 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                     default:
                         adapter.log
                             .warn('HTTP Request Error not handled, please debug');
-                    	adapter.log.warn(callStack);
+                        adapter.log.warn(callStack);
                         adapter.log.warn(new Error().stack);
                         return callback(response.statusCode, null);
                 }
@@ -246,7 +246,8 @@ function createPlaybackInfo(data) {
             var keys = Object.keys(state);
             keys.forEach(function(key) {
                 key = removeNameSpace(key);
-                if (key !== 'Devices.' + data.device.name.replace(/\s+/g, '') + '.is_active' && key.endsWith(
+                if (key !== 'Devices.' + data.device.name.replace(/\s+/g, '') + '.is_active' &&
+                    key.endsWith(
                         '.is_active')) {
                     adapter.setState(key, {
                         val: false,
@@ -393,13 +394,14 @@ function createPlaybackInfo(data) {
                             val: parseJson.name,
                             ack: true
                         });
-                        adapter.getState('Playlists.' + parseJson.name.replace(/\s+/g, '') + '.name', function(err, state) {
-                            if (state === null) {
-                                persistPlaylist({
-                                    items: [parseJson]
-                                });
-                            }
-                        });
+                        adapter.getState('Playlists.' + parseJson.name.replace(/\s+/g, '') + '.name',
+                            function(err, state) {
+                                if (state === null) {
+                                    persistPlaylist({
+                                        items: [parseJson]
+                                    });
+                                }
+                            });
                     } else {
                         adapter.log.warn(err);
                     }
@@ -482,7 +484,7 @@ function createPlaybackInfo(data) {
 }
 
 function convertToDigiClock(ms) {
-	// milliseconds to digital time, e.g. 3:59=238759
+    // milliseconds to digital time, e.g. 3:59=238759
     var min = Math.floor(ms / 60000);
     var sec = Math.floor(((ms % 360000) % 60000) / 1000);
     if (min < 10) {
@@ -965,8 +967,7 @@ on(/\.Use_for_Playback$/, function(obj) {
                 device_ids: [deviceData.lastSelectDeviceId],
             };
             sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), function(err,
-                data) {
-            });
+                data) {});
         });
     }
 });
