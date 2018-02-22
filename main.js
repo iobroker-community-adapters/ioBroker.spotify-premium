@@ -673,6 +673,7 @@ function Get_Playlist_Tracks(owner, id, path, offset, playListObject) {
                             name: 'Tracks',
                             type: 'string',
                             role: 'Tracks',
+                            write: false,
                             states: playListObject.StateString,
                             Track_ID: playListObject.Track_ID_String
                         },
@@ -682,12 +683,13 @@ function Get_Playlist_Tracks(owner, id, path, offset, playListObject) {
                         val: playListObject.songs,
                         ack: true
                     });
-                    adapter.setObject(path + '.Track_List_String', {
+                    adapter.setObjectNotExists(path + '.Track_List_String', {
                         type: 'state',
                         common: {
                             name: 'Tracks List String',
                             type: 'string',
-                            role: 'Tracks List String'
+                            role: 'Tracks List String',
+                            write: false
                         },
                         native: {}
                     });
@@ -741,7 +743,8 @@ function CreateDevices(data) {
                     common: {
                         name: ObjName,
                         type: typeof device[ObjName],
-                        role: ObjName
+                        role: ObjName,
+                        write: false
                     },
                     native: {}
                 });
