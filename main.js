@@ -91,9 +91,9 @@ function readTokenStates(callback) {
     adapter.getState('Authorization.Token', function(err, state) {
         if (state !== null) {
             var token = state.val;
-            var atf = "undefined" !== typeof token.AccessToken &&
+            var atf = 'undefined' !== typeof token.AccessToken &&
                 (token.AccessToken !== '');
-            var rtf = "undefined" !== typeof token.RefreshToken &&
+            var rtf = 'undefined' !== typeof token.RefreshToken &&
                 (token.RefreshToken !== '');
             if (atf && rtf) {
                 adapter.log.debug('spotify token readed');
@@ -375,11 +375,11 @@ function createPlaybackInfo(data) {
             ack: true
         });
         if (data.context.type == 'playlist') {
-            var indexOfUser = data.context.uri.indexOf("user:") + 5;
-            var endIndexOfUser = data.context.uri.indexOf(":",
+            var indexOfUser = data.context.uri.indexOf('user:') + 5;
+            var endIndexOfUser = data.context.uri.indexOf(':',
                 indexOfUser);
             var indexOfPlaylistId = data.context.uri
-                .indexOf("playlist:") + 9;
+                .indexOf('playlist:') + 9;
             var query = {
                 fields: 'name,id,owner.id,tracks.total',
             };
@@ -627,7 +627,7 @@ function getUsersPlaylist(offset) {
 }
 
 function getSelectedDevice(deviceData) {
-    if (deviceData.lastSelectDeviceId === "") {
+    if (deviceData.lastSelectDeviceId === '') {
         return deviceData.lastActiveDeviceId;
     } else {
         return deviceData.lastSelectDeviceId;
@@ -902,8 +902,8 @@ function refreshToken(callback) {
 
 function saveToken(data, callback) {
     adapter.log.debug(data.hasOwnProperty('access_token'))
-    if ("undefined" !== typeof data.access_token &&
-        ("undefined" !== typeof data.refresh_token)) {
+    if ('undefined' !== typeof data.access_token &&
+        ('undefined' !== typeof data.refresh_token)) {
         var token = {
             AccessToken: data.access_token,
             RefreshToken: data.refresh_token
@@ -961,7 +961,7 @@ on('Authorization.Get_Authorization', function(obj) {
 });
 on(/\.Use_for_Playback$/, function(obj) {
     if (obj.state != null && obj.state.val) {
-        adapter.getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.id', function(err, state) {
+        adapter.getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id', function(err, state) {
             deviceData.lastSelectDeviceId = state.val;
             var send = {
                 device_ids: [deviceData.lastSelectDeviceId],
@@ -1004,9 +1004,9 @@ on(/\.Play_this_List$/,
     function(obj) {
         if (obj.state != null && obj.state.val) {
             // Play a specific playlist immediately
-            adapter.getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.owner', function(err, state) {
+            adapter.getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.owner', function(err, state) {
                 var owner = state;
-                adapter.getState(obj.id.slice(0, obj.id.lastIndexOf(".")) + '.id', function(err,
+                adapter.getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id', function(err,
                     state) {
                     var id = state;
                     var send = {
@@ -1204,7 +1204,7 @@ on('Authorization.Authorized', function(obj) {
             });
         }, 5000);
     } else {
-        if ("undefined" !== typeof application.Intervall) {
+        if ('undefined' !== typeof application.Intervall) {
             clearInterval(application.Intervall)
         }
     }
@@ -1252,7 +1252,7 @@ adapter.on('unload', function(callback) {
             val: false,
             ack: true
         });
-        if ("undefined" !== typeof application.Intervall) {
+        if ('undefined' !== typeof application.Intervall) {
             clearInterval(application.Intervall)
         }
         callback();
