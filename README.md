@@ -17,6 +17,9 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.1.0 (2018.02.23)
+* (twonky) rework api polling mechanism
+
 ### 0.0.9 (2018.02.21)
 * (twonky) new state `PlaybackInfo.repeat` with possible values: off, context, track
 * (twonky) new state `PlaybackInfo.shuffle` with possible values: true, false

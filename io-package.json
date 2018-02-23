@@ -1,9 +1,17 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.0.9",
+        "version": "0.1.0",
         "news": {
-        	"0.0.9": {
+        	"0.1.0": {
+                "en": "rework api polling mechanism",
+                "de": "Api Abruf überarbeitet",
+                "ru": "перерабатывающий механизм опроса api",
+                "pt": "Mecanismo de pesquisa de retrabalho api",
+                "fr": "retravailler api mécanisme d'interrogation",
+                "nl": "herwerk api polling mechanisme"
+            },
+            "0.0.9": {
                 "en": "new state 'PlaybackInfo.repeat' with possible values: off, context, track; new state 'PlaybackInfo.shuffle' with possible values: true, false; states for the playing device will also updated in 5s intervals; states in 'PlaybackInfo' are now updated also if no device is active playing; states in 'PlaybackInfo' are now cleared if no device is available; loading new playlists if playing the first time",
                 "de": "neuer State 'PlaybackInfo.repeat' mit möglichen Werten: off, context, track; neuer State 'PlaybackInfo.shuffle' mit möglichen Werten: true, false; States für das abspielende Gerät werden ebenfalls in 5s-Intervallen aktualisiert; States in 'PlaybackInfo' werden jetzt auch aktualisiert, wenn kein Gerät aktiv ist; States in 'PlaybackInfo' werden jetzt gelöscht, wenn kein Gerät verfügbar ist; neue Playlisten werden beim ersten Abspielen nachgeladen",
                 "ru": "новое состояние 'PlaybackInfo.repeat' с возможными значениями: off, context, track; новое состояние 'PlaybackInfo.shuffle' с возможными значениями: true, false; состояния для игрового устройства также будут обновляться через 5 секунд; состояния в 'PlaybackInfo' теперь обновляются также, если никакое устройство не активно; состояния в 'PlaybackInfo' теперь очищаются, если устройство недоступно; загрузка новых плейлистов, если вы играете в первый раз",
