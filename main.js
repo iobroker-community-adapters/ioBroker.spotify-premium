@@ -17,7 +17,9 @@ var application = {
     redirect_uri: 'http://localhost',
     token: '',
     refreshToken: '',
-    code: ''
+    code: '',
+    interval: null,
+    pollingDelaySeconds: 5
 };
 var deviceData = {
     lastActiveDeviceId: '',
@@ -97,9 +99,9 @@ function readTokenStates(callback) {
                 (token.RefreshToken !== '');
             if (atf && rtf) {
                 adapter.log.debug('spotify token readed');
-                return callback(null, token);
+                callback(null, token);
             } else {
-                return callback('no spotify token', null);
+                callback('no spotify token', null);
             }
         } else {
             adapter.setState('Authorization.Authorized', {
@@ -130,18 +132,19 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                 switch (response.statusCode) {
                     case 200:
                         // OK
-                        return callback(null, JSON.parse(body));
+                        callback(null, JSON.parse(body))
+                        break;
                     case 202:
                         // Accepted, processing has not been completed.
-                        return callback(response.statusCode, null);
+                        callback(response.statusCode, null);
+                        break;
                     case 204:
                         // OK, No Content
-                        return callback(null, null);
+                        callback(null, null);
+                        break;
                     case 400:
                         // Bad Request, message body will contain more
                         // information
-                        // case 429:
-                        // Too Many Requests
                     case 500:
                         // Server Error
                     case 503:
@@ -150,7 +153,8 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                         // Not Found
                     case 502:
                         // Bad Gateway
-                        return callback(response.statusCode, null);
+                        callback(response.statusCode, null);
+                        break;
                     case 401:
                         // Unauthorized
                         if (JSON.parse(body).error.message == 'The access token expired') {
@@ -169,44 +173,57 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                                         // this Request get the data which requested with the old token
                                         if (!err) {
                                             adapter.log.debug('data with new token');
-                                            return callback(null, data);
+                                            callback(null, data);
                                         } else if (err == 202) {
                                             adapter.log.debug(err +
                                                 ' Request accepted but no data, try again'
                                             );
-                                            return callback(err, null);
+                                            callback(err, null);
                                         } else {
                                             adapter.log.error(
                                                 'Error on request data again. ' +
                                                 err);
-                                            return callback(err, null);
+                                            callback(err, null);
                                         }
                                     });
                                 } else {
                                     adapter.log.error(err);
-                                    return callback(err, null);
+                                    callback(err, null);
                                 }
                             });
                         } else {
-                            // wenn anderer Fehler mit Code 401
+                            // if other error with code 401
                             adapter.setState('Authorization.Authorized', {
                                 val: false,
                                 ack: true
                             });
                             adapter.log.error(JSON.parse(body).error.message);
-                            return callback(response.statusCode, null);
+                            callback(response.statusCode, null);
                         }
+                        break;
+                    case 429:
+                        // Too Many Requests
+                        var wait = 1;
+                        if (response.headers.hasOwnProperty('retry-after') && response.headers[
+                                'retry-after'] > 0) {
+                            wait = response.headers['retry-after'];
+                            adapter.log.warn('too many requests, wait ' + wait + 's');
+                        }
+                        setTimeout(function() {
+                            sendRequest(Endpoint, Method, Send_Body, callback);
+                        }, wait * 1000);
                         break;
                     default:
                         adapter.log
                             .warn('HTTP Request Error not handled, please debug');
                         adapter.log.warn(callStack);
                         adapter.log.warn(new Error().stack);
-                        return callback(response.statusCode, null);
+                        callback(response.statusCode, null);
+                        break;
                 }
             } else {
                 adapter.log.error('erron in Request');
-                return callback(0, null);
+                callback(0, null);
             }
         });
 }
@@ -887,14 +904,14 @@ function refreshToken(callback) {
                         function(err, Token) {
                             if (!err) {
                                 application.token = Token.AccessToken;
-                                return callback(null);
+                                callback(null);
                             } else {
                                 adapter.log.debug(err);
-                                return callback(err, null);
+                                callback(err, null);
                             }
                         });
                 } else {
-                    return callback(response.statusCode);
+                    callback(response.statusCode);
                 }
             });
     }
@@ -916,7 +933,7 @@ function saveToken(data, callback) {
         });
     } else {
         adapter.log.error(JSON.stringify(data));
-        return callback('no tokens found in server response', null)
+        callback('no tokens found in server response', null)
     }
 }
 
@@ -926,6 +943,31 @@ function on(str, obj) {
         func: obj
     };
     listener.push(a);
+}
+
+function schedulePolling() {
+    application.interval = setTimeout(pollApi, application.pollingDelaySeconds * 1000);
+}
+
+function pollApi() {
+    sendRequest('/v1/me/player', 'GET', '', function(err, data) {
+        if (!err) {
+            adapter.log.debug('call interval');
+            createPlaybackInfo(data);
+            schedulePolling();
+        } else if (err == 202 || err == 401 || err == 502) {
+            // 202, 401 and 502 keep the interval running
+            var dummyBody = {
+                is_playing: false
+            };
+            // occurs when no player is open
+            createPlaybackInfo(dummyBody);
+            schedulePolling();
+        } else {
+            // other errors stop the interval
+            adapter.log.error('Spotify interval stopped! -> ' + err);
+        }
+    });
 }
 on('Authorization.Authorization_Return_URI', function(obj) {
     if (!obj.state.ack) {
@@ -1184,29 +1226,7 @@ on('Get_Playback_Info', function(obj) {
 });
 on('Authorization.Authorized', function(obj) {
     if (obj.state.val === true) {
-        application.Intervall = setInterval(function() {
-            sendRequest('/v1/me/player', 'GET', '', function(err, data) {
-                if (!err) {
-                    adapter.log.debug('Intervall');
-                    createPlaybackInfo(data);
-                } else if (err == 202 || err == 401 || err == 502) {
-                    // 202, 401 and 502 keep the interval running
-                    var dummyBody = {
-                        is_playing: false
-                    };
-                    // occurs when no player is open
-                    createPlaybackInfo(dummyBody);
-                } else {
-                    // other errors stop the interval
-                    clearInterval(application.Intervall);
-                    adapter.log.warn('Spotify interval stopped! -> ' + err);
-                }
-            });
-        }, 5000);
-    } else {
-        if ('undefined' !== typeof application.Intervall) {
-            clearInterval(application.Intervall)
-        }
+        schedulePolling();
     }
 });
 adapter.on('ready', function() {
@@ -1252,8 +1272,8 @@ adapter.on('unload', function(callback) {
             val: false,
             ack: true
         });
-        if ('undefined' !== typeof application.Intervall) {
-            clearInterval(application.Intervall)
+        if ('undefined' !== typeof application.interval) {
+            clearTimeout(application.interval)
         }
         callback();
     } catch (e) {
