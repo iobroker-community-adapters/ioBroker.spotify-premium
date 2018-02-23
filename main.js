@@ -18,7 +18,8 @@ var application = {
     token: '',
     refreshToken: '',
     code: '',
-    interval: null,
+    pollingHandle: null,
+    internalTimer: null,
     pollingDelaySeconds: 5
 };
 var deviceData = {
@@ -54,10 +55,10 @@ function main() {
 }
 
 function start() {
-    readTokenStates(function(err, Token) {
+    readTokenStates(function(err, tokenObj) {
         if (!err) {
-            application.token = Token.AccessToken;
-            application.refreshToken = Token.RefreshToken;
+            application.token = tokenObj.accessToken;
+            application.refreshToken = tokenObj.refreshToken;
             sendRequest('/v1/me', 'GET', '', function(err, data) {
                 if (!err) {
                     getUserInformation(data);
@@ -92,38 +93,42 @@ function start() {
 function readTokenStates(callback) {
     adapter.getState('Authorization.Token', function(err, state) {
         if (state !== null) {
-            var token = state.val;
-            var atf = 'undefined' !== typeof token.AccessToken &&
-                (token.AccessToken !== '');
-            var rtf = 'undefined' !== typeof token.RefreshToken &&
-                (token.RefreshToken !== '');
-            if (atf && rtf) {
+            var tokenObj = state.val;
+            var validAccessToken = 'undefined' !== typeof tokenObj.accessToken && (tokenObj.accessToken !==
+                '');
+            var validRefreshToken = 'undefined' !== typeof tokenObj.refreshToken && (tokenObj.refreshToken !==
+                '');
+            var validClientId = 'undefined' !== typeof tokenObj.clientId && (tokenObj.clientId !== '') &&
+                tokenObj.clientId == application.clientId;
+            var validClientSecret = 'undefined' !== typeof tokenObj.clientSecret && (tokenObj.clientSecret !==
+                '') && tokenObj.clientSecret == application.clientSecret;
+            if (validAccessToken && validRefreshToken && validClientId && validClientSecret) {
                 adapter.log.debug('spotify token readed');
-                callback(null, token);
+                callback(null, tokenObj);
             } else {
-                callback('no spotify token', null);
+                callback('invalid or no spotify token', null);
             }
         } else {
             adapter.setState('Authorization.Authorized', {
                 val: false,
                 ack: true
             });
-            adapter.log.warn('no Token set');
+            adapter.log.warn('no spotify token');
         }
     });
 }
 
-function sendRequest(Endpoint, Method, Send_Body, callback) {
+function sendRequest(endpoint, method, sendBody, callback) {
     var options = {
-        url: application.baseUrl + Endpoint,
-        method: Method,
+        url: application.baseUrl + endpoint,
+        method: method,
         headers: {
             Authorization: 'Bearer ' + application.token
         },
-        form: Send_Body
+        form: sendBody
     };
     adapter.log.debug(options.form);
-    adapter.log.debug('Spotify API Call...' + Endpoint);
+    adapter.log.debug('Spotify API Call...' + endpoint);
     var callStack = new Error().stack;
     request(
         options,
@@ -136,6 +141,7 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                         break;
                     case 202:
                         // Accepted, processing has not been completed.
+                        adapter.log.debug('http response: ' + JSON.stringify(response));
                         callback(response.statusCode, null);
                         break;
                     case 204:
@@ -169,7 +175,7 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                                         val: true,
                                         ack: true
                                     });
-                                    sendRequest(Endpoint, Method, Send_Body, function(err, data) {
+                                    sendRequest(endpoint, method, sendBody, function(err, data) {
                                         // this Request get the data which requested with the old token
                                         if (!err) {
                                             adapter.log.debug('data with new token');
@@ -210,7 +216,7 @@ function sendRequest(Endpoint, Method, Send_Body, callback) {
                             adapter.log.warn('too many requests, wait ' + wait + 's');
                         }
                         setTimeout(function() {
-                            sendRequest(Endpoint, Method, Send_Body, callback);
+                            sendRequest(endpoint, method, sendBody, callback);
                         }, wait * 1000);
                         break;
                     default:
@@ -466,6 +472,10 @@ function createPlaybackInfo(data) {
             val: convertToDigiClock(data.progress_ms),
             ack: true
         });
+        if (data.hasOwnProperty('item') && data.hasOwnProperty('is_playing') && data.is_playing) {
+            scheduleInternalTimer(data.item.duration_ms, data.progress_ms, Date.now(), application.pollingDelaySeconds -
+                1);
+        }
     } else {
         adapter.setState('PlaybackInfo.progress_ms', {
             val: 0,
@@ -845,7 +855,7 @@ function getToken() {
         }
     };
     request(options, function(error, response, body) {
-        saveToken(JSON.parse(body), function(err, Token) {
+        saveToken(JSON.parse(body), function(err, tokenObj) {
             if (!err) {
                 adapter.setState('Authorization.Authorization_URL', {
                     val: '',
@@ -859,8 +869,8 @@ function getToken() {
                     val: true,
                     ack: true
                 });
-                application.token = Token.AccessToken;
-                application.refreshToken = Token.RefreshToken;
+                application.token = tokenObj.accessToken;
+                application.refreshToken = tokenObj.refreshToken;
                 start();
             } else {
                 adapter.log.debug(err)
@@ -901,9 +911,9 @@ function refreshToken(callback) {
                     adapter.log.debug(JSON.stringify(parsedJson))
                     saveToken(
                         parsedJson,
-                        function(err, Token) {
+                        function(err, tokenObj) {
                             if (!err) {
-                                application.token = Token.AccessToken;
+                                application.token = tokenObj.accessToken;
                                 callback(null);
                             } else {
                                 adapter.log.debug(err);
@@ -922,8 +932,10 @@ function saveToken(data, callback) {
     if ('undefined' !== typeof data.access_token &&
         ('undefined' !== typeof data.refresh_token)) {
         var token = {
-            AccessToken: data.access_token,
-            RefreshToken: data.refresh_token
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token,
+            clientId: application.clientId,
+            clientSecret: application.clientSecret
         };
         adapter.setState('Authorization.Token', {
             val: token,
@@ -945,18 +957,43 @@ function on(str, obj) {
     listener.push(a);
 }
 
+function increaseTime(duration_ms, progress_ms, startDate, count) {
+    var now = Date.now();
+    count--;
+    progress_ms += now - startDate;
+    adapter.setState('PlaybackInfo.progress_ms', {
+        val: progress_ms,
+        ack: false
+    });
+    adapter.setState('PlaybackInfo.progress', {
+        val: convertToDigiClock(progress_ms),
+        ack: false
+    });
+    if (count > 0 && progress_ms + 1000 < duration_ms) {
+        scheduleInternalTimer(duration_ms, progress_ms, now, count);
+    }
+}
+
+function scheduleInternalTimer(duration_ms, progress_ms, startDate, count) {
+    clearTimeout(application.internalTimer);
+    application.internalTimer = setTimeout(increaseTime, 1000, duration_ms, progress_ms, startDate, count);
+}
+
 function schedulePolling() {
-    application.interval = setTimeout(pollApi, application.pollingDelaySeconds * 1000);
+    clearTimeout(application.pollingHandle);
+    application.pollingHandle = setTimeout(pollApi, application.pollingDelaySeconds * 1000);
 }
 
 function pollApi() {
+    clearTimeout(application.internalTimer);
+    adapter.log.debug('call polling');
     sendRequest('/v1/me/player', 'GET', '', function(err, data) {
         if (!err) {
-            adapter.log.debug('call interval');
             createPlaybackInfo(data);
             schedulePolling();
         } else if (err == 202 || err == 401 || err == 502) {
-            // 202, 401 and 502 keep the interval running
+            adapter.log.warn('unexpected api response http ' + err + '; continue polling');
+            // 202, 401 and 502 keep the polling running
             var dummyBody = {
                 is_playing: false
             };
@@ -964,8 +1001,8 @@ function pollApi() {
             createPlaybackInfo(dummyBody);
             schedulePolling();
         } else {
-            // other errors stop the interval
-            adapter.log.error('Spotify interval stopped! -> ' + err);
+            // other errors stop the polling
+            adapter.log.error('spotify polling stopped with error ' + err);
         }
     });
 }
@@ -974,7 +1011,9 @@ on('Authorization.Authorization_Return_URI', function(obj) {
         adapter.getState('Authorization.State', function(err, state) {
             var returnUri = querystring.parse(obj.state.val.slice(obj.state.val
                 .search('[?]') + 1, obj.state.val.length));
-            returnUri.state = returnUri.state.replace(/#_=_$/g, '');
+            if ('undefined' !== typeof returnUri.state) {
+                returnUri.state = returnUri.state.replace(/#_=_$/g, '');
+            }
             if (returnUri.state == state.val) {
                 adapter.log.debug('getToken');
                 application.code = returnUri.code;
@@ -1272,8 +1311,9 @@ adapter.on('unload', function(callback) {
             val: false,
             ack: true
         });
-        if ('undefined' !== typeof application.interval) {
-            clearTimeout(application.interval)
+        if ('undefined' !== typeof application.pollingHandle) {
+            clearTimeout(application.pollingHandle);
+            clearTimeout(application.internalTimer);
         }
         callback();
     } catch (e) {
