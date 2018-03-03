@@ -17,6 +17,9 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.1.1 (2018.03.03)
+* (twonky) fix several small issues
+
 ### 0.1.0 (2018.02.23)
 * (twonky) rework api polling mechanism
 

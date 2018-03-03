@@ -234,42 +234,45 @@ function sendRequest(endpoint, method, sendBody, callback) {
         });
 }
 
+function loadOrDefault(obj, name, defaultVal) {
+    var t = undefined;
+    try {
+        eval('t = obj.' + name + ';');
+    } catch (e) {}
+    if (t === undefined) {
+        t = defaultVal;
+    }
+    return t;
+}
+
+function setOrDefault(obj, name, state, defaultVal) {
+    var t = loadOrDefault(obj, name, defaultVal);
+    adapter.setState(state, {
+        val: t,
+        ack: true
+    });
+    return t;
+}
+
 function createPlaybackInfo(data) {
     if (isEmpty(data)) {
         adapter.log.warn('no playback content')
         return;
     }
-    if (data.hasOwnProperty('device')) {
-        deviceData.lastActiveDeviceId = data.device.id;
-        adapter.setState('PlaybackInfo.Device.id', {
-            val: data.device.id,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.is_active', {
-            val: data.device.is_active,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.is_restricted', {
-            val: data.device.is_restricted,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.name', {
-            val: data.device.name,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.type', {
-            val: data.device.type,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.volume_percent', {
-            val: data.device.volume_percent,
-            ack: true
-        });
+    var deviceId = setOrDefault(data, 'device.id', 'PlaybackInfo.Device.id', '');
+    var isDeviceActive = setOrDefault(data, 'device.is_active', 'PlaybackInfo.Device.is_active', false);
+    var isDeviceRestricted = setOrDefault(data, 'device.is_restricted', 'PlaybackInfo.Device.is_restricted',
+        false);
+    var deviceName = setOrDefault(data, 'device.name', 'PlaybackInfo.Device.name', '');
+    var deviceType = setOrDefault(data, 'device.type', 'PlaybackInfo.Device.type', '');
+    var deviceVolume = setOrDefault(data, 'device.volume_percent', 'PlaybackInfo.Device.volume_percent', 100);
+    if (deviceId) {
+        deviceData.lastActiveDeviceId = deviceId;
         adapter.getStates('Devices.*.is_active', function(err, state) {
             var keys = Object.keys(state);
             keys.forEach(function(key) {
                 key = removeNameSpace(key);
-                if (key !== 'Devices.' + data.device.name.replace(/\s+/g, '') + '.is_active' &&
+                if (key !== 'Devices.' + deviceName.replace(/\s+/g, '') + '.is_active' &&
                     key.endsWith(
                         '.is_active')) {
                     adapter.setState(key, {
@@ -281,39 +284,15 @@ function createPlaybackInfo(data) {
         });
         createDevices({
             devices: [{
-                id: data.device.id,
-                is_active: data.device.is_active,
-                is_restricted: data.device.is_restricted,
-                name: data.device.name,
-                type: data.device.type,
-                volume_percent: data.device.volume_percent
+                id: deviceId,
+                is_active: isDeviceActive,
+                is_restricted: isDeviceRestricted,
+                name: deviceName,
+                type: deviceType,
+                volume_percent: deviceVolume
             }]
         });
     } else {
-        adapter.setState('PlaybackInfo.Device.id', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.is_active', {
-            val: false,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.is_restricted', {
-            val: false,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.name', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.type', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Device.volume_percent', {
-            val: 100,
-            ack: true
-        });
         adapter.getStates('Devices.*.is_active', function(err, state) {
             var keys = Object.keys(state);
             keys.forEach(function(key) {
@@ -327,97 +306,38 @@ function createPlaybackInfo(data) {
             });
         });
     }
-    if (data.hasOwnProperty('is_playing')) {
-        adapter.setState('PlaybackInfo.is_playing', {
-            val: data.is_playing,
-            ack: true
-        });
+    var isPlaying = setOrDefault(data, 'is_playing', 'PlaybackInfo.is_playing', false);
+    setOrDefault(data, 'item.id', 'PlaybackInfo.Track_Id', '');
+    setOrDefault(data, 'item.artists[0].name', 'PlaybackInfo.Artist_Name', '');
+    setOrDefault(data, 'item.album.name', 'PlaybackInfo.Album', '');
+    setOrDefault(data, 'item.album.images[0].url', 'PlaybackInfo.image_url', '');
+    setOrDefault(data, 'item.name', 'PlaybackInfo.Track_Name', '');
+    var duration = setOrDefault(data, 'item.duration_ms', 'PlaybackInfo.duration_ms', 0);
+    adapter.setState('PlaybackInfo.duration', {
+        val: convertToDigiClock(duration),
+        ack: true
+    });
+    var type = setOrDefault(data, 'context.type', 'PlaybackInfo.Type', '');
+    if (!type) {
+        type = setOrDefault(data, 'item.type', 'PlaybackInfo.Type', '');
     }
-    if (data.hasOwnProperty('item')) {
-        adapter.setState('PlaybackInfo.Track_Id', {
-            val: data.item.id,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Artist_Name', {
-            val: data.item.artists[0].name,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Album', {
-            val: data.item.album.name,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.image_url', {
-            val: data.item.album.images[0].url,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Track_Name', {
-            val: data.item.name,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.duration_ms', {
-            val: data.item.duration_ms,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.duration', {
-            val: convertToDigiClock(data.item.duration_ms),
-            ack: true
-        });
-    } else {
-        adapter.setState('PlaybackInfo.Track_Id', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Artist_Name', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Album', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.image_url', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.Track_Name', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.duration_ms', {
-            val: 0,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.duration', {
-            val: convertToDigiClock(0),
-            ack: true
-        });
-    }
-    if (data.hasOwnProperty('context') && data.context !== null) {
-        adapter.setState('PlaybackInfo.Type', {
-            val: data.context.type,
-            ack: true
-        });
-        if (data.context.type == 'playlist') {
-            var indexOfUser = data.context.uri.indexOf('user:') + 5;
-            var endIndexOfUser = data.context.uri.indexOf(':',
-                indexOfUser);
-            var indexOfPlaylistId = data.context.uri
-                .indexOf('playlist:') + 9;
-            var query = {
-                fields: 'name,id,owner.id,tracks.total',
-            };
-            sendRequest('/v1/users/' +
-                data.context.uri.substring(indexOfUser,
-                    endIndexOfUser) + '/playlists/' +
-                data.context.uri.slice(indexOfPlaylistId) + '?' +
-                querystring.stringify(query), 'GET', '',
-                function(err, parseJson) {
-                    if (!err && parseJson.hasOwnProperty('name')) {
-                        adapter.setState('PlaybackInfo.Playlist', {
-                            val: parseJson.name,
-                            ack: true
-                        });
-                        adapter.getState('Playlists.' + parseJson.name.replace(/\s+/g, '') + '.name',
+    var uri = loadOrDefault(data, 'context.uri', '');
+    if (type == 'playlist' && uri) {
+        var indexOfUser = uri.indexOf('user:') + 5;
+        var endIndexOfUser = uri.indexOf(':', indexOfUser);
+        var indexOfPlaylistId = uri.indexOf('playlist:') + 9;
+        var query = {
+            fields: 'name,id,owner.id,tracks.total',
+        };
+        sendRequest('/v1/users/' +
+            uri.substring(indexOfUser, endIndexOfUser) + '/playlists/' + uri.slice(indexOfPlaylistId) +
+            '?' + querystring.stringify(query),
+            'GET', '',
+            function(err, parseJson) {
+                if (!err) {
+                    var playListName = setOrDefault(parseJson, 'name', 'PlaybackInfo.Playlist', '');
+                    if (playListName) {
+                        adapter.getState('Playlists.' + playListName.replace(/\s+/g, '') + '.name',
                             function(err, state) {
                                 if (state === null) {
                                     persistPlaylist({
@@ -425,93 +345,33 @@ function createPlaybackInfo(data) {
                                     });
                                 }
                             });
-                    } else {
-                        adapter.log.warn(err);
                     }
-                });
-        } else {
-            adapter.setState('PlaybackInfo.Playlist', {
-                val: '',
-                ack: true
+                }
             });
-        }
     } else {
-        if (data.hasOwnProperty('item')) {
-            adapter.setState('PlaybackInfo.Type', {
-                val: data.item.type,
-                ack: true
-            });
-        } else {
-            adapter.setState('PlaybackInfo.Type', {
-                val: '',
-                ack: true
-            });
-        }
         adapter.setState('PlaybackInfo.Playlist', {
             val: '',
             ack: true
         });
     }
-    if (data.hasOwnProperty('timestamp')) {
-        adapter.setState('PlaybackInfo.timestamp', {
-            val: data.timestamp,
-            ack: true
-        });
-    } else {
-        adapter.setState('PlaybackInfo.timestamp', {
-            val: 0,
-            ack: true
-        });
+    setOrDefault(data, 'timestamp', 'PlaybackInfo.timestamp', 0);
+    var progress = setOrDefault(data, 'progress_ms', 'PlaybackInfo.progress_ms', 0);
+    adapter.setState('PlaybackInfo.progress', {
+        val: convertToDigiClock(progress),
+        ack: true
+    });
+    if (progress && isPlaying) {
+        scheduleInternalTimer(duration, progress, Date.now(), application.pollingDelaySeconds - 1);
     }
-    if (data.hasOwnProperty('progress_ms')) {
-        adapter.setState('PlaybackInfo.progress_ms', {
-            val: data.progress_ms,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.progress', {
-            val: convertToDigiClock(data.progress_ms),
-            ack: true
-        });
-        if (data.hasOwnProperty('item') && data.hasOwnProperty('is_playing') && data.is_playing) {
-            scheduleInternalTimer(data.item.duration_ms, data.progress_ms, Date.now(), application.pollingDelaySeconds -
-                1);
-        }
-    } else {
-        adapter.setState('PlaybackInfo.progress_ms', {
-            val: 0,
-            ack: true
-        });
-        adapter.setState('PlaybackInfo.progress', {
-            val: convertToDigiClock(0),
-            ack: true
-        });
-    }
-    if (data.hasOwnProperty('shuffle_state')) {
-        adapter.setState('PlaybackInfo.shuffle', {
-            val: data.shuffle_state,
-            ack: true
-        });
-    } else {
-        adapter.setState('PlaybackInfo.shuffle', {
-            val: false,
-            ack: true
-        });
-    }
-    if (data.hasOwnProperty('repeat_state')) {
-        adapter.setState('PlaybackInfo.repeat', {
-            val: data.repeat_state,
-            ack: true
-        });
-    } else {
-        adapter.setState('PlaybackInfo.repeat', {
-            val: false,
-            ack: true
-        });
-    }
+    setOrDefault(data, 'shuffle_state', 'PlaybackInfo.shuffle', false);
+    setOrDefault(data, 'repeat_state', 'PlaybackInfo.repeat', 'off');
 }
 
 function convertToDigiClock(ms) {
     // milliseconds to digital time, e.g. 3:59=238759
+    if (!ms) {
+        ms = 0;
+    }
     var min = Math.floor(ms / 60000);
     var sec = Math.floor(((ms % 360000) % 60000) / 1000);
     if (min < 10) {
@@ -992,7 +852,11 @@ function pollApi() {
             createPlaybackInfo(data);
             schedulePolling();
         } else if (err == 202 || err == 401 || err == 502) {
-            adapter.log.warn('unexpected api response http ' + err + '; continue polling');
+            adapter.log.warn('Unexpected api response http ' + err + '; continue polling' +
+                (err == 202 ?
+                    '; You will see a 202 response the first time a user connects to the Spotify Connect API or when the device is temporarily unavailable' :
+                    '')
+            );
             // 202, 401 and 502 keep the polling running
             var dummyBody = {
                 is_playing: false
@@ -1181,7 +1045,7 @@ on('Player.Volume', function(obj) {
             function(err) {
                 if (!err) {
                     adapter.setState('Player.Volume', {
-                        val: null,
+                        val: '',
                         ack: true
                     });
                 }
@@ -1195,7 +1059,7 @@ on('Player.Seek', function(obj) {
             function(err) {
                 if (!err) {
                     adapter.setState('Player.Seek', {
-                        val: null,
+                        val: '',
                         ack: true
                     });
                 }
@@ -1203,10 +1067,17 @@ on('Player.Seek', function(obj) {
     }
 });
 on('Player.Shuffle', function(obj) {
-    if (obj.state.val === true) {
-        sendRequest('/v1/me/player/shuffle?state=true', 'PUT', '', function() {})
-    } else {
-        sendRequest('/v1/me/player/shuffle?state=false', 'PUT', '', function() {})
+    if (!obj.state.ack) {
+        sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === true ? 'true' : 'false'),
+            'PUT', '',
+            function(err) {
+                if (!err) {
+                    adapter.setState('Player.Shuffle', {
+                        val: '',
+                        ack: true
+                    });
+                }
+            });
     }
 });
 on('Player.TrackId', function(obj) {
@@ -1220,7 +1091,7 @@ on('Player.TrackId', function(obj) {
         sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function(err) {
             if (!err) {
                 adapter.setState('Player.TrackId', {
-                    val: null,
+                    val: '',
                     ack: true
                 });
             }
@@ -1239,7 +1110,7 @@ on('Player.Playlist_ID', function(obj) {
         sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function(err) {
             if (!err) {
                 adapter.setState('Player.Playlist_ID', {
-                    val: null,
+                    val: '',
                     ack: true
                 });
             }

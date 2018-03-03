@@ -12,7 +12,7 @@
   "manual6": "schakel naar het tabblad Objecten en klik op 'Get_Authorization' onder 'spotify-premium.X.Authorization'",
   "manual7": "Kopieer de URL die wordt weergegeven onder 'spotify-premium.X.Authorization.Authorization_URL' naar een webbrowser en ga daarheen.",
   "manual8": "U moet mogelijk inloggen op Spotify en toegang toestaan.",
-  "manual9": "De browser weigert de verbinding en retourneert een URL in de adresbalk",
+  "manual9": "De browser weigert de verbinding en retourneert een URL in de adresbalk. Als de fout 'invalid redirect uri' wordt weergegeven, controleert u of stap 3 is uitgevoerd.",
   "manual10": "Kopieer deze URL opnieuw en plak deze in de status 'spotify-premium.X.Authorization.Authorization_Return_URI'",
   "manual11": "alles is correct ingesteld als het waar is in 'spotify-premium.X.Authorization.Authorized'"
 }

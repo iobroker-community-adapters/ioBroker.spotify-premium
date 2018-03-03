@@ -12,7 +12,7 @@
   "manual6": "passer à l'onglet Objets et cliquer sur 'Get_Authorization' sous 'spotify-premium.X.Authorization'",
   "manual7": "Copiez l'URL affichée sous 'spotify-premium.X.Authorization.Authorization_URL' dans un navigateur Web et accédez-y.",
   "manual8": "Vous devrez peut-être vous connecter à Spotify et autoriser l'accès.",
-  "manual9": "Le navigateur rejettera la connexion et retournera une URL dans la barre d'adresse",
+  "manual9": "Le navigateur rejettera la connexion et retournera une URL dans la barre d'adresse. Si l'erreur 'invalid redirect uri' apparaît, assurez-vous que l'étape 3 a bien été effectuée.",
   "manual10": "Copiez à nouveau cette URL et collez-la dans l'état 'spotify-premium.X.Authorization.Authorization_Return_URI'",
   "manual11": "tout est correctement configuré si vrai dans 'spotify-premium.X.Authorization.Authorized'"
 }

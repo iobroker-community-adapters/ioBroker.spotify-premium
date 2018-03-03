@@ -12,7 +12,7 @@
   "manual6": "switch to objects tab and push the button Get_Authorization at 'spotify-premium.X.Authorization'",
   "manual7": "copy the appearing URL from 'spotify-premium.X.Authorization.Authorization_URL' to your webbrowser and call it",
   "manual8": "You maybe need to sign in to spotify and grant access",
-  "manual9": "the browser will redirected to an invalid URL",
+  "manual9": "the browser will redirected to an invalid URL. If the error 'invalid redirect uri' occurs please verify step 3",
   "manual10": "copy that url and put it to 'spotify-premium.X.Authorization.Authorization_Return_URI'",
   "manual11": "the value in 'spotify-premium.X.Authorization.Authorized' turns to true if everything was successful"
 }
