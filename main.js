@@ -349,6 +349,7 @@ function createPlaybackInfo(data) {
                 }
             });
     } else {
+    	adapter.log.debug('context type: '+ type);
         adapter.setState('PlaybackInfo.Playlist', {
             val: '',
             ack: true
