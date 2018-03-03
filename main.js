@@ -127,8 +127,7 @@ function sendRequest(endpoint, method, sendBody, callback) {
         },
         form: sendBody
     };
-    adapter.log.debug(options.form);
-    adapter.log.debug('Spotify API Call...' + endpoint);
+    adapter.log.debug('Spotify API Call...' + endpoint + '; ' + options.form);
     var callStack = new Error().stack;
     request(
         options,
