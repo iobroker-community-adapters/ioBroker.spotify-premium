@@ -934,7 +934,7 @@ function getLocalDeviceInfo(ip, port) {
 	                is_restricted: data.accountReq.toUpperCase() == "PREMIUM",
 	                name: data.remoteName,
 	                type: camelize(data.deviceType),
-	                publicKey: data.publicKey,
+	                public_key: data.publicKey,
 	                is_local: true,
 	                active_user: data.activeUser
 	            }]
