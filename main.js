@@ -5,6 +5,9 @@
 var utils = require(__dirname + '/lib/utils');
 var request = require('request');
 var querystring = require('querystring');
+var bonjour = require('bonjour')();
+
+
 var adapter = new utils.Adapter('spotify-premium');
 var listener = [];
 var application = {
@@ -614,7 +617,7 @@ function deleteDevices(callback) {
         var keys = Object.keys(state);
         keys.forEach(function(key) {
             key = removeNameSpace(key);
-            if (key == 'Devices.Get_Devices') {
+            if (key == 'Devices.Get_Devices' || key == 'Devices.Get_Local_Devices') {
                 return;
             }
             adapter.delObject(key);
@@ -624,10 +627,28 @@ function deleteDevices(callback) {
 }
 
 function createDevices(data) {
+	var searchLocal = true;
     data.devices.forEach(function(device) {
+    	var name = device.name.replace(/\s+/g, '');
+    	adapter.setObjectNotExists('Devices.' + name + '.' +
+    			'Use_for_Playback', {
+    		type: 'state',
+    		common: {
+    			name: 'Use_for_Playback',
+    			type: 'boolean',
+    			role: 'button'
+    		},
+    		native: {}
+    	});
+    	adapter.setState('Devices.' +name + '.' +
+    			'Use_for_Playback', {
+    		val: false,
+    		ack: true
+    	});
+
+    	var isLocal = false;
         for (var objName in device) {
-            adapter.setObjectNotExists('Devices.' +
-                device.name.replace(/\s+/g, '') + '.' +
+            adapter.setObjectNotExists('Devices.' + name + '.' +
                 objName, {
                     type: 'state',
                     common: {
@@ -638,31 +659,53 @@ function createDevices(data) {
                     },
                     native: {}
                 });
-            adapter.setObjectNotExists('Devices.' +
-                device.name.replace(/\s+/g, '') + '.' +
-                'Use_for_Playback', {
-                    type: 'state',
-                    common: {
-                        name: 'Use_for_Playback',
-                        type: 'boolean',
-                        role: 'button'
-                    },
-                    native: {}
-                });
-            adapter.setState('Devices.' +
-                device.name.replace(/\s+/g, '') + '.' +
-                'Use_for_Playback', {
-                    val: false,
-                    ack: true
-                });
-            adapter.setState('Devices.' +
-                device.name.replace(/\s+/g, '') + '.' +
+            adapter.setState('Devices.' + name + '.' +
                 objName, {
                     val: device[objName],
                     ack: true
                 });
+            if(objName == 'is_local' && device[objName]) {
+            	isLocal = true;
+            	searchLocal = false;
+            	adapter.setObjectNotExists('Devices.' + name+ '.' +
+            			'Add_User', {
+            		type: 'state',
+            		common: {
+            			name: 'Add_User',
+            			type: 'boolean',
+            			role: 'button'
+            		},
+            		native: {}
+            	});
+            	adapter.setState('Devices.' + name + '.' +
+            			'Add_User', {
+            		val: false,
+            		ack: true
+            	});
+            }
+        }
+        if(!isLocal) {
+            adapter.setObjectNotExists('Devices.' + name + '.' + 'is_local',
+            		{
+                        type: 'state',
+                        common: {
+                            name: 'is_local',
+                            type: 'boolean',
+                            role: 'is_local',
+                            write: false
+                        },
+                        native: {}
+                    });
+                adapter.setState('Devices.' + name + '.' + 'is_local',
+                		{
+                        val: false,
+                        ack: true
+                    });
         }
     });
+    if(searchLocal) {
+    	searchForLocalDevices();
+    }
 }
 
 function generateRandomString(length) {
@@ -870,6 +913,53 @@ function pollApi() {
         }
     });
 }
+function camelize(str) {
+  return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+    if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+    return index == 0 ? match.toUpperCase() : match.toLowerCase();
+  });
+}
+function searchForLocalDevices() {
+	bonjour.find({ type: 'spotify-connect' }, function (service) {
+        getLocalDeviceInfo(service.referer.address, service.port);
+	});
+}
+function getLocalDeviceInfo(ip, port) {
+	request('http://'+ip+':'+port+'?action=getInfo', function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			var data = JSON.parse(body);
+	        createDevices({
+	            devices: [{
+	                id: data.deviceID,
+	                is_restricted: data.accountReq.toUpperCase() == "PREMIUM",
+	                name: data.remoteName,
+	                type: camelize(data.deviceType),
+	                publicKey: data.publicKey,
+	                is_local: true,
+	                active_user: data.activeUser
+	            }]
+	        });
+		}
+	});
+}
+function addUser() {
+	var clientKeyBuff = new Buffer(application.clientId);  
+	var clientKey = clientKeyBuff.toString('base64');
+    var userName = application.userId;
+
+    var iv = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    var decrypted = [];
+    var cksum = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+    // look at: https://github.com/badfortrains/spotcontrol/blob/f6742a820cec0550e426aee2752c82fc816c9cae/keys.go
+    // https://github.com/plietar/librespot/blob/master/src/discovery.rs
+
+    var blobRaw = iv + decrypted + cksum;
+    var blobBuff = new Buffer(blobRaw);
+	var blob = blobBuff.toString('base64');
+
+	request('http://'+ip+':'+port+'?action=addUser&userName='+userName+'&clientKey='+clientKey+'&blob='+ blob, function (error, response, body) {});
+}
 on('Authorization.Authorization_Return_URI', function(obj) {
     if (!obj.state.ack) {
         adapter.getState('Authorization.State', function(err, state) {
@@ -913,6 +1003,17 @@ on(/\.Use_for_Playback$/, function(obj) {
             };
             sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), function(err,
                 data) {});
+        });
+    }
+});
+on(/\.Add_User$/, function(obj) {
+    if (obj.state != null && obj.state.val) {
+        adapter.getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id', function(err, state) {
+            var deviceId = state.val;
+            adapter.getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.publicKey', function(err, state) {
+                var publicKey = state.val;
+                addUser();
+            });
         });
     }
 });
@@ -1126,6 +1227,9 @@ on('Devices.Get_Devices', function(obj) {
             reloadDevices(data);
         }
     });
+});
+on('Devices.Get_Local_Devices', function(obj) {
+	searchForLocalDevices();
 });
 on('Get_Playback_Info', function(obj) {
     sendRequest('/v1/me/player', 'GET', '', function(err, data) {

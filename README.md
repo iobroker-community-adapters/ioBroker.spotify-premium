@@ -17,6 +17,9 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.2.0 (2018.03.05)
+* (twonky) discover local devices and connect to them
+
 ### 0.1.1 (2018.03.03)
 * (twonky) fix several small issues
 
