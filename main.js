@@ -6,6 +6,8 @@ var utils = require(__dirname + '/lib/utils');
 var request = require('request');
 var querystring = require('querystring');
 var bonjour = require('bonjour')();
+var sha1 = require('sha1');
+var pbkdf2 = require('pbkdf2')
 
 
 var adapter = new utils.Adapter('spotify-premium');
@@ -941,6 +943,43 @@ function getLocalDeviceInfo(ip, port) {
 	        });
 		}
 	});
+}
+
+function randomVec(count) {
+	var b = new Uint8Array(count);
+
+	for(var i = 0;i<count;i++) {
+		b[i] = Math.floor((Math.random() * 255) + 1);
+	}
+
+	return b
+}
+function  makeAuthBlob(Username, deviceId, client64, dhKeys) {
+	var secret = sha1(deviceId);
+	var key := blobKey(Username, secret);
+
+	blobBytes, err := base64.StdEncoding.DecodeString(b.DecodedBlob)
+	if err != nil {
+		return ''
+	}
+	var encoded := encryptBlob(blobBytes, key);
+	var fullEncoded := makeBlob(encoded, dhKeys, client64);
+
+	return fullEncoded;
+}
+function binaryBigEndianPutUint32(b, v) {
+	b[0] = v >> 24
+	b[1] = v >> 16
+	b[2] = v >> 8
+	b[3] = v
+	
+	return b;
+}
+function blobKey(username, secret) {
+	var data = pbkdf2.pbkdf2Sync(secret, username, 256, 20, 'sha1').substr(0, 20);
+	var hash := sha1(data);
+	var length = binaryBigEndianPutUint32([0, 0, 0, 0], 20);
+	return hash.concat(length);
 }
 function addUser() {
 	var clientKeyBuff = new Buffer(application.clientId);  

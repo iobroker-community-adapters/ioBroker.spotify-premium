@@ -30,7 +30,9 @@
   "dependencies": {
     "request": "2.83.0",
     "querystring": "0.2.0",
-    "bonjour": "3.5.0"
+    "bonjour": "3.5.0",
+    "sha1": "1.1.1",
+    "pbkdf2": "3.0.14"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
