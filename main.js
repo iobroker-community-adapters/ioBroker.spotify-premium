@@ -20,7 +20,8 @@ var application = {
     code: '',
     pollingHandle: null,
     internalTimer: null,
-    pollingDelaySeconds: 5
+    pollingDelaySeconds: 5,
+    error202shown: false
 };
 var deviceData = {
     lastActiveDeviceId: '',
@@ -848,15 +849,21 @@ function pollApi() {
     clearTimeout(application.internalTimer);
     adapter.log.debug('call polling');
     sendRequest('/v1/me/player', 'GET', '', function(err, data) {
+    	if(err != 202) {
+    		application.error202shown = false;
+    	}
         if (!err) {
             createPlaybackInfo(data);
             schedulePolling();
         } else if (err == 202 || err == 401 || err == 502) {
-            adapter.log.warn('Unexpected api response http ' + err + '; continue polling' +
-                (err == 202 ?
-                    '; You will see a 202 response the first time a user connects to the Spotify Connect API or when the device is temporarily unavailable' :
-                    '')
-            );
+            if (err == 202) {
+            	if(!application.error202shown) {
+            		adapter.log.debug('Unexpected api response http 202; continue polling; You will see a 202 response the first time a user connects to the Spotify Connect API or when the device is temporarily unavailable');
+            	}
+            	application.error202shown = true;
+            } else {
+                adapter.log.warn('Unexpected api response http ' + err + '; continue polling');
+            }
             // 202, 401 and 502 keep the polling running
             var dummyBody = {
                 is_playing: false
