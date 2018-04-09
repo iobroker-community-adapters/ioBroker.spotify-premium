@@ -306,6 +306,7 @@ function createPlaybackInfo(data) {
             });
         });
     }
+
     var isPlaying = setOrDefault(data, 'is_playing', 'PlaybackInfo.is_playing', false);
     setOrDefault(data, 'item.id', 'PlaybackInfo.Track_Id', '');
     setOrDefault(data, 'item.artists[0].name', 'PlaybackInfo.Artist_Name', '');
@@ -326,11 +327,18 @@ function createPlaybackInfo(data) {
         var indexOfUser = uri.indexOf('user:') + 5;
         var endIndexOfUser = uri.indexOf(':', indexOfUser);
         var indexOfPlaylistId = uri.indexOf('playlist:') + 9;
+        var playlistId = uri.slice(indexOfPlaylistId);
+
+        adapter.setState(playlistId, {
+            val: 'Player.Playlist_ID',
+            ack: true
+        });
+
         var query = {
             fields: 'name,id,owner.id,tracks.total',
         };
         sendRequest('/v1/users/' +
-            uri.substring(indexOfUser, endIndexOfUser) + '/playlists/' + uri.slice(indexOfPlaylistId) +
+            uri.substring(indexOfUser, endIndexOfUser) + '/playlists/' + playlistId +
             '?' + querystring.stringify(query),
             'GET', '',
             function(err, parseJson) {
@@ -354,6 +362,10 @@ function createPlaybackInfo(data) {
             val: '',
             ack: true
         });
+        adapter.setState(playlistId, {
+            val: '',
+            ack: true
+        });
     }
     setOrDefault(data, 'timestamp', 'PlaybackInfo.timestamp', 0);
     var progress = setOrDefault(data, 'progress_ms', 'PlaybackInfo.progress_ms', 0);
@@ -366,6 +378,11 @@ function createPlaybackInfo(data) {
     }
     setOrDefault(data, 'shuffle_state', 'PlaybackInfo.shuffle', false);
     setOrDefault(data, 'repeat_state', 'PlaybackInfo.repeat', 'off');
+
+    // refresh Player states too
+    setOrDefault(data, 'shuffle_state', 'Player.Shuffle', false);
+    setOrDefault(data, 'item.id', 'Player.TrackId', '');
+    setOrDefault(data, 'device.volume_percent', 'Player.Volume', 100);
 }
 
 function convertToDigiClock(ms) {
@@ -1047,21 +1064,12 @@ on('Player.Repeat_off', function(obj) {
 });
 on('Player.Volume', function(obj) {
     if (!obj.state.ack) {
-        sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT',
-            '',
-            function(err) {
-                if (!err) {
-                    adapter.setState('Player.Volume', {
-                        val: '',
-                        ack: true
-                    });
-                }
-            });
+        sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '', function() {});
     }
 });
 on('Player.Seek', function(obj) {
     if (!obj.state.ack) {
-        sendRequest('/v1/me/player/seek?position_ms=' + obj.state.val * 1000,
+        sendRequest('/v1/me/player/seek?position_ms=' + (obj.state.val * 1000),
             'PUT', '',
             function(err) {
                 if (!err) {
@@ -1075,16 +1083,7 @@ on('Player.Seek', function(obj) {
 });
 on('Player.Shuffle', function(obj) {
     if (!obj.state.ack) {
-        sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === true ? 'true' : 'false'),
-            'PUT', '',
-            function(err) {
-                if (!err) {
-                    adapter.setState('Player.Shuffle', {
-                        val: '',
-                        ack: true
-                    });
-                }
-            });
+        sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === true ? 'true' : 'false'), 'PUT', '', function() {});
     }
 });
 on('Player.TrackId', function(obj) {
@@ -1095,14 +1094,7 @@ on('Player.TrackId', function(obj) {
                 position: 0
             }
         };
-        sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function(err) {
-            if (!err) {
-                adapter.setState('Player.TrackId', {
-                    val: '',
-                    ack: true
-                });
-            }
-        });
+        sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function() {});
     }
 });
 on('Player.Playlist_ID', function(obj) {
@@ -1114,13 +1106,11 @@ on('Player.Playlist_ID', function(obj) {
                 position: 1
             }
         };
-        sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function(err) {
-            if (!err) {
-                adapter.setState('Player.Playlist_ID', {
-                    val: '',
-                    ack: true
-                });
-            }
+
+        sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function(err, data) {
+        	if(err) {
+        		adapter.log.error('Could not start playlist '+ obj.state.val + ' of user ' + application.userId);
+        	}
         });
     }
 });
