@@ -333,8 +333,8 @@ function createPlaybackInfo(data) {
         var indexOfPlaylistId = uri.indexOf('playlist:') + 9;
         var playlistId = uri.slice(indexOfPlaylistId);
 
-        adapter.setState(playlistId, {
-            val: 'Player.Playlist_ID',
+        adapter.setState('Player.Playlist_ID', {
+            val: playlistId,
             ack: true
         });
 
@@ -359,6 +359,25 @@ function createPlaybackInfo(data) {
                                 }
                             });
                     }
+
+                    var songId = loadOrDefault(data, 'item.id', '');
+                	adapter.getObject('Playlists.' + playListName.replace(/\s+/g, '') + '.Track_List', function (err, obj) {
+                		if(obj === null) {
+                			return;
+                		}
+            	        var stateName = obj.common.Track_ID.split(';');
+            	        var stateArr = [];
+            	        for (var i = 0; i < stateName.length; i++) {
+            	            var ele = stateName[i].split(':');
+            	            stateArr[ele[1]] = ele[0];
+            	        }
+            	        if (stateArr[songId] !== '' && (stateArr[songId] !== null)) {
+            	            adapter.setState('Playlists.' + playListName.replace(/\s+/g, '') + '.Track_List', {
+            	                val: stateArr[songId],
+            	                ack: true
+            	            });
+            	        }
+                	});
                 }
             });
     } else {
@@ -518,8 +537,9 @@ function persistPlaylist(parseJson, autoContinue) {
             val: item.tracks.total,
             ack: true
         });
+        
         adapter.setState(path + '.image_url', {
-        	 val: images[0].url,
+        	 val: item.images[0].url,
              ack: true
          });
         getPlaylistTracks(item.owner.id,
@@ -557,7 +577,18 @@ function getSelectedDevice(deviceData) {
         return deviceData.lastSelectDeviceId;
     }
 }
-
+function cleanState(str) {
+	str = str.replace(/:/g, ' ');
+	str = str.replace(/;/g, ' ');
+  
+  var old;
+  do {
+  	old = str;
+		str = str.replace('  ', ' ');
+  }
+  while(old != str);
+  return str.trim();
+}
 function getPlaylistTracks(owner, id, path, offset, playListObject) {
     playListObject = playListObject && playListObject !== undefined ? playListObject : {
         StateString: '',
@@ -577,12 +608,9 @@ function getPlaylistTracks(owner, id, path, offset, playListObject) {
             if (!err) {
                 var i = offset;
                 data.items.forEach(function(item) {
-                    playListObject.StateString += i.toString() + ':' + item.track.name + '-' +
-                        item
-                        .track.artists[0].name + ';';
-                    playListObject.ListString += item.track.name + '-' + item.track.artists[0].name +
-                        ';';
-                    playListObject.Track_ID_String += i.toString() + ':' + item.track.id + ';';
+                    playListObject.StateString += i.toString() + ':' + cleanState(item.track.name) + ' - ' + cleanState(item.track.artists[0].name) + ';';
+                    playListObject.ListString += item.track.name + ' - ' + item.track.artists[0].name + ';';
+                    playListObject.Track_ID_String += i.toString() + ':' + cleanState(item.track.id) + ';';
                     var a = {
                         id: item.track.id,
                         title: item.track.name,
@@ -598,16 +626,16 @@ function getPlaylistTracks(owner, id, path, offset, playListObject) {
                         type: 'state',
                         common: {
                             name: 'Tracks',
-                            type: 'string',
+                            type: 'number',
                             role: 'Tracks',
-                            write: false,
                             states: playListObject.StateString,
-                            Track_ID: playListObject.Track_ID_String
+                            Track_ID: playListObject.Track_ID_String,
+                            arrayObject: playListObject.songs
                         },
                         native: {}
                     });
                     adapter.setState(path + '.Track_List', {
-                        val: playListObject.songs,
+                        val: '',
                         ack: true
                     });
                     adapter.setObjectNotExists(path + '.Track_List_String', {
@@ -961,31 +989,35 @@ on(/\.Use_for_Playback$/, function(obj) {
 });
 on(/\.Track_List$/, function(obj) {
     if (obj.state != null && !obj.state.ack && obj.state.val != null && obj.state.val >= 0) {
-        // Play a specific track from Playlist immediately
-        var stateName = obj.common.Track_ID.split(';');
-        var stateArr = [];
-        for (var i = 0; i < stateName.length; i++) {
-            var ele = stateName[i].split(':');
-            stateArr[ele[0]] = ele[1];
-        }
-        if (stateArr[obj.state.val] !== '' &&
-            (stateArr[obj.state.val] !== null)) {
-            var send = {
-                uris: ['spotify:track:' + stateArr[obj.state.val]],
-                offset: {
-                    position: 0
-                }
-            };
-            sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send),
-                function(err) {
-                    if (!err) {
-                        adapter.setState(obj.id, {
-                            val: obj.state.val,
-                            ack: true
-                        })
-                    }
-                });
-        }
+    	var track = obj.state.val;
+
+    	adapter.getObject(removeNameSpace(obj.id), function (err, obj) {
+	        // Play a specific track from Playlist immediately
+	        var stateName = obj.common.Track_ID.split(';');
+	        var stateArr = [];
+	        for (var i = 0; i < stateName.length; i++) {
+	            var ele = stateName[i].split(':');
+	            stateArr[ele[0]] = ele[1];
+	        }
+	        if (stateArr[track] !== '' &&
+	            (stateArr[track] !== null)) {
+	            var send = {
+	                uris: ['spotify:track:' + stateArr[track]],
+	                offset: {
+	                    position: 0
+	                }
+	            };
+	            sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send),
+	                function(err) {
+	                    if (!err) {
+	                        adapter.setState(obj.id, {
+	                            val: track,
+	                            ack: true
+	                        })
+	                    }
+	                });
+	        }
+    	});
     }
 });
 on(/\.Play_this_List$/,
