@@ -670,8 +670,29 @@ function reloadDevices(data) {
             createDevices(data);
         });
     } else {
-        createDevices(data);
+        disableDevices(function() {
+            createDevices(data);
+        });
     }
+}
+
+function disableDevices(callback) {
+    adapter.getStates('Devices.*', function(err, state) {
+        var keys = Object.keys(state);
+        keys.forEach(function(key) {
+            key = removeNameSpace(key);
+            if (key == 'Devices.Get_Devices') {
+                return;
+            }
+            if(key.endsWith('.is_available')) {
+	            adapter.setState(key, {
+                    val: false,
+                    ack: true
+	            });
+            }
+        });
+        callback();
+    });
 }
 
 function deleteDevices(callback) {
@@ -690,10 +711,37 @@ function deleteDevices(callback) {
 
 function createDevices(data) {
     data.devices.forEach(function(device) {
+    	var prefix = 'Devices.' + device.name.replace(/\s+/g, '') + '.';
+
+        adapter.setObjectNotExists(prefix + 'Use_for_Playback', {
+            type: 'state',
+            common: {
+                name: 'Use_for_Playback',
+                type: 'boolean',
+                role: 'button'
+            },
+            native: {}
+        });
+        adapter.setObjectNotExists(prefix + 'is_available', {
+        	type: 'state',
+        	common: {
+        		name: 'can used for playing',
+        		type: 'boolean',
+        		role: 'can used for playing'
+        	},
+        	native: {}
+        });
+
+        adapter.setState(prefix + 'Use_for_Playback', {
+            val: false,
+            ack: true
+        });
+        adapter.setState(prefix + 'is_available', {
+            val: true,
+            ack: true
+        });
         for (var objName in device) {
-            adapter.setObjectNotExists('Devices.' +
-                device.name.replace(/\s+/g, '') + '.' +
-                objName, {
+            adapter.setObjectNotExists(prefix + objName, {
                     type: 'state',
                     common: {
                         name: objName,
@@ -703,26 +751,7 @@ function createDevices(data) {
                     },
                     native: {}
                 });
-            adapter.setObjectNotExists('Devices.' +
-                device.name.replace(/\s+/g, '') + '.' +
-                'Use_for_Playback', {
-                    type: 'state',
-                    common: {
-                        name: 'Use_for_Playback',
-                        type: 'boolean',
-                        role: 'button'
-                    },
-                    native: {}
-                });
-            adapter.setState('Devices.' +
-                device.name.replace(/\s+/g, '') + '.' +
-                'Use_for_Playback', {
-                    val: false,
-                    ack: true
-                });
-            adapter.setState('Devices.' +
-                device.name.replace(/\s+/g, '') + '.' +
-                objName, {
+            adapter.setState(prefix + objName, {
                     val: device[objName],
                     ack: true
                 });
