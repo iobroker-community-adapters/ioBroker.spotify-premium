@@ -311,7 +311,11 @@ function createPlaybackInfo(data) {
     setOrDefault(data, 'item.id', 'PlaybackInfo.Track_Id', '');
     setOrDefault(data, 'item.artists[0].name', 'PlaybackInfo.Artist_Name', '');
     setOrDefault(data, 'item.album.name', 'PlaybackInfo.Album', '');
+    
+    // TODO deprecated
     setOrDefault(data, 'item.album.images[0].url', 'PlaybackInfo.image_url', '');
+
+    setOrDefault(data, 'item.album.images[0].url', 'PlaybackInfo.Album_image_url', '');
     setOrDefault(data, 'item.name', 'PlaybackInfo.Track_Name', '');
     var duration = setOrDefault(data, 'item.duration_ms', 'PlaybackInfo.duration_ms', 0);
     adapter.setState('PlaybackInfo.duration', {
@@ -335,7 +339,7 @@ function createPlaybackInfo(data) {
         });
 
         var query = {
-            fields: 'name,id,owner.id,tracks.total',
+            fields: 'name,id,owner.id,tracks.total,images',
         };
         sendRequest('/v1/users/' +
             uri.substring(indexOfUser, endIndexOfUser) + '/playlists/' + playlistId +
@@ -344,6 +348,7 @@ function createPlaybackInfo(data) {
             function(err, parseJson) {
                 if (!err) {
                     var playListName = setOrDefault(parseJson, 'name', 'PlaybackInfo.Playlist', '');
+                    setOrDefault(parseJson, 'images[0].url', 'PlaybackInfo.Playlist_image_url', '');
                     if (playListName) {
                         adapter.getState('Playlists.' + playListName.replace(/\s+/g, '') + '.name',
                             function(err, state) {
@@ -483,6 +488,16 @@ function persistPlaylist(parseJson, autoContinue) {
             },
             native: {}
         });
+        adapter.setObjectNotExists(path + '.image_url', {
+            type: 'state',
+            common: {
+                name: 'image url',
+                type: 'string',
+                role: 'Image URL',
+                write: false
+            },
+            native: {}
+        });
         adapter.setState(path + '.Play_this_List', {
             val: false,
             ack: true
@@ -503,6 +518,10 @@ function persistPlaylist(parseJson, autoContinue) {
             val: item.tracks.total,
             ack: true
         });
+        adapter.setState(path + '.image_url', {
+        	 val: images[0].url,
+             ack: true
+         });
         getPlaylistTracks(item.owner.id,
             item.id, path, 0);
     });

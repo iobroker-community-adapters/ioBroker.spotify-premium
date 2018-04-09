@@ -271,8 +271,8 @@
             "_id": "Player.Playlist_ID",
             "type": "state",
             "common": {
-                "role": "Playlist Id to Play",
-                "name": "playlist id to play",
+                "role": "Playlist Id to Play; supports only owned playlists",
+                "name": "playlist id to play; supports only owned playlists",
                 "type": "string",
                 "read": true,
                 "write": true,
@@ -528,11 +528,24 @@
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.image_url",
+            "_id": "PlaybackInfo.Album_image_url",
             "type": "state",
             "common": {
-                "role": "Image URL",
-                "name": "image url",
+                "role": "Album Image URL",
+                "name": "album image url",
+                "type": "string",
+                "read": false,
+                "write": true,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "PlaybackInfo.Playlist_image_url",
+            "type": "state",
+            "common": {
+                "role": "Playlist Image URL",
+                "name": "playlist image url",
                 "type": "string",
                 "read": false,
                 "write": true,
