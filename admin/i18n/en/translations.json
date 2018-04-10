@@ -4,6 +4,9 @@
   "clientSecret": "Client Secret",
   "deleteDevices": "Delete devices that no longer exist",
   "deletePlaylists": "Delete no longer existing playlists",
+  "statusInterval": "Refresh interval for status information. (in seconds, recommended 5, 0 = disabled)",
+  "deviceInterval": "Refresh interval for device information. (in minutes, recommended 1, 0 = disabled)",
+  "playlistInterval": "Refresh interval for playlist information. (in minutes, recommended 1, 0 = disabled)",
   "manual1": "Sign in on https://developer.spotify.com",
   "manual2": "Create an application, you get a Client ID and a Client Secret",
   "manual3": "set the redirect URIs to 'http://localhost' in your app settings at your created spotify application",
@@ -16,3 +19,10 @@
   "manual10": "copy that url and put it to 'spotify-premium.X.Authorization.Authorization_Return_URI'",
   "manual11": "the value in 'spotify-premium.X.Authorization.Authorized' turns to true if everything was successful"
 }
+
+
+
+
+
+
+
