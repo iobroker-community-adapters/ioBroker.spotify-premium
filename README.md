@@ -1,4 +1,5 @@
-![Logo](admin/spotify-premium.png)
+<img src="admin/spotify-premium.png" width="130" alt="Logo">
+
 # ioBroker.spotify-premium
 
 [![NPM version](https://img.shields.io/npm/v/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
@@ -16,6 +17,10 @@ Connection to [Spotify Premium API](https://www.spotify.com/).
 See also the [Spotify Developer API Documentation](https://developer.spotify.com/).
 
 ## Changelog
+
+### 0.2.0 (2018.04.10)
+* (twonky) removed support for deprecated state `PlaybackInfo.image_url`
+* (twonky) all states improved and proper descriptions added
 
 ### 0.1.3 (2018.04.28)
 * (twonky) fix spotify api change

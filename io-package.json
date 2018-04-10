@@ -1,8 +1,16 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.1.3",
+        "version": "0.2.0",
         "news": {
+        	"0.2.0": {
+                "en": "renamed all states",
+                "de": "alle States überarbeitet",
+                "ru": "все штаты пересмотрены",
+                "pt": "todos os estados revisados",
+                "fr": "tous les états révisés",
+                "nl": "alle staten herzien"
+            },
         	"0.1.3": {
                 "en": "adapted to Spotify API change",
                 "de": "an Spotify API Änderung angepasst",
@@ -11,7 +19,7 @@
                 "fr": "adapté à la modification de l'API Spotify",
                 "nl": "aangepast aan de Spotify API-wijziging"
             },
-        	"0.1.2": {
+            "0.1.2": {
                 "en": "automatic updating of devices and playlists (configurable in the adapter); new state Devices.DEVICE.is_available indicates if a device is available; shows warning message http 202 only as debug and only one time; the States Player.Shuffle, Player.Playlist_ID, Player.TrackId and Player.Volume also show the current value; new states Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; marks the state PlaybackInfo.image_url as deprecated. Will not be included in a new installation and will not be updated in future versions; changing the State Playlists.PLAYLISTNAME.Track_ID now works like in Lucky's script",
                 "de": "automatische Aktualisieren der Geräte und Playlisten (im Adapter konfigurierbar); neuer State Devices.GERÄT.is_available zeigt an ob ein Gerät verfügbar ist; zeigt Warnmeldung http 202 nur noch als debug und nur noch einmal an; die States Player.Shuffle, Player.Playlist_ID, Player.TrackId und Player.Volume zeigen ebenfalls den aktuellen Wert an; neue States Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; den State PlaybackInfo.image_url als deprecated markiert. Wird bei Neuinstallation nicht mehr mit angelegt und in zukünftigen Versionen nicht mehr aktualisiert; das Ändern des State Playlists.PLAYLISTNAME.Track_ID funktioniert nun wie in Luckys Skript",
                 "ru": "автоматическое обновление устройств и списков воспроизведения (настраивается в адаптере); новое состояние Devices.DEVICE.is_available указывает, доступно ли устройство; показывает предупреждающее сообщение http 202 только как отладочное и только одно время; States Player.Shuffle, Player.Playlist_ID, Player.TrackId и Player.Volume также показывают текущее значение; новые состояния Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; отмечает состояние PlaybackInfo.image_url как устаревшее. Не будет включен в новую установку и не будет обновляться в будущих версиях; изменение состояния Playlists.PLAYLISTNAME.Track_ID теперь работает, как в сценарии Lucky",
@@ -170,7 +178,71 @@
     "objects": [],
     "instanceObjects": [
         {
-            "_id": "Player.Play",
+            "_id": "playlists",
+            "type": "channel",
+            "common": {
+                "name": "Playlists"
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices",
+            "type": "channel",
+            "common": {
+                "name": "Devices"
+            },
+            "native": {}
+        },
+        {
+            "_id": "player",
+            "type": "channel",
+            "common": {
+                "name": "Commands to control playback"
+            },
+            "native": {}
+        },
+        {
+            "_id": "player.playlist",
+            "type": "channel",
+            "common": {
+                "name": "Commands to control playback related to the playlist"
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo",
+            "type": "channel",
+            "common": {
+                "name": "Read only information of playback"
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist",
+            "type": "channel",
+            "common": {
+                "name": "Read only information of current playlist"
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.device",
+            "type": "device",
+            "common": {
+                "name": "Read only information of current active device"
+            },
+            "native": {}
+        },
+        {
+            "_id": "authorization",
+            "type": "channel",
+            "common": {
+                "name": "Authorization functionality"
+            },
+            "native": {}
+        },
+        {
+            "_id": "player.play",
             "type": "state",
             "common": {
                 "role": "button",
@@ -178,12 +250,12 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "def": false
+                "icon": "icons/play.png"
             },
             "native": {}
         },
         {
-            "_id": "Player.Pause",
+            "_id": "player.pause",
             "type": "state",
             "common": {
                 "role": "button",
@@ -191,25 +263,25 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "def": false
+                "icon": "icons/pause.png"
             },
             "native": {}
         },
         {
-            "_id": "Player.Skip_Plus",
+            "_id": "player.skipPlus",
             "type": "state",
             "common": {
                 "role": "button",
                 "name": "next track",
                 "type": "boolean",
-                "read": true,
+                "read": false,
                 "write": true,
-                "def": false
+                "icon": "icons/skip_next.png"
             },
             "native": {}
         },
         {
-            "_id": "Player.Skip_Minus",
+            "_id": "player.skipMinus",
             "type": "state",
             "common": {
                 "role": "button",
@@ -217,515 +289,704 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "def": false
+                "icon": "icons/skip_previous.png"
             },
             "native": {}
         },
         {
-            "_id": "Player.Repeat_Track",
+            "_id": "player.repeatTrack",
             "type": "state",
             "common": {
                 "role": "button",
-                "name": "repeat track",
+                "name": "repeat one track",
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "def": false
+                "icon": "icons/repeat_one.png"
             },
             "native": {}
         },
         {
-            "_id": "Player.Repeat_Context",
+            "_id": "player.repeatContext",
             "type": "state",
             "common": {
                 "role": "button",
-                "name": "repeat context",
+                "name": "repeat context, e.g. playlist",
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "def": false
+                "icon": "icons/repeat_all.png"
             },
             "native": {}
         },
         {
-            "_id": "Player.Repeat_off",
+            "_id": "player.repeatOff",
             "type": "state",
             "common": {
                 "role": "button",
-                "name": "repeat off",
+                "name": "no repeat",
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "def": false
+                "icon": "icons/repeat_off.png"
             },
             "native": {}
         },
         {
-            "_id": "Player.Volume",
+            "_id": "player.repeat",
             "type": "state",
             "common": {
-                "role": "Volume %",
-                "name": "volume",
+                "role": "value",
+                "name": "repeat mode",
+                "type": "string",
+                "read": true,
+                "write": true,
+                "states": "{\"off\": \"no repeat\",\"context\": \"context, e.g. playlist\",\"track\": \"one track\"}",
+                "icon": "icons/repeat_off.png"
+            },
+            "native": {}
+        },
+        {
+            "_id": "player.volume",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "volume in percentage",
                 "type": "number",
                 "read": true,
-                "write": true,
-                "def": false
+                "write": true
             },
             "native": {}
         },
         {
-            "_id": "Player.TrackId",
+            "_id": "player.trackId",
             "type": "state",
             "common": {
-                "role": "Track Id to Play",
-                "name": "track idto play",
+                "role": "value",
+                "name": "set track id to play this track; switch the context to track",
                 "type": "string",
                 "read": true,
-                "write": true,
-                "def": false
+                "write": true
             },
             "native": {}
         },
         {
-            "_id": "Player.Playlist_ID",
+            "_id": "player.playlist.trackNo",
             "type": "state",
             "common": {
-                "role": "Playlist Id to Play; supports only owned playlists",
-                "name": "playlist id to play; supports only owned playlists",
+                "role": "value",
+                "name": "set track no of playlist to play this track",
+                "type": "number",
+                "read": true,
+                "write": true
+            },
+            "native": {}
+        },
+        {
+            "_id": "player.playlist.id",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "set playlist id to play; in combination with player.playlist.owner, if it is empty the authorized user will be used; first set player.playlist.owner, then player.playlist.id",
                 "type": "string",
                 "read": true,
-                "write": true,
-                "def": false
+                "write": true
             },
             "native": {}
         },
         {
-            "_id": "Player.Seek",
+            "_id": "player.playlist.owner",
             "type": "state",
             "common": {
-                "role": "Seek To Position (s)",
+                "role": "value",
+                "name": "set playlist owner to start playlist in combination with player.playlist.id; first set player.playlist.owner, then player.playlist.id",
+                "type": "string",
+                "read": true,
+                "write": true
+            },
+            "native": {}
+        },
+        {
+            "_id": "player.seek",
+            "type": "state",
+            "common": {
+                "role": "value",
                 "name": "seek to position (s)",
                 "type": "number",
                 "read": true,
-                "write": true,
-                "def": false
+                "write": true
             },
             "native": {}
         },
         {
-            "_id": "Player.Shuffle",
+            "_id": "player.shuffle",
             "type": "state",
             "common": {
-                "role": "Shuffle",
+                "role": "value",
                 "name": "shuffle",
                 "type": "boolean",
                 "read": true,
                 "write": true,
-                "def": false
+                "icon": "icons/shuffle_off.png"
             },
             "native": {}
         },
         {
-            "_id": "Devices.Get_Devices",
+            "_id": "player.shuffleOff",
             "type": "state",
             "common": {
                 "role": "button",
-                "name": "get device list",
+                "name": "disable shuffle",
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "def": false
+                "icon": "icons/shuffle_off.png"
             },
             "native": {}
         },
         {
-            "_id": "Authorization.Get_Authorization",
+            "_id": "player.shuffleOn",
+            "type": "state",
+            "common": {
+                "role": "button",
+                "name": "enable shuffle",
+                "type": "boolean",
+                "read": false,
+                "write": true,
+                "icon": "icons/shuffle_on.png"
+            },
+            "native": {}
+        },
+        {
+            "_id": "getDevices",
+            "type": "state",
+            "common": {
+                "role": "button",
+                "name": "refresh device list",
+                "type": "boolean",
+                "read": false,
+                "write": true
+            },
+            "native": {}
+        },
+        {
+            "_id": "authorization.getAuthorization",
             "type": "state",
             "common": {
                 "role": "button",
                 "name": "get authorization",
                 "type": "boolean",
                 "read": false,
-                "write": true,
-                "def": false
+                "write": true
             },
             "native": {}
         },
         {
-            "_id": "Authorization.Authorization_URL",
+            "_id": "authorization.authorizationUrl",
             "type": "state",
             "common": {
-                "role": "Authorization_URL",
-                "name": "authorization url",
-                "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "Authorization.State",
-            "type": "state",
-            "common": {
-                "role": "State",
-                "name": "State",
-                "type": "string",
-                "read": false,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "Authorization.Token",
-            "type": "state",
-            "common": {
-                "role": "Token",
-                "name": "Token",
-                "type": "object",
-                "read": false,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "Authorization.Authorization_Return_URI",
-            "type": "state",
-            "common": {
-                "role": "Authorization_Return_URI",
-                "name": "authorization return uri",
+                "role": "value",
+                "name": "open this url to authorize",
                 "type": "string",
                 "read": true,
-                "write": true,
-                "def": false
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "Authorization.User_ID",
+            "_id": "authorization.state",
             "type": "state",
             "common": {
-                "role": "User ID",
-                "name": "User ID",
+                "role": "value",
+                "name": "state",
                 "type": "string",
                 "read": false,
-                "write": true,
-                "def": false
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "Authorization.Authorized",
+            "_id": "authorization.token",
             "type": "state",
             "common": {
-                "role": "Authorized",
+                "role": "value",
+                "name": "token",
+                "type": "object",
+                "read": false,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "authorization.authorizationReturnUri",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "paste here the redirect url of the authorization url",
+                "type": "string",
+                "read": false,
+                "write": true
+            },
+            "native": {}
+        },
+        {
+            "_id": "authorization.userId",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "user id",
+                "type": "string",
+                "read": false,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "authorization.authorized",
+            "type": "state",
+            "common": {
+                "role": "value",
                 "name": "authorized",
                 "type": "boolean",
                 "read": false,
-                "write": true,
-                "def": false
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "Get_User_Playlists",
+            "_id": "getPlaylists",
             "type": "state",
             "common": {
                 "role": "button",
-                "name": "get user playlists",
+                "name": "get playlists owned by authorized user",
                 "type": "boolean",
                 "read": false,
-                "write": true,
-                "def": false
+                "write": true
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Track_Id",
+            "_id": "getPlaybackInfo",
             "type": "state",
             "common": {
-                "role": "Track Id",
-                "name": "Track Id",
-                "type": "string",
+                "role": "button",
+                "name": "refresh playback info",
+                "type": "boolean",
                 "read": false,
-                "write": true,
-                "def": false
+                "write": true
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Artist_Name",
+            "_id": "playbackInfo.trackId",
             "type": "state",
             "common": {
-                "role": "Artist Name",
-                "name": "artist name",
+                "role": "value",
+                "name": "track id",
                 "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Type",
+            "_id": "playbackInfo.artist",
             "type": "state",
             "common": {
-                "role": "Type",
-                "name": "type",
+                "role": "value",
+                "name": "artist",
                 "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Album",
+            "_id": "playbackInfo.type",
             "type": "state",
             "common": {
-                "role": "Album",
+                "role": "value",
+                "name": "context type",
+                "type": "string",
+                "read": true,
+                "write": false,
+                "states": "{\"album\": \"Album\",\"artist\": \"Artist\",\"playlist\": \"Playlist\"}"
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.album",
+            "type": "state",
+            "common": {
+                "role": "value",
                 "name": "album",
                 "type": "string",
-                "read": false,
-                "write": true,
-                "def": ""
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.timestamp",
+            "_id": "playbackInfo.timestamp",
             "type": "state",
             "common": {
-                "role": "Timestamp",
+                "role": "value",
                 "name": "timestamp",
                 "type": "number",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.progress_ms",
+            "_id": "playbackInfo.progressMs",
             "type": "state",
             "common": {
-                "role": "progress_ms",
+                "role": "value",
                 "name": "progress in ms",
                 "type": "number",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.progress",
+            "_id": "playbackInfo.progress",
             "type": "state",
             "common": {
-                "role": "progress",
-                "name": "progress",
+                "role": "value",
+                "name": "progress in format 03:50; Mi:SS",
                 "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.is_playing",
+            "_id": "playbackInfo.isPlaying",
             "type": "state",
             "common": {
-                "role": "is_playing",
+                "role": "value",
                 "name": "is playing",
                 "type": "boolean",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Album_image_url",
+            "_id": "playbackInfo.albumImageUrl",
             "type": "state",
             "common": {
-                "role": "Album Image URL",
+                "role": "value",
                 "name": "album image url",
                 "type": "string",
                 "read": true,
-                "write": false,
-                "def": false
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Playlist_image_url",
+            "_id": "playbackInfo.trackName",
             "type": "state",
             "common": {
-                "role": "Playlist Image URL",
+                "role": "value",
+                "name": "track name",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.durationMs",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "duration ms",
+                "type": "number",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.duration",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "duration in format 03:50; Mi:SS",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.id",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "playlist id",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.name",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "playlist name",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.owner",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "playlist owner",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.tracksTotal",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "number of songs",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.imageUrl",
+            "type": "state",
+            "common": {
+                "role": "value",
                 "name": "playlist image url",
                 "type": "string",
                 "read": true,
-                "write": false,
-                "def": false
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Track_Name",
+            "_id": "playbackInfo.playlist.trackList",
             "type": "state",
             "common": {
-                "role": "Track_Name",
-                "name": "track name",
-                "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "PlaybackInfo.duration_ms",
-            "type": "state",
-            "common": {
-                "role": "Duration ms",
-                "name": "duration ms",
+                "role": "value",
+                "name": "Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.",
                 "type": "number",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.duration",
+            "_id": "playbackInfo.playlist.trackListNumber",
             "type": "state",
             "common": {
-                "role": "duration",
-                "name": "duration",
-                "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "PlaybackInfo.Playlist",
-            "type": "state",
-            "common": {
-                "role": "Playlist",
-                "name": "Playlist",
+                "role": "value",
+                "name": "contains list of tracks as string, patter: 0;1;2;...",
                 "type": "string",
                 "read": true,
-                "write": false,
-                "def": false
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.shuffle",
+            "_id": "playbackInfo.playlist.trackListString",
             "type": "state",
             "common": {
-                "role": "shuffle",
+                "role": "value",
+                "name": "contains list of tracks as string, patter: title - artist;title - artist;title - artist;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.trackListStates",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.trackListIdMap",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.trackListIds",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of track ids as string, pattern: id;id;id;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.trackListArray",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of tracks as array object, pattern: [{id: \"id\", title: \"title\", artist: \"artist\"}, {id: \"id\", title: \"title\", artist: \"artist\"},...]",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.playlist.trackNo",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "position of current playing track",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.shuffle",
+            "type": "state",
+            "common": {
+                "role": "value",
                 "name": "shuffle",
                 "type": "boolean",
                 "read": true,
                 "write": false,
-                "def": false
+                "icon": "icons/shuffle_off.png"
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.repeat",
+            "_id": "playbackInfo.repeat",
             "type": "state",
             "common": {
-                "role": "repeat",
-                "name": "repeat",
+                "role": "value",
+                "name": "repeat mode",
                 "type": "string",
                 "read": true,
                 "write": false,
-                "def": false,
-                "states": "{\"off\": \"off\",\"context\": \"context\",\"track\": \"track\"}"
+                "states": "{\"off\": \"no repeat\",\"context\": \"context, e.g. playlist\",\"track\": \"one track\"}",
+                "icon": "icons/repeat_off.png"
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Device.id",
+            "_id": "playbackInfo.device.id",
             "type": "state",
             "common": {
                 "role": "id",
                 "name": "device id",
                 "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Device.is_active",
+            "_id": "playbackInfo.device.isActive",
             "type": "state",
             "common": {
-                "role": "is active",
-                "name": "is active",
+                "role": "value",
+                "name": "current active device",
                 "type": "boolean",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Device.is_restricted",
+            "_id": "playbackInfo.device.isAvailable",
             "type": "state",
             "common": {
-                "role": "is restricted",
-                "name": "is restricted",
+                "role": "value",
+                "name": "can used for playing",
                 "type": "boolean",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Device.name",
+            "_id": "playbackInfo.device.isRestricted",
             "type": "state",
             "common": {
-                "role": "Name",
-                "name": "Device Name",
+                "role": "value",
+                "name": "restricted",
+                "type": "boolean",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.device.name",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "device name",
                 "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Device.type",
+            "_id": "playbackInfo.device.type",
             "type": "state",
             "common": {
-                "role": "Type",
-                "name": "Device Type",
+                "role": "value",
+                "name": "device type",
                 "type": "string",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false,
+                "states": "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"
             },
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.Device.volume_percent",
+            "_id": "playbackInfo.device.volume",
             "type": "state",
             "common": {
-                "role": "volume_percent",
-                "name": "volume percent",
+                "role": "value",
+                "name": "volume in percentage",
                 "type": "number",
-                "read": false,
-                "write": true,
-                "def": false
+                "read": true,
+                "write": false
             },
             "native": {}
         }
