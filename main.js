@@ -271,6 +271,26 @@ function loadOrDefault(obj, name, defaultVal) {
     return t;
 }
 
+function createOrDefault(obj, name, state, defaultVal, role) {
+    var t = loadOrDefault(obj, name, defaultVal);
+
+    adapter.setObjectNotExists(state, {
+        type: 'state',
+        common: {
+            name: role,
+            type: typeof t,
+            role: role,
+            write: false
+        },
+        native: {}
+    });
+    adapter.setState(state, {
+        val: t,
+        ack: true
+    });
+    return t;
+}
+
 function setOrDefault(obj, name, state, defaultVal) {
     var t = loadOrDefault(obj, name, defaultVal);
     adapter.setState(state, {
@@ -734,50 +754,50 @@ function deleteDevices(callback) {
 }
 
 function createDevices(data) {
+    if (isEmpty(data) || isEmpty(data.devices)) {
+        adapter.log.warn('no device content')
+        return;
+    }
     data.devices.forEach(function(device) {
-        var prefix = 'Devices.' + device.name.replace(/\s+/g, '') + '.';
-        adapter.setObjectNotExists(prefix + 'Use_for_Playback', {
-            type: 'state',
-            common: {
-                name: 'Use_for_Playback',
-                type: 'boolean',
-                role: 'button'
-            },
-            native: {}
-        });
-        adapter.setObjectNotExists(prefix + 'is_available', {
-            type: 'state',
-            common: {
-                name: 'can used for playing',
-                type: 'boolean',
-                role: 'can used for playing'
-            },
-            native: {}
-        });
-        adapter.setState(prefix + 'Use_for_Playback', {
-            val: false,
-            ack: true
-        });
-        adapter.setState(prefix + 'is_available', {
-            val: true,
-            ack: true
-        });
-        for (var objName in device) {
-            adapter.setObjectNotExists(prefix + objName, {
-                type: 'state',
-                common: {
-                    name: objName,
-                    type: typeof device[objName],
-                    role: objName,
-                    write: false
-                },
-                native: {}
-            });
-            adapter.setState(prefix + objName, {
-                val: device[objName],
-                ack: true
-            });
-        }
+    	var deviceName = loadOrDefault(device, 'name', '');
+    	if(isEmpty(deviceName)) {
+    		adapter.log.warn('empty device name')
+    		return;
+    	}
+    	var prefix = 'Devices.' + deviceName.replace(/\s+/g, '') + '.';
+    	createOrDefault(device, 'id', prefix + 'id', '', 'id');
+    	createOrDefault(device, 'is_active', prefix + 'is_active', false, 'current active device');
+    	createOrDefault(device, 'is_restricted', prefix + 'is_restricted', false, 'restricted');
+    	createOrDefault(device, 'name', prefix + 'name', '', 'name');
+    	createOrDefault(device, 'type', prefix + 'type', 'Unknown', 'type');
+    	createOrDefault(device, 'volume_percent', prefix + 'volume_percent', '', 'volume in percent');
+
+    	adapter.setObjectNotExists(prefix + 'Use_for_Playback', {
+    		type: 'state',
+    		common: {
+    			name: 'Press to use device for playback',
+    			type: 'boolean',
+    			role: 'button'
+    		},
+    		native: {}
+    	});
+    	adapter.setObjectNotExists(prefix + 'is_available', {
+    		type: 'state',
+    		common: {
+    			name: 'can used for playing',
+    			type: 'boolean',
+    			role: 'can used for playing'
+    		},
+    		native: {}
+    	});
+    	adapter.setState(prefix + 'Use_for_Playback', {
+    		val: false,
+    		ack: true
+    	});
+    	adapter.setState(prefix + 'is_available', {
+    		val: true,
+    		ack: true
+    	});
     });
 }
 
