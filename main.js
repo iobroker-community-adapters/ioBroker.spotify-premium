@@ -22,9 +22,9 @@ var application = {
     statusPollingHandle: null,
     statusPollingDelaySeconds: 5,
     devicePollingHandle: null,
-    devicePollingDelaySeconds: 60,
+    devicePollingDelaySeconds: 300,
     playlistPollingHandle: null,
-    playlistPollingDelaySeconds: 60,
+    playlistPollingDelaySeconds: 900,
     error202shown: false
 };
 var deviceData = {
@@ -58,9 +58,10 @@ function main() {
     if (isEmpty(application.deletePlaylists)) {
         application.deletePlaylists = false;
     }
-    if (isEmpty(application.statusPollingDelaySeconds) || (application.statusPollingDelaySeconds < 5 &&
-            application.statusPollingDelaySeconds != 0)) {
+    if (isEmpty(application.statusPollingDelaySeconds)) {
         application.statusPollingDelaySeconds = 5;
+    } else if (application.statusPollingDelaySeconds < 1 && application.statusPollingDelaySeconds != 0) {
+        application.statusPollingDelaySeconds = 1;
     }
     if (isEmpty(deviceInterval)) {
         deviceInterval = 0;

@@ -148,8 +148,8 @@
         "delete_devices": false,
         "delete_playlists": false,
         "status_interval": 5,
-        "device_interval": 1,
-        "playlist_interval": 1
+        "device_interval": 5,
+        "playlist_interval": 15
     },
     "objects": [],
     "instanceObjects": [
