@@ -17,6 +17,15 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.1.2 (2018.04.10)
+* (twonky) automatic updating of devices and playlists (configurable in the adapter)
+* (twonky) new state `Devices.DEVICE.is_available` indicates if a device is available
+* (twonky) shows warning message http 202 only as debug and only one time
+* (twonky) the States `Player.Shuffle`,` Player.Playlist_ID`, `Player.TrackId` and` Player.Volume` also show the current value
+* (twonky) new states `Playlists.PLAYLISTNAME.image_url`,` PlaybackInfo.Playlist_image_url`, `PlaybackInfo.Album_image_url`
+* (twonky) marks the state `PlaybackInfo.image_url` as deprecated. Will not be included in a new installation and will not be updated in future versions
+* (twonky) changing the State `Playlists.PLAYLISTNAME.Track_ID` now works like in Lucky's script
+
 ### 0.1.1 (2018.03.03)
 * (twonky) fix several small issues
 
