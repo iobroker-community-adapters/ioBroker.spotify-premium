@@ -1,9 +1,17 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "news": {
-        	"0.1.1": {
+        	"0.1.2": {
+                "en": "automatic updating of devices and playlists (configurable in the adapter); new state Devices.DEVICE.is_available indicates if a device is available; shows warning message http 202 only as debug and only one time; the States Player.Shuffle, Player.Playlist_ID, Player.TrackId and Player.Volume also show the current value; new states Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; marks the state PlaybackInfo.image_url as deprecated. Will not be included in a new installation and will not be updated in future versions; changing the State Playlists.PLAYLISTNAME.Track_ID now works like in Lucky's script",
+                "de": "automatische Aktualisieren der Geräte und Playlisten (im Adapter konfigurierbar); neuer State Devices.GERÄT.is_available zeigt an ob ein Gerät verfügbar ist; zeigt Warnmeldung http 202 nur noch als debug und nur noch einmal an; die States Player.Shuffle, Player.Playlist_ID, Player.TrackId und Player.Volume zeigen ebenfalls den aktuellen Wert an; neue States Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; den State PlaybackInfo.image_url als deprecated markiert. Wird bei Neuinstallation nicht mehr mit angelegt und in zukünftigen Versionen nicht mehr aktualisiert; das Ändern des State Playlists.PLAYLISTNAME.Track_ID funktioniert nun wie in Luckys Skript",
+                "ru": "автоматическое обновление устройств и списков воспроизведения (настраивается в адаптере); новое состояние Devices.DEVICE.is_available указывает, доступно ли устройство; показывает предупреждающее сообщение http 202 только как отладочное и только одно время; States Player.Shuffle, Player.Playlist_ID, Player.TrackId и Player.Volume также показывают текущее значение; новые состояния Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; отмечает состояние PlaybackInfo.image_url как устаревшее. Не будет включен в новую установку и не будет обновляться в будущих версиях; изменение состояния Playlists.PLAYLISTNAME.Track_ID теперь работает, как в сценарии Lucky",
+                "pt": "atualização automática de dispositivos e listas de reprodução (configurável no adaptador); novo estado Devices.DEVICE.is_available indica se um dispositivo está disponível; mostra mensagem de aviso http 202 apenas como depuração e apenas uma vez; os Estados Player.Shuffle, Player.Playlist_ID, Player.TrackId e Player.Volume também mostram o valor atual; novos estados Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; marca o estado PlaybackInfo.image_url como obsoleto. Não será incluído em uma nova instalação e não será atualizado em versões futuras; alterar o estado Playlists.PLAYLISTNAME.Track_ID agora funciona como no script de Lucky",
+                "fr": "mise à jour automatique des appareils et des listes de lecture (configurable dans l'adaptateur); le nouvel état Devices.DEVICE.is_available indique si un périphérique est disponible; affiche le message d'avertissement http 202 uniquement en tant que débogage et une seule fois; les états Player.Shuffle, Player.Playlist_ID, Player.TrackId et Player.Volume affichent également la valeur actuelle; nouveaux états Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; marque l'état PlaybackInfo.image_url comme obsolète. Ne sera pas inclus dans une nouvelle installation et ne sera pas mis à jour dans les futures versions; changer l'état Playlists.PLAYLISTNAME.Track_ID fonctionne maintenant comme dans le script de Lucky",
+                "nl": "automatische update van apparaten en afspeellijsten (configureerbaar in de adapter); nieuwe status Devices.DEVICE.is_available geeft aan of een apparaat beschikbaar is; toont waarschuwingsbericht http 202 alleen als foutopsporing en slechts één keer; de States Player.Shuffle, Player.Playlist_ID, Player.TrackId en Player.Volume tonen ook de huidige waarde; nieuwe staten Afspeellijsten.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; markeert de staat PlaybackInfo.image_url als verouderd. Wordt niet opgenomen in een nieuwe installatie en zal niet worden bijgewerkt in toekomstige versies; het wijzigen van de staat Playlists.PLAYLISTNAME.Track_ID werkt nu zoals in Lucky's script"
+            },
+            "0.1.1": {
                 "en": "fix several small issues",
                 "de": "mehrere kleine Probleme behoben",
                 "ru": "исправить несколько мелких проблем",
@@ -146,7 +154,10 @@
         "client_id": "",
         "client_secret": "",
         "delete_devices": false,
-        "delete_playlists": false
+        "delete_playlists": false,
+        "status_interval": 5,
+        "device_interval": 5,
+        "playlist_interval": 15
     },
     "objects": [],
     "instanceObjects": [
@@ -271,8 +282,8 @@
             "_id": "Player.Playlist_ID",
             "type": "state",
             "common": {
-                "role": "Playlist Id to Play",
-                "name": "playlist id to play",
+                "role": "Playlist Id to Play; supports only owned playlists",
+                "name": "playlist id to play; supports only owned playlists",
                 "type": "string",
                 "read": true,
                 "write": true,
@@ -528,14 +539,27 @@
             "native": {}
         },
         {
-            "_id": "PlaybackInfo.image_url",
+            "_id": "PlaybackInfo.Album_image_url",
             "type": "state",
             "common": {
-                "role": "Image URL",
-                "name": "image url",
+                "role": "Album Image URL",
+                "name": "album image url",
                 "type": "string",
-                "read": false,
-                "write": true,
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "PlaybackInfo.Playlist_image_url",
+            "type": "state",
+            "common": {
+                "role": "Playlist Image URL",
+                "name": "playlist image url",
+                "type": "string",
+                "read": true,
+                "write": false,
                 "def": false
             },
             "native": {}
