@@ -160,10 +160,16 @@ function sendRequest(endpoint, method, sendBody, callback) {
         options,
         function(error, response, body) {
             if (!error) {
+            	var parsedBody;
+            	try {
+            		parsedBody = JSON.parse(body);
+            	} catch (e) {
+            		parsedBody = {error: {message: "no active device"}};
+            	}
                 switch (response.statusCode) {
                     case 200:
                         // OK
-                        callback(null, JSON.parse(body))
+                        callback(null, parsedBody);
                         break;
                     case 202:
                         // Accepted, processing has not been completed.
@@ -189,7 +195,7 @@ function sendRequest(endpoint, method, sendBody, callback) {
                         break;
                     case 401:
                         // Unauthorized
-                        if (JSON.parse(body).error.message == 'The access token expired') {
+                        if (parsedBody.error.message == 'The access token expired') {
                             adapter.log.debug('Access Token expired!');
                             adapter.setState('Authorization.Authorized', {
                                 val: false,
@@ -229,7 +235,7 @@ function sendRequest(endpoint, method, sendBody, callback) {
                                 val: false,
                                 ack: true
                             });
-                            adapter.log.error(JSON.parse(body).error.message);
+                            adapter.log.error(parsedBody.error.message);
                             callback(response.statusCode, null);
                         }
                         break;

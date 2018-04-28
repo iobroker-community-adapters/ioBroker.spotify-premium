@@ -17,6 +17,9 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ## Changelog
 
+### 0.1.3 (2018.04.28)
+* (twonky) fix spotify api change
+
 ### 0.1.2 (2018.04.10)
 * (twonky) automatic updating of devices and playlists (configurable in the adapter)
 * (twonky) new state `Devices.DEVICE.is_available` indicates if a device is available
