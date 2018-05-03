@@ -8,92 +8,91 @@ var Promise = require('promise');
 var adapter = new utils.Adapter('spotify-premium');
 var request = Promise.denodeify(require('request'));
 
-function convert(v) {
-	if (typeof v === 'function') {
-	    return 'function';
-	}else {
-		return JSON.stringify(v);
-	}
-}
-
 function setState(id, state, ack, options) {
     return new Promise(function(resolve, reject) {
-    	var retFunc = function(err, id) {
+        var retFunc = function(err, id) {
             if (err) {
                 reject(err);
             } else {
-            	adapter.log.info('ende setState(id => ' + convert(id) + ', state => ' + convert(state) + ', ack => ' + convert(ack) + ', options => ' + convert(options) + ', retFunc => ' + convert(retFunc) + ')');
-            	resolve(id);
+                resolve(id);
             }
         }
-    	if(options === undefined) {
-    		options = retFunc;
-    		retFunc = undefined;
-    	}
-    	adapter.log.info('start setState(id => ' + convert(id) + ', state => ' + convert(state) + ', ack => ' + convert(ack) + ', options => ' + convert(options) + ', retFunc => ' + convert(retFunc) + ')');
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
+        if (typeof state === 'object') {
+            state = {
+                val: state,
+                ack: ack
+            };
+            ack = undefined;
+        }
+        if (ack === undefined && typeof options === 'function') {
+            ack = options;
+            options = undefined;
+        }
         adapter.setState(id, state, ack, options, retFunc);
     });
 }
 
 function setObjectNotExists(id, object, options) {
     return new Promise(function(resolve, reject) {
-    	var retFunc = function(err, obj) {
+        var retFunc = function(err, obj) {
             if (err) {
                 reject(err);
             } else {
-            	resolve(obj);
+                resolve(obj);
             }
         }
-    	if(options === undefined) {
-    		options = retFunc;
-    		retFunc = undefined;
-    	}
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
         adapter.setObjectNotExists(id, object, options, retFunc);
     });
 }
 
 function setObject(id, object, options) {
     return new Promise(function(resolve, reject) {
-    	var retFunc = function(err, obj) {
+        var retFunc = function(err, obj) {
             if (err) {
                 reject(err);
             } else {
-            	resolve(obj);
+                resolve(obj);
             }
         }
-    	if(options === undefined) {
-    		options = retFunc;
-    		retFunc = undefined;
-    	}
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
         adapter.setObject(id, object, options, retFunc);
     });
 }
 
 function getStates(pattern, options) {
     return new Promise(function(resolve, reject) {
-    	var retFunc = function(err, states) {
+        var retFunc = function(err, states) {
             if (err) {
                 reject(err);
             } else {
-            	resolve(states);
+                resolve(states);
             }
         }
-    	if(options === undefined) {
-    		options = retFunc;
-    		retFunc = undefined;
-    	}
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
         adapter.getStates(pattern, options, retFunc);
     });
 }
 
 function getState(id) {
     return new Promise(function(resolve, reject) {
-    	adapter.log.info('start getState(id => ' + convert(id) + ')');
         adapter.getState(id, function(err, state) {
             if (err) {
                 reject(err);
             } else if (state !== null) {
-            	adapter.log.info('ende getState(id => ' + convert(id) + ') = '+convert(state));
                 resolve(state);
             } else {
                 reject('not existing state ' + id);
@@ -104,21 +103,20 @@ function getState(id) {
 
 function delObject(id, options, callback) {
     return new Promise(function(resolve, reject) {
-    	var retFunc = function(err) {
+        var retFunc = function(err) {
             if (err) {
                 reject(err);
             } else {
-            	resolve();
+                resolve();
             }
         }
-    	if(options === undefined) {
-    		options = retFunc;
-    		retFunc = undefined;
-    	}
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
         adapter.delObject(id, options, retFunc);
     });
 }
-
 var listener = [];
 var application = {
     userId: '',
@@ -197,7 +195,6 @@ function main() {
 function start() {
     return readTokenStates()
         .then(function(tokenObj) {
-        	adapter.log.info('1');
             application.token = tokenObj.accessToken;
             application.refreshToken = tokenObj.refreshToken;
         })
@@ -205,14 +202,14 @@ function start() {
             return sendRequest('/v1/me', 'GET', '')
                 .then(function(data) {
                     return setUserInformation(data).then(function() {
-                    	return setState('authorization.authorized', true, true)
-                    	.then(function() {
-                    		return listenOnGetPlaybackInfo();
-                    	}).then(function() {
-                    		return reloadUsersPlaylist();
-                    	}).then(function() {
-                    		return listenOnGetDevices();
-                    	});
+                        return setState('authorization.authorized', true, true)
+                            .then(function() {
+                                return listenOnGetPlaybackInfo();
+                            }).then(function() {
+                                return reloadUsersPlaylist();
+                            }).then(function() {
+                                return listenOnGetDevices();
+                            });
                     })
                 });
         })
@@ -224,12 +221,13 @@ function start() {
 
 function readTokenStates() {
     return getState('authorization.token').then(function(state) {
-    	adapter.log.info('2:'+ JSON.stringify(state));
         var tokenObj = state.val;
         var validAccessToken = !isEmpty(loadOrDefault(tokenObj, 'accessToken', ''));
         var validRefreshToken = !isEmpty(loadOrDefault(tokenObj, 'refreshToken', ''));
-        var validClientId = !isEmpty(loadOrDefault(tokenObj, 'clientId', '')) && tokenObj.clientId == application.clientId;
-        var validClientSecret = !isEmpty(loadOrDefault(tokenObj, 'clientSecret', '')) && tokenObj.clientSecret == application.clientSecret;
+        var validClientId = !isEmpty(loadOrDefault(tokenObj, 'clientId', '')) && tokenObj.clientId ==
+            application.clientId;
+        var validClientSecret = !isEmpty(loadOrDefault(tokenObj, 'clientSecret', '')) && tokenObj.clientSecret ==
+            application.clientSecret;
         if (validAccessToken && validRefreshToken && validClientId && validClientSecret) {
             adapter.log.debug('spotify token readed');
             return tokenObj;
@@ -252,15 +250,18 @@ function sendRequest(endpoint, method, sendBody) {
     var callStack = new Error().stack;
     return request(options)
         .then(function(response) {
-        	var body = response.body;
+            var body = response.body;
             var ret;
-        	var parsedBody;
-        	try {
-        		parsedBody = JSON.parse(body);
-        	} catch (e) {
-        		parsedBody = {error: {message: "no active device"}};
-        	}
-
+            var parsedBody;
+            try {
+                parsedBody = JSON.parse(body);
+            } catch (e) {
+                parsedBody = {
+                    error: {
+                        message: "no active device"
+                    }
+                };
+            }
             switch (response.statusCode) {
                 case 200:
                     // OK
@@ -382,7 +383,7 @@ function createOrDefault(obj, name, state, defaultVal, description, type, states
         native: {}
     };
     if (!isEmpty(states)) {
-    	object.states = states;
+        object.states = states;
     }
     return setObjectNotExists(state, object).then(function() {
         return setState(state, t, true);
@@ -412,7 +413,6 @@ function createPlaybackInfo(data) {
         type = loadOrDefault(data, 'item.type', '');
     }
     var progress = loadOrDefault(data, 'progress_ms', 0);
-
     Promise.all([
         setState('playbackInfo.device.id', deviceId, true),
         setState('playbackInfo.device.isActive', isDeviceActive, true),
@@ -448,21 +448,21 @@ function createPlaybackInfo(data) {
         setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
         setOrDefault(data, 'item.id', 'player.trackId', ''),
         setOrDefault(data, 'device.volume_percent', 'player.volume', 100)
-    ]).then(function () {
+    ]).then(function() {
         if (deviceId) {
             deviceData.lastActiveDeviceId = deviceId;
             return getStates('devices.*.isActive').then(function(state) {
                 var keys = Object.keys(state);
                 var fn = function(key) {
                     key = removeNameSpace(key);
-                    if (key !== 'devices.' + deviceName.replace(/\s+/g, '') + '.isActive' && key.endsWith('.isActive')) {
+                    if (key !== 'devices.' + deviceName.replace(/\s+/g, '') + '.isActive' &&
+                        key.endsWith('.isActive')) {
                         return setState(key, false, true);
                     }
                 };
-
                 return Promise.all(keys.map(fn));
-            }).then(function () {
-            	return createDevices({
+            }).then(function() {
+                return createDevices({
                     devices: [{
                         id: deviceId,
                         is_active: isDeviceActive,
@@ -476,22 +476,21 @@ function createPlaybackInfo(data) {
         } else {
             return getStates('devices.*.isActive').then(function(state) {
                 var keys = Object.keys(state);
-
                 var fn = function(key) {
-                	key = removeNameSpace(key);
+                    key = removeNameSpace(key);
                     if (key.endsWith('.isActive')) {
                         return setState(key, false, true);
                     }
                 };
-
                 return Promise.all(keys.map(fn));
             });
         }
-    }).then(function () {
+    }).then(function() {
         if (progress && isPlaying && application.statusPollingDelaySeconds > 0) {
-        	scheduleStatusInternalTimer(duration, progress, Date.now(), application.statusPollingDelaySeconds - 1);
+            scheduleStatusInternalTimer(duration, progress, Date.now(), application.statusPollingDelaySeconds -
+                1);
         }
-    }).then(function () {
+    }).then(function() {
         var uri = loadOrDefault(data, 'context.uri', '');
         if (type == 'playlist' && uri) {
             var indexOfUser = uri.indexOf('user:') + 5;
@@ -499,7 +498,7 @@ function createPlaybackInfo(data) {
             var indexOfPlaylistId = uri.indexOf('playlist:') + 9;
             var playlistId = uri.slice(indexOfPlaylistId);
             var query = {
-            		fields: 'name,id,owner.id,tracks.total,images',
+                fields: 'name,id,owner.id,tracks.total,images',
             };
             return Promise.all([
                 setState('player.playlist.id', playlistId, true),
@@ -509,70 +508,100 @@ function createPlaybackInfo(data) {
                     '?' + querystring.stringify(query),
                     'GET', '').then(
                     function(parseJson) {
-                    	var playListName = loadOrDefault(parseJson, 'name', '');
-                    	var songId = loadOrDefault(data, 'item.id', '');
-
-                    	var p = Promise.all([
-                            setOrDefault(parseJson, 'owner.id', 'playbackInfo.playlist.owner', ''),
-                            setOrDefault(parseJson, 'owner.id', 'player.playlist.owner', ''),
-                            setOrDefault(parseJson, 'tracks.total', 'playbackInfo.playlist.tracksTotal', ''),
-                            setOrDefault(parseJson, 'images[0].url', 'playbackInfo.playlist.imageUrl', ''),
-                    	]);
+                        var playListName = loadOrDefault(parseJson, 'name', '');
+                        var songId = loadOrDefault(data, 'item.id', '');
+                        var p = Promise.all([
+                            setOrDefault(parseJson, 'owner.id',
+                                'playbackInfo.playlist.owner', ''),
+                            setOrDefault(parseJson, 'owner.id',
+                                'player.playlist.owner', ''),
+                            setOrDefault(parseJson, 'tracks.total',
+                                'playbackInfo.playlist.tracksTotal', ''),
+                            setOrDefault(parseJson, 'images[0].url',
+                                'playbackInfo.playlist.imageUrl', ''),
+                        ]);
                         if (playListName) {
-                        	p.then(function() {
-                        		return Promise.all([
-                        			setState('playbackInfo.playlist.name', playListName, true),
-                	                setObject('playbackInfo.playlist', {
-                	                    type: 'channel',
-                	                    common: {
-                	                        name: playListName
-                	                    },
-                	                    native: {}
-                	                }),
-                	                setObject('player.playlist', {
-                	                    type: 'channel',
-                	                    common: {
-                	                        name: playListName
-                	                    },
-                	                    native: {}
-                	                }),
-                	                getState('playlists.' + playListName.replace(/\s+/g, '') + '.name').catch(
-                	                    function() {
-                	                        return persistPlaylist({
-                	                            items: [parseJson]
-                	                        });
-                	                    }),
-                	                getState('playlists.' + playListName.replace(/\s+/g, '') + '.trackListIds').then(
-                	                    function(state) {
-                	                        var ids = loadOrDefault(state, 'val', '');
-                	                        if (isEmpty(ids)) {
-                	                            return Promise.reject('no ids in trackListIds');
-                	                        }
-                	                        var stateName = ids.split(';');
-                	                        var stateArr = [];
-                	                        for (var i = 0; i < stateName.length; i++) {
-                	                            var ele = stateName[i].split(':');
-                	                            stateArr[ele[1]] = ele[0];
-                	                        }
-                	                        if (stateArr[songId] !== '' && (stateArr[songId] !== null)) {
-                	                        	return Promise.all([
-                	                                setState('playlists.' + playListName.replace(/\s+/g, '') + '.trackList', stateArr[songId], true),
-                	                                setState('playbackInfo.playlist.trackList', stateArr[songId], true),
-                	                                setState('playbackInfo.playlist.trackNo', stateArr[songId], true),
-                	                                setState('player.playlist.trackNo', stateArr[songId], true)
-                	                        	]);
-                	                        }
-                	                    })
-                        		]);
-                        	})
+                            p.then(function() {
+                                var shrinkPlaylistName = playListName.replace(/\s+/g,
+                                    '');
+                                return Promise.all([
+                                    setState('playbackInfo.playlist.name',
+                                        playListName, true),
+                                    setObject('playbackInfo.playlist', {
+                                        type: 'channel',
+                                        common: {
+                                            name: playListName
+                                        },
+                                        native: {}
+                                    }),
+                                    setObject('player.playlist', {
+                                        type: 'channel',
+                                        common: {
+                                            name: playListName
+                                        },
+                                        native: {}
+                                    }),
+                                    getState('playlists.' +
+                                        shrinkPlaylistName + '.trackListIds')
+                                    .catch(
+                                        function() {
+                                            return persistPlaylist({
+                                                items: [parseJson]
+                                            });
+                                        }).then(function(state) {
+                                        var ids = loadOrDefault(state,
+                                            'val', '');
+                                        if (isEmpty(ids)) {
+                                            return Promise.reject(
+                                                'no ids in trackListIds'
+                                            );
+                                        }
+                                        var stateName = ids.split(';');
+                                        var stateArr = [];
+                                        for (var i = 0; i < stateName.length; i++) {
+                                            var ele = stateName[i].split(
+                                                ':');
+                                            stateArr[ele[1]] = ele[0];
+                                        }
+                                        if (stateArr[songId] !== '' && (
+                                                stateArr[songId] !== null
+                                            )) {
+                                            return Promise.all([
+                                                setState(
+                                                    'playlists.' +
+                                                    shrinkPlaylistName +
+                                                    '.trackList',
+                                                    stateArr[
+                                                        songId],
+                                                    true),
+                                                setState(
+                                                    'playbackInfo.playlist.trackList',
+                                                    stateArr[
+                                                        songId],
+                                                    true),
+                                                setState(
+                                                    'playbackInfo.playlist.trackNo',
+                                                    stateArr[
+                                                        songId],
+                                                    true),
+                                                setState(
+                                                    'player.playlist.trackNo',
+                                                    stateArr[
+                                                        songId],
+                                                    true)
+                                            ]);
+                                        }
+                                    })
+                                ]);
+                            })
                         }
-                    	return p;
+                        return p;
                     })
             ]);
         } else {
             adapter.log.debug('context type: ' + type);
             return Promise.all([
-            	setState('playbackInfo.playlist.id', '', true),
+                setState('playbackInfo.playlist.id', '', true),
                 setState('playbackInfo.playlist.name', '', true),
                 setState('playbackInfo.playlist.owner', '', true),
                 setState('playbackInfo.playlist.tracksTotal', '', true),
@@ -627,12 +656,10 @@ function reloadUsersPlaylist() {
 function deleteUsersPlaylist() {
     return getStates('playlists.*').then(function(state) {
         var keys = Object.keys(state);
-
         var fn = function(key) {
             key = removeNameSpace(key);
             return delObject(key);
         };
-
         return Promise.all(keys.map(fn));
     });
 }
@@ -642,7 +669,6 @@ function persistPlaylist(parseJson, autoContinue) {
         adapter.log.warn('no playlist content');
         return Promise.reject('no playlist content');
     }
-
     var fn = function(item) {
         var playlistName = loadOrDefault(item, 'name', '');
         if (isEmpty(playlistName)) {
@@ -651,7 +677,7 @@ function persistPlaylist(parseJson, autoContinue) {
         }
         var prefix = 'playlists.' + playlistName.replace(/\s+/g, '');
         return Promise.all([
-        	setObjectNotExists(prefix + '.playThisList', {
+            setObjectNotExists(prefix + '.playThisList', {
                 type: 'state',
                 common: {
                     name: 'press to play this playlist',
@@ -667,69 +693,111 @@ function persistPlaylist(parseJson, autoContinue) {
             createOrDefault(item, 'id', prefix + '.id', '', 'playlist id', 'string'),
             createOrDefault(item, 'owner.id', prefix + '.owner', '', 'playlist owner', 'string'),
             createOrDefault(item, 'name', prefix + '.name', '', 'playlist name', 'string'),
-            createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs', 'number'),
-            createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url', 'string')
-        ]).then(function () {
-        	return getPlaylistTracks(item.owner.id, item.id, prefix, 0).then(function (playListObject) {
-        		return Promise.all([
-        			setObject(path + '.trackList', {
-        				type: 'state',
-        				common: {
-        					name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
-        					type: 'number',
-        					role: 'value',
-        					states: playListObject.stateString,
-        					read: true,
-        					write: true
-        				},
-        				native: {}
-        			}).then(function() {
-        				return setState(path + '.trackList', '', true);
-        			}),
-        			createOrDefault(playListObject, 'listNumber', path + '.trackListNumber', '', 'contains list of tracks as string, patter: 0;1;2;...', 'string'),
-        			createOrDefault(playListObject, 'listString', path + '.trackListString', '', 'contains list of tracks as string, patter: title - artist;title - artist;title - artist;...', 'string'),
-        			createOrDefault(playListObject, 'stateString', path + '.trackListStates', '', 'contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...', 'string'),
-        			createOrDefault(playListObject, 'trackIdMap', path + '.trackListIdMap', '', 'contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...', 'string'),
-        			createOrDefault(playListObject, 'trackIds', path + '.trackListIds', '', 'contains list of track ids as string, pattern: id;id;id;...', 'string'),
-        			createOrDefault(playListObject, 'songs', path + '.trackListArray', '', 'contains list of tracks as array object, pattern: [{id: "id", title: "title", artist: "artist"}, {id: "id", title: "title", artist: "artist"},...]', 'object')
-        		]).then(function() {
-                    return getState('playbackInfo.playlist.id').then(function(state) {
-                        if (state.val == id) {
-                        	return Promise.all([
-                        		setObject('playbackInfo.playlist.trackList', {
-                                    type: 'state',
-                                    common: {
-                                        name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
-                                        type: 'number',
-                                        role: 'value',
-                                        states: playListObject.stateString,
-                                        read: true,
-                                        write: true
-                                    },
-                                    native: {}
-                                }).then(function() {
-                                    return setState('playbackInfo.playlist.trackList', '', true);
+            createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs',
+                'number'),
+            createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url',
+                'string')
+        ]).then(function() {
+            return getPlaylistTracks(item.owner.id, item.id, prefix, 0).then(function(
+                playListObject) {
+                return Promise.all([
+                    setObject(prefix + '.trackList', {
+                        type: 'state',
+                        common: {
+                            name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
+                            type: 'number',
+                            role: 'value',
+                            states: playListObject.stateString,
+                            read: true,
+                            write: true
+                        },
+                        native: {}
+                    }).then(function() {
+                        return setState(prefix + '.trackList', '', true);
+                    }),
+                    createOrDefault(playListObject, 'listNumber', prefix +
+                        '.trackListNumber', '',
+                        'contains list of tracks as string, patter: 0;1;2;...',
+                        'string'),
+                    createOrDefault(playListObject, 'listString', prefix +
+                        '.trackListString', '',
+                        'contains list of tracks as string, patter: title - artist;title - artist;title - artist;...',
+                        'string'),
+                    createOrDefault(playListObject, 'stateString', prefix +
+                        '.trackListStates', '',
+                        'contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...',
+                        'string'),
+                    createOrDefault(playListObject, 'trackIdMap', prefix +
+                        '.trackListIdMap', '',
+                        'contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...',
+                        'string'),
+                    createOrDefault(playListObject, 'trackIds', prefix +
+                        '.trackListIds', '',
+                        'contains list of track ids as string, pattern: id;id;id;...',
+                        'string'),
+                    createOrDefault(playListObject, 'songs', prefix +
+                        '.trackListArray', '',
+                        'contains list of tracks as array object, pattern: [{id: "id", title: "title", artist: "artist"}, {id: "id", title: "title", artist: "artist"},...]',
+                        'object')
+                ]).then(function() {
+                    return getState('playbackInfo.playlist.id').then(function(
+                        state) {
+                        if (state.val == item.id) {
+                            return Promise.all([
+                                setObject(
+                                    'playbackInfo.playlist.trackList', {
+                                        type: 'state',
+                                        common: {
+                                            name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
+                                            type: 'number',
+                                            role: 'value',
+                                            states: playListObject
+                                                .stateString,
+                                            read: true,
+                                            write: true
+                                        },
+                                        native: {}
+                                    }).then(function() {
+                                    return setState(
+                                        'playbackInfo.playlist.trackList',
+                                        '', true);
                                 }),
-                                setState('playbackInfo.playlist.trackListNumber', playListObject.listNumber, true),
-                                setState('playbackInfo.playlist.trackListString', playListObject.listString, true),
-                                setState('playbackInfo.playlist.trackListStates', playListObject.stateString, true),
-                                setState('playbackInfo.playlist.trackListIdMap', playListObject.trackIdMap, true),
-                                setState('playbackInfo.playlist.trackListIds', playListObject.trackIds, true),
-                                setState('playbackInfo.playlist.trackListArray', playListObject.songs, true)
-                        	]);
-                        } else {                        	
-                        	return;
+                                setState(
+                                    'playbackInfo.playlist.trackListNumber',
+                                    playListObject.listNumber,
+                                    true),
+                                setState(
+                                    'playbackInfo.playlist.trackListString',
+                                    playListObject.listString,
+                                    true),
+                                setState(
+                                    'playbackInfo.playlist.trackListStates',
+                                    playListObject.stateString,
+                                    true),
+                                setState(
+                                    'playbackInfo.playlist.trackListIdMap',
+                                    playListObject.trackIdMap,
+                                    true),
+                                setState(
+                                    'playbackInfo.playlist.trackListIds',
+                                    playListObject.trackIds, true
+                                ),
+                                setState(
+                                    'playbackInfo.playlist.trackListArray',
+                                    playListObject.songs, true)
+                            ]);
+                        } else {
+                            return Promise.resolve();
                         }
                     });
                 });
-        	});
+            });
         });
     };
-
     return Promise.all(parseJson.items.map(fn)).then(function() {
-    	if (autoContinue && parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
-    		return getUsersPlaylist(parseJson.offset + parseJson.limit);
-    	}
+        if (autoContinue && parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
+            return getUsersPlaylist(parseJson.offset + parseJson.limit);
+        }
     });
 }
 
@@ -772,7 +840,7 @@ function cleanState(str) {
     return str.trim();
 }
 
-function getPlaylistTracks(owner, id, path, offset, playListObject) {
+function getPlaylistTracks(owner, id, prefix, offset, playListObject) {
     playListObject = playListObject && playListObject !== undefined ? playListObject : {
         stateString: '',
         listString: '',
@@ -815,9 +883,9 @@ function getPlaylistTracks(owner, id, path, offset, playListObject) {
                 i++;
             });
             if (offset + 100 < data.total) {
-                return getPlaylistTracks(owner, id, path, offset + 100, playListObject);
+                return getPlaylistTracks(owner, id, prefix, offset + 100, playListObject);
             } else {
-            	return playListObject;
+                return Promise.resolve(playListObject);
             }
         }).catch(function(err) {
         adapter.log.warn('error on load tracks: ' + err);
@@ -844,14 +912,12 @@ function reloadDevices(data) {
 function disableDevices() {
     return getStates('devices.*').then(function(state) {
         var keys = Object.keys(state);
-
         var fn = function(key) {
             key = removeNameSpace(key);
             if (key.endsWith('.isAvailable')) {
                 return setState(key, false, true);
             }
         };
-
         return Promise.all(keys.map(fn));
     });
 }
@@ -859,12 +925,10 @@ function disableDevices() {
 function deleteDevices() {
     return getStates('devices.*').then(function(state) {
         var keys = Object.keys(state);
-
         var fn = function(key) {
             key = removeNameSpace(key);
             return delObject(key);
         };
-
         return Promise.all(keys.map(fn));
     });
 }
@@ -884,7 +948,6 @@ function createDevices(data) {
         adapter.log.warn('no device content')
         return Promise.reject('no device content');
     }
-
     var fn = function(device) {
         var deviceName = loadOrDefault(device, 'name', '');
         if (isEmpty(deviceName)) {
@@ -892,50 +955,53 @@ function createDevices(data) {
             return Promise.reject('empty device name');
         }
         var prefix = 'devices.' + deviceName.replace(/\s+/g, '');
-
-        return Promise.all([        	
-        	setObjectNotExists(prefix, {
-        		type: 'device',
-        		common: {
-        			name: deviceName,
-        			icon: getIconByType(loadOrDefault(device, 'type', 'Computer'))
-        		},
-        		native: {}
-        	}),
-        	createOrDefault(device, 'id', prefix + '.id', '', 'device id', 'string'),
-        	createOrDefault(device, 'is_active', prefix + '.isActive', false, 'current active device', 'boolean'),
-        	createOrDefault(device, 'is_restricted', prefix + '.isRestricted', false, 'restricted', 'boolean'),
-        	createOrDefault(device, 'name', prefix + '.name', '', 'device name', 'string'),
-        	createOrDefault(device, 'type', prefix + '.type', 'Speaker', 'device type', 'string', "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"),
-        	createOrDefault(device, 'volume_percent', prefix + '.volume', '', 'volume in percent', 'number'),
-        	setObjectNotExists(prefix + '.useForPlayback', {
-        		type: 'state',
-        		common: {
-        			name: 'press to use device for playback',
-        			type: 'boolean',
-        			role: 'button',
-        			read: false,
-        			write: true,
-        			icon: 'icons/play.png'
-        		},
-        		native: {}
-        	}),
-        	setObjectNotExists(prefix + '.isAvailable', {
-        		type: 'state',
-        		common: {
-        			name: 'can used for playing',
-        			type: 'boolean',
-        			role: 'value',
-        			read: true,
-        			write: false
-        		},
-        		native: {}
-        	}),
-        	setState(prefix + '.useForPlayback', false, true),
-        	setState(prefix + '.isAvailable', true, true)
+        return Promise.all([
+            setObjectNotExists(prefix, {
+                type: 'device',
+                common: {
+                    name: deviceName,
+                    icon: getIconByType(loadOrDefault(device, 'type', 'Computer'))
+                },
+                native: {}
+            }),
+            createOrDefault(device, 'id', prefix + '.id', '', 'device id', 'string'),
+            createOrDefault(device, 'is_active', prefix + '.isActive', false,
+                'current active device', 'boolean'),
+            createOrDefault(device, 'is_restricted', prefix + '.isRestricted', false,
+                'restricted', 'boolean'),
+            createOrDefault(device, 'name', prefix + '.name', '', 'device name', 'string'),
+            createOrDefault(device, 'type', prefix + '.type', 'Speaker', 'device type', 'string',
+                "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"
+            ),
+            createOrDefault(device, 'volume_percent', prefix + '.volume', '', 'volume in percent',
+                'number'),
+            setObjectNotExists(prefix + '.useForPlayback', {
+                type: 'state',
+                common: {
+                    name: 'press to use device for playback',
+                    type: 'boolean',
+                    role: 'button',
+                    read: false,
+                    write: true,
+                    icon: 'icons/play.png'
+                },
+                native: {}
+            }),
+            setObjectNotExists(prefix + '.isAvailable', {
+                type: 'state',
+                common: {
+                    name: 'can used for playing',
+                    type: 'boolean',
+                    role: 'value',
+                    read: true,
+                    write: false
+                },
+                native: {}
+            }),
+            setState(prefix + '.useForPlayback', false, true),
+            setState(prefix + '.isAvailable', true, true)
         ]);
     };
-
     return Promise.all(data.devices.map(fn));
 }
 
@@ -967,14 +1033,13 @@ function getToken() {
     };
     return request(options)
         .then(function(response) {
-        	var body = response.body;
+            var body = response.body;
             saveToken(JSON.parse(body)).then(function(tokenObj) {
-            	return Promise.all([
-            		setState('authorization.authorizationUrl', '', true),
+                return Promise.all([
+                    setState('authorization.authorizationUrl', '', true),
                     setState('authorization.authorizationReturnUri', '', true),
                     setState('authorization.authorized', true, true)
-            	]).then(function() {
-            		adapter.log.info('3');
+                ]).then(function() {
                     application.token = tokenObj.accessToken;
                     application.refreshToken = tokenObj.refreshToken;
                     return start();
@@ -1007,7 +1072,7 @@ function refreshToken() {
             .then(function(response) {
                 // this request gets the new token
                 if (response.statusCode == 200) {
-                	var body = response.body;
+                    var body = response.body;
                     adapter.log.debug('new token arrived');
                     adapter.log.debug(body);
                     var parsedJson = JSON.parse(body);
@@ -1017,7 +1082,6 @@ function refreshToken() {
                     adapter.log.debug(JSON.stringify(parsedJson))
                     return saveToken(parsedJson).then(
                         function(tokenObj) {
-                        	adapter.log.info('4');
                             application.token = tokenObj.accessToken;
                         }).catch(function(err) {
                         adapter.log.debug(err);
@@ -1032,7 +1096,7 @@ function refreshToken() {
 }
 
 function saveToken(data) {
-	adapter.log.debug('saveToken');
+    adapter.log.debug('saveToken');
     if ('undefined' !== typeof data.access_token && ('undefined' !== typeof data.refresh_token)) {
         var token = {
             accessToken: data.access_token,
@@ -1041,7 +1105,6 @@ function saveToken(data) {
             clientSecret: application.clientSecret
         };
         return setState('authorization.token', token, true).then(function() {
-        	adapter.log.info('set:'+ JSON.stringify(token));
             return token;
         });
     } else {
@@ -1066,15 +1129,18 @@ function increaseTime(duration_ms, progress_ms, startDate, count) {
     var now = Date.now();
     count--;
     progress_ms += now - startDate;
-    setState('playbackInfo.progressMs', progress_ms);
-    setState('playbackInfo.progress', convertToDigiClock(progress_ms));
-    if (count > 0) {
-        if (progress_ms + 1000 > duration_ms) {
-            setTimeout(pollStatusApi, 1000);
-        } else {
-            scheduleStatusInternalTimer(duration_ms, progress_ms, now, count);
+    return Promise.all([
+        setState('playbackInfo.progressMs', progress_ms),
+        setState('playbackInfo.progress', convertToDigiClock(progress_ms))
+    ]).then(function() {
+        if (count > 0) {
+            if (progress_ms + 1000 > duration_ms) {
+                setTimeout(pollStatusApi, 1000);
+            } else {
+                scheduleStatusInternalTimer(duration_ms, progress_ms, now, count);
+            }
         }
-    }
+    })
 }
 
 function scheduleStatusInternalTimer(duration_ms, progress_ms, startDate, count) {
@@ -1171,10 +1237,10 @@ function startPlaylist(playlist, owner, trackNo) {
         owner = application.userId;
     }
     if (isEmpty(trackNo)) {
-    	return Promise.reject('no track no');
+        return Promise.reject('no track no');
     }
     if (isEmpty(playlist)) {
-    	return Promise.reject('no playlist no');
+        return Promise.reject('no playlist no');
     }
     var send = {
         context_uri: 'spotify:user:' + owner + ':playlist:' + playlist,
@@ -1214,26 +1280,24 @@ function listenOnAuthorizationReturnUri(obj) {
 
 function listenOnGetAuthorization() {
     adapter.log.debug('requestAuthorization');
-
     var state = generateRandomString(20);
     var query = {
-    		client_id: application.clientId,
-    		response_type: 'code',
-    		redirect_uri: application.redirect_uri,
-    		state: state,
-    		scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private'
+        client_id: application.clientId,
+        response_type: 'code',
+        redirect_uri: application.redirect_uri,
+        state: state,
+        scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private'
     };
     var options = {
-    		url: 'https://accounts.spotify.com/de/authorize/?' +
-    		querystring.stringify(query),
-    		method: 'GET',
-    		followAllRedirects: true,
+        url: 'https://accounts.spotify.com/de/authorize/?' +
+            querystring.stringify(query),
+        method: 'GET',
+        followAllRedirects: true,
     };
-    
-    return Promise.all([    	
-    	setState('authorization.state', state, true),
-    	setState('authorization.authorizationUrl', options.url, true),
-    	setState('authorization.authorized', false, true)
+    return Promise.all([
+        setState('authorization.state', state, true),
+        setState('authorization.authorizationUrl', options.url, true),
+        setState('authorization.authorized', false, true)
     ]);
 }
 
@@ -1510,7 +1574,7 @@ adapter.on('stateChange', function(id, state) {
     });
 });
 adapter.on('unload', function(callback) {
-	Promise.all([
+    Promise.all([
         setState('authorization.authorizationUrl', '', true),
         setState('authorization.authorizationReturnUri', '', true),
         setState('authorization.userId', '', true),
@@ -1519,16 +1583,16 @@ adapter.on('unload', function(callback) {
         setState('player.playlist.trackNo', '', true),
         setState('player.playlist.owner', '', true),
         setState('authorization.authorized', false, true)
-	]).then(function() {    		
-		if ('undefined' !== typeof application.statusPollingHandle) {
-			clearTimeout(application.statusPollingHandle);
-			clearTimeout(application.statusInternalTimer);
-		}
-		if ('undefined' !== typeof application.devicePollingHandle) {
-			clearTimeout(application.devicePollingHandle);
-		}
-		if ('undefined' !== typeof application.playlistPollingHandle) {
-			clearTimeout(application.playlistPollingHandle);
-		}
-	}).nodeify(callback);
+    ]).then(function() {
+        if ('undefined' !== typeof application.statusPollingHandle) {
+            clearTimeout(application.statusPollingHandle);
+            clearTimeout(application.statusInternalTimer);
+        }
+        if ('undefined' !== typeof application.devicePollingHandle) {
+            clearTimeout(application.devicePollingHandle);
+        }
+        if ('undefined' !== typeof application.playlistPollingHandle) {
+            clearTimeout(application.playlistPollingHandle);
+        }
+    }).nodeify(callback);
 });
