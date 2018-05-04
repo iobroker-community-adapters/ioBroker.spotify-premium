@@ -454,7 +454,8 @@ function createPlaybackInfo(data) {
         setOrDefault(data, 'shuffle_state', 'player.shuffle', false),
         setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
         setOrDefault(data, 'item.id', 'player.trackId', ''),
-        setOrDefault(data, 'device.volume_percent', 'player.volume', 100)
+        setOrDefault(data, 'device.volume_percent', 'player.volume', 100),
+        setState('player.progressMs', progress, true)
     ]).then(function() {
         if (deviceId) {
             deviceData.lastActiveDeviceId = deviceId;
@@ -1137,7 +1138,8 @@ function increaseTime(duration_ms, progress_ms, startDate, count) {
     progress_ms += now - startDate;
     return Promise.all([
         setState('playbackInfo.progressMs', progress_ms),
-        setState('playbackInfo.progress', convertToDigiClock(progress_ms))
+        setState('playbackInfo.progress', convertToDigiClock(progress_ms)),
+        setState('player.progressMs', progress_ms)
     ]).then(function() {
         if (count > 0) {
             if (progress_ms + 1000 > duration_ms) {
@@ -1452,12 +1454,10 @@ function listenOnVolume(obj) {
     });
 }
 
-function listenOnSeek(obj) {
-    sendRequest('/v1/me/player/seek?position_ms=' + (obj.state.val * 1000),
+function listenOnProgressMs(obj) {
+    sendRequest('/v1/me/player/seek?position_ms=' + obj.state.val,
         'PUT', '').then(function() {
         return pollStatusApi(true);
-    }).then(function() {
-        return setState('Player.Seek', '', true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1547,7 +1547,7 @@ on('player.repeatTrack', listenOnRepeatTrack);
 on('player.repeatContext', listenOnRepeatContext);
 on('player.repeatOff', listenOnRepeatOff);
 on('player.volume', listenOnVolume, true);
-on('player.seek', listenOnSeek, true);
+on('player.progressMs', listenOnProgressMs, true);
 on('player.shuffle', listenOnShuffle, true);
 on('player.shuffleOff', listenOnShuffleOff);
 on('player.shuffleOn', listenOnShuffleOn);

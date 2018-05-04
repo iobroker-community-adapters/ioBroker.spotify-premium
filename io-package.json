@@ -407,11 +407,11 @@
             "native": {}
         },
         {
-            "_id": "player.seek",
+            "_id": "player.progressMs",
             "type": "state",
             "common": {
                 "role": "value",
-                "name": "seek to position (s)",
+                "name": "seek to position (ms)",
                 "type": "number",
                 "read": true,
                 "write": true

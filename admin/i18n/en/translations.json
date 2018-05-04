@@ -11,7 +11,7 @@
   "manual2": "Create an application, you get a Client ID and a Client Secret",
   "manual3": "set the redirect URIs to 'http://localhost' in your app settings at your created spotify application",
   "manual4": "put the Cliend ID and Client Secret in the fields down below",
-  "manual5": "start the instace",
+  "manual5": "start the instance",
   "manual6": "switch to objects tab and push the button getAuthorization at 'spotify-premium.X.authorization'",
   "manual7": "copy the appearing URL from 'spotify-premium.X.authorization.authorizationUrl' to your webbrowser and call it",
   "manual8": "You maybe need to sign in to spotify and grant access",

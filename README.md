@@ -10,11 +10,33 @@
 
 =================
 
+Adapter to access spotify playback controls. Because of the spotify API a premium account is necessary.
+
 Connection to [Spotify Premium API](https://www.spotify.com/).
 
 ## Documentation
-
 See also the [Spotify Developer API Documentation](https://developer.spotify.com/).
+### Setup / Authorization
+1. Sign in on https://developer.spotify.com
+2. Create an application, you get a Client ID and a Client Secret
+3. set the redirect URIs to `http://localhost` in your app settings at your created spotify application
+4. put the Cliend ID and Client Secret in the fields down below
+5. start the instance
+6. switch to objects tab and push the button getAuthorization at `spotify-premium.X.authorization`
+7. copy the appearing URL from `spotify-premium.X.authorization.authorizationUrl` to your webbrowser and call it
+8. You maybe need to sign in to spotify and grant access
+9. the browser will redirected to an invalid URL. If the error `invalid redirect uri` occurs please verify step 3
+10. copy that url and put it to `spotify-premium.X.authorization.authorizationReturnUri`
+11. the value in `spotify-premium.X.authorization.authorized` turns to true if everything was successful
+
+### States
+All states are descripted in admin.
+
+In general there are a split between control and read-only states.
+* `spotify-premium.X.playbackInfo.*` - Read only information of playback
+* `spotify-premium.X.player.*` - Commands to control playback
+
+### VIS usage
 
 ## Changelog
 
