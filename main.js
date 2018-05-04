@@ -205,10 +205,13 @@ function start() {
                         return setState('authorization.authorized', true, true)
                             .then(function() {
                                 return listenOnGetPlaybackInfo();
+                            }).catch(function() {
                             }).then(function() {
                                 return reloadUsersPlaylist();
+                            }).catch(function() {
                             }).then(function() {
                                 return listenOnGetDevices();
+                            }).catch(function() {
                             });
                     })
                 });
