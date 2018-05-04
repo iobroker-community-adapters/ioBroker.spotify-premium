@@ -398,6 +398,10 @@ function setOrDefault(obj, name, state, defaultVal) {
     return setState(state, t, true);
 }
 
+function shrinkStateName(v) {
+	return v.replace(/\s+/g, '').replace(/\.+/g, '');
+}
+
 function createPlaybackInfo(data) {
     if (isEmpty(data)) {
         adapter.log.warn('no playback content');
@@ -458,7 +462,7 @@ function createPlaybackInfo(data) {
                 var keys = Object.keys(state);
                 var fn = function(key) {
                     key = removeNameSpace(key);
-                    if (key !== 'devices.' + deviceName.replace(/\s+/g, '') + '.isActive' &&
+                    if (key !== 'devices.' + shrinkStateName(deviceName) + '.isActive' &&
                         key.endsWith('.isActive')) {
                         return setState(key, false, true);
                     }
@@ -525,8 +529,7 @@ function createPlaybackInfo(data) {
                         ]);
                         if (playListName) {
                             p.then(function() {
-                                var shrinkPlaylistName = playListName.replace(/\s+/g,
-                                    '');
+                                var shrinkPlaylistName = shrinkStateName(playListName);
                                 return Promise.all([
                                     setState('playbackInfo.playlist.name',
                                         playListName, true),
@@ -678,7 +681,7 @@ function persistPlaylist(parseJson, autoContinue) {
             adapter.log.warn('empty playlist name');
             return Promise.reject('empty playlist name');
         }
-        var prefix = 'playlists.' + playlistName.replace(/\s+/g, '');
+        var prefix = 'playlists.' + shrinkStateName(playlistName);
         return Promise.all([
             setObjectNotExists(prefix + '.playThisList', {
                 type: 'state',
@@ -957,7 +960,7 @@ function createDevices(data) {
             adapter.log.warn('empty device name')
             return Promise.reject('empty device name');
         }
-        var prefix = 'devices.' + deviceName.replace(/\s+/g, '');
+        var prefix = 'devices.' + shrinkStateName(deviceName);
         return Promise.all([
             setObjectNotExists(prefix, {
                 type: 'device',
