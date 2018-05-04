@@ -1139,7 +1139,7 @@ function increaseTime(duration_ms, progress_ms, startDate, count) {
     return Promise.all([
         setState('playbackInfo.progressMs', progress_ms),
         setState('playbackInfo.progress', convertToDigiClock(progress_ms)),
-        setState('player.progressMs', progress_ms)
+        setState('player.progressMs', progress_ms, true)
     ]).then(function() {
         if (count > 0) {
             if (progress_ms + 1000 > duration_ms) {
