@@ -420,6 +420,10 @@ function createPlaybackInfo(data) {
         type = loadOrDefault(data, 'item.type', '');
     }
     var progress = loadOrDefault(data, 'progress_ms', 0);
+    var progressPercentage = 0;
+    if(duration > 0) {
+    	progressPercentage = Math.round(progress / duration * 100);
+    }
     Promise.all([
         setState('playbackInfo.device.id', deviceId, true),
         setState('playbackInfo.device.isActive', isDeviceActive, true),
@@ -447,6 +451,7 @@ function createPlaybackInfo(data) {
         setState('playbackInfo.type', type, true),
         setOrDefault(data, 'timestamp', 'playbackInfo.timestamp', 0),
         setState('playbackInfo.progressMs', progress, true),
+        setState('playbackInfo.progressPercentage', progressPercentage, true),
         setState('playbackInfo.progress', convertToDigiClock(progress), true),
         setOrDefault(data, 'shuffle_state', 'playbackInfo.shuffle', false),
         setOrDefault(data, 'repeat_state', 'playbackInfo.repeat', 'off'),
@@ -455,7 +460,8 @@ function createPlaybackInfo(data) {
         setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
         setOrDefault(data, 'item.id', 'player.trackId', ''),
         setOrDefault(data, 'device.volume_percent', 'player.volume', 100),
-        setState('player.progressMs', progress, true)
+        setState('player.progressMs', progress, true),
+        setState('player.progressPercentage', progressPercentage, true)
     ]).then(function() {
         if (deviceId) {
             deviceData.lastActiveDeviceId = deviceId;
@@ -1139,7 +1145,18 @@ function increaseTime(duration_ms, progress_ms, startDate, count) {
     return Promise.all([
         setState('playbackInfo.progressMs', progress_ms),
         setState('playbackInfo.progress', convertToDigiClock(progress_ms)),
-        setState('player.progressMs', progress_ms, true)
+        setState('player.progressMs', progress_ms, true),
+        getState('playbackInfo.durationMs').then(function (state) {
+        	var val = state.val;
+        	
+        	if(val > 0) {
+        		var percentage = Math.round(progress_ms / val * 100);
+        		return Promise.all([
+	        			setState('playbackInfo.progressPercentage', percentage),
+	        			setState('player.progressPercentage', percentage, true)
+        			]);
+        	}
+        })
     ]).then(function() {
         if (count > 0) {
             if (progress_ms + 1000 > duration_ms) {
@@ -1455,12 +1472,29 @@ function listenOnVolume(obj) {
 }
 
 function listenOnProgressMs(obj) {
-    sendRequest('/v1/me/player/seek?position_ms=' + obj.state.val,
+	sendRequest('/v1/me/player/seek?position_ms=' + obj.state.val,
         'PUT', '').then(function() {
-        return pollStatusApi(true);
-    }).catch(function(err) {
-        adapter.log.error('could not execute command: ' + err);
-    });
+            return pollStatusApi(true);
+        }).catch(function(err) {
+            adapter.log.error('could not execute command: ' + err);
+        });
+}
+
+function listenOnProgressPercentage(obj) {
+    getState('playbackInfo.durationMs').then(function (state) {
+    	var duration = state.val;
+
+    	if(duration > 0) {
+    		var ms = Math.round(obj.state.val / 100 * duration);
+
+    	    sendRequest('/v1/me/player/seek?position_ms=' + ms,
+    	            'PUT', '').then(function() {
+    	            return pollStatusApi(true);
+    	        }).catch(function(err) {
+    	            adapter.log.error('could not execute command: ' + err);
+    	        });
+    	}
+    })
 }
 
 function listenOnShuffle(obj) {
@@ -1548,6 +1582,7 @@ on('player.repeatContext', listenOnRepeatContext);
 on('player.repeatOff', listenOnRepeatOff);
 on('player.volume', listenOnVolume, true);
 on('player.progressMs', listenOnProgressMs, true);
+on('player.progressPercentage', listenOnProgressPercentage, true);
 on('player.shuffle', listenOnShuffle, true);
 on('player.shuffleOff', listenOnShuffleOff);
 on('player.shuffleOn', listenOnShuffleOn);

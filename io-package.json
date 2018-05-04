@@ -419,6 +419,18 @@
             "native": {}
         },
         {
+            "_id": "player.progressPercentage",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "seek to position (%)",
+                "type": "number",
+                "read": true,
+                "write": true
+            },
+            "native": {}
+        },
+        {
             "_id": "player.shuffle",
             "type": "state",
             "common": {
@@ -644,6 +656,18 @@
             "common": {
                 "role": "value",
                 "name": "progress in ms",
+                "type": "number",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.progressPercentage",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "progress in %",
                 "type": "number",
                 "read": true,
                 "write": false
