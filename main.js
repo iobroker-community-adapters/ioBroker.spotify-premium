@@ -422,7 +422,7 @@ function createPlaybackInfo(data) {
     var progress = loadOrDefault(data, 'progress_ms', 0);
     var progressPercentage = 0;
     if(duration > 0) {
-    	progressPercentage = Math.round(progress / duration * 100);
+    	progressPercentage = Math.floor(progress / duration * 100);
     }
     Promise.all([
         setState('playbackInfo.device.id', deviceId, true),
@@ -1150,7 +1150,7 @@ function increaseTime(duration_ms, progress_ms, startDate, count) {
         	var val = state.val;
         	
         	if(val > 0) {
-        		var percentage = Math.round(progress_ms / val * 100);
+        		var percentage = Math.floor(progress_ms / val * 100);
         		return Promise.all([
 	        			setState('playbackInfo.progressPercentage', percentage),
 	        			setState('player.progressPercentage', percentage, true)
@@ -1485,7 +1485,7 @@ function listenOnProgressPercentage(obj) {
     	var duration = state.val;
 
     	if(duration > 0) {
-    		var ms = Math.round(obj.state.val / 100 * duration);
+    		var ms = Math.floor(obj.state.val / 100 * duration);
 
     	    sendRequest('/v1/me/player/seek?position_ms=' + ms,
     	            'PUT', '').then(function() {
