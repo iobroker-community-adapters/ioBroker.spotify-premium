@@ -29,7 +29,8 @@
   },
   "dependencies": {
     "request": "2.83.0",
-    "querystring": "0.2.0"
+    "querystring": "0.2.0",
+    "promise": "8.0.1"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
