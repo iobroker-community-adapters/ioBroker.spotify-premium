@@ -402,6 +402,22 @@ function shrinkStateName(v) {
 	return v.replace(/\s+/g, '').replace(/\.+/g, '');
 }
 
+function getArtistNamesOrDefault(data, name) {
+	var ret = '';
+	for(var i = 0; i < 100; i++) {
+		var artist = loadOrDefault(data, name + '[' + i + '].name', '');
+		if(!isEmpty(artist)) {
+			if(i > 0) {
+				ret += ', ';
+			}
+			ret += artist;
+		} else {
+		 	break;
+		}
+	}
+	return ret;
+}
+
 function createPlaybackInfo(data) {
     if (isEmpty(data)) {
         adapter.log.warn('no playback content');
@@ -424,6 +440,19 @@ function createPlaybackInfo(data) {
     if(duration > 0) {
     	progressPercentage = Math.floor(progress / duration * 100);
     }
+    var contextDescription;
+    
+    var album = loadOrDefault(data, 'item.album.name', '');
+    var artist = getArtistNamesOrDefault(data, 'item.artists');
+
+    if(type == 'album') {
+    	contextDescription = 'Album: ' + album;
+    } else if(type == 'artist') {
+    	contextDescription = 'Artist: ' + artist;
+    } else if(type == 'track') {
+    	contextDescription = 'Track';
+    }
+
     Promise.all([
         setState('playbackInfo.device.id', deviceId, true),
         setState('playbackInfo.device.isActive', isDeviceActive, true),
@@ -442,8 +471,8 @@ function createPlaybackInfo(data) {
         }),
         setState('playbackInfo.isPlaying', isPlaying, true),
         setOrDefault(data, 'item.id', 'playbackInfo.trackId', ''),
-        setOrDefault(data, 'item.artists[0].name', 'playbackInfo.artist', ''),
-        setOrDefault(data, 'item.album.name', 'playbackInfo.album', ''),
+        setState('playbackInfo.artist', artist, true),
+        setState('playbackInfo.album', album, true),
         setOrDefault(data, 'item.album.images[0].url', 'playbackInfo.albumImageUrl', ''),
         setOrDefault(data, 'item.name', 'playbackInfo.trackName', ''),
         setState('playbackInfo.durationMs', duration, true),
@@ -523,6 +552,9 @@ function createPlaybackInfo(data) {
                     'GET', '').then(
                     function(parseJson) {
                         var playListName = loadOrDefault(parseJson, 'name', '');
+
+                        contextDescription = 'Playlist: ' + playListName;
+
                         var songId = loadOrDefault(data, 'item.id', '');
                         var p = Promise.all([
                             setOrDefault(parseJson, 'owner.id',
@@ -632,6 +664,8 @@ function createPlaybackInfo(data) {
                 setState('player.playlist.trackNo', '', true)
             ]);
         }
+    }).then(function () {
+    	return setState('playbackInfo.contextDescription', contextDescription, true);
     });
 }
 
@@ -880,17 +914,16 @@ function getPlaylistTracks(owner, id, prefix, offset, playListObject) {
                     playListObject.trackIds += ';';
                     playListObject.listNumber += ';';
                 }
-                playListObject.stateString += no + ':' + cleanState(item.track.name) + ' - ' +
-                    cleanState(item.track.artists[0].name);
-                playListObject.listString += cleanState(item.track.name) + ' - ' + cleanState(
-                    item.track.artists[0].name);
+                var artist = getArtistNamesOrDefault(item, 'track.artists');
+                playListObject.stateString += no + ':' + cleanState(item.track.name) + ' - ' + cleanState(artist);
+                playListObject.listString += cleanState(item.track.name) + ' - ' + cleanState(artist);
                 playListObject.trackIdMap += cleanState(item.track.id);
                 playListObject.trackIds += no + ':' + cleanState(item.track.id);
                 playListObject.listNumber += no;
                 var a = {
                     id: item.track.id,
                     title: item.track.name,
-                    artist: item.track.artists[0].name
+                    artist: artist
                 };
                 playListObject.songs.push(a);
                 i++;
@@ -1274,7 +1307,7 @@ function startPlaylist(playlist, owner, trackNo) {
         }
     };
     return sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send)).then(function() {
-        return pollStatusApi(true);
+        setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not start playlist ' + playlist + ' of user ' + owner + '; error: ' +
             err);
@@ -1341,7 +1374,7 @@ function listenOnUseForPlayback(obj) {
             device_ids: [deviceData.lastSelectDeviceId],
         };
         return sendRequest('/v1/me/player', 'PUT', JSON.stringify(send)).then(function() {
-            return pollStatusApi(true);
+        	setTimeout(pollStatusApi, 1000, true);
         }).catch(function(err) {
             adapter.log.error('could not execute command: ' + err);
         });
@@ -1376,7 +1409,7 @@ function listenOnPlayThisList(obj, pos) {
                 return sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT',
                         JSON.stringify(send))
                     .then(function() {
-                        return pollStatusApi(true);
+                    	setTimeout(pollStatusApi, 1000, true);
                     }).catch(function(err) {
                         adapter.log.error('could not execute command: ' + err);
                     });
@@ -1390,7 +1423,7 @@ function listenOnPlay() {
     };
     adapter.log.debug(getSelectedDevice(deviceData))
     sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', '').then(function() {
-        return pollStatusApi(true);
+    	setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1401,7 +1434,7 @@ function listenOnPause() {
         device_id: getSelectedDevice(deviceData)
     };
     sendRequest('/v1/me/player/pause?' + querystring.stringify(query), 'PUT', '').then(function() {
-        return pollStatusApi(true);
+    	setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1412,7 +1445,7 @@ function listenOnSkipPlus() {
         device_id: getSelectedDevice(deviceData)
     };
     sendRequest('/v1/me/player/next?' + querystring.stringify(query), 'POST', '').then(function() {
-        return pollStatusApi(true);
+    	setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1423,7 +1456,7 @@ function listenOnSkipMinus() {
         device_id: getSelectedDevice(deviceData)
     };
     sendRequest('/v1/me/player/previous?' + querystring.stringify(query), 'POST', '').then(function() {
-        return pollStatusApi(true);
+    	setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1432,7 +1465,7 @@ function listenOnSkipMinus() {
 function listenOnRepeat(obj) {
     if (['track', 'context', 'off'].indexOf(obj.state.val) >= 0) {
         sendRequest('/v1/me/player/repeat?state=' + obj.state.val, 'PUT', '').then(function() {
-            return pollStatusApi(true);
+        	setTimeout(pollStatusApi, 1000, true);
         }).catch(function(err) {
             adapter.log.error('could not execute command: ' + err);
         });
@@ -1465,42 +1498,70 @@ function listenOnRepeatOff() {
 
 function listenOnVolume(obj) {
     sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '').then(function() {
-        return pollStatusApi(true);
+    	setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
 }
 
 function listenOnProgressMs(obj) {
-	sendRequest('/v1/me/player/seek?position_ms=' + obj.state.val,
+	var progress = obj.state.val;
+	sendRequest('/v1/me/player/seek?position_ms=' + progress,
         'PUT', '').then(function() {
-            return pollStatusApi(true);
+        	setTimeout(pollStatusApi, 1000, true);
+
+        	return getState('playbackInfo.durationMs').then(function (state) {
+        	    	var duration = state.val;
+
+        	    	if(duration > 0 && duration <= progress) {
+        	    		var progressPercentage = Math.floor(progress / duration * 100);
+        	    		return Promise.all([
+        	    			setState('playbackInfo.progressMs', progress, true),
+        	    			setState('playbackInfo.progress', convertToDigiClock(progress), true),
+        	    			setState('player.progressPercentage', progressPercentage, true),
+        	        		setState('playbackInfo.progressPercentage', progressPercentage, true)
+        	    		]);
+        	    	}
+        	    });
         }).catch(function(err) {
             adapter.log.error('could not execute command: ' + err);
         });
 }
 
 function listenOnProgressPercentage(obj) {
+	var progressPercentage = obj.state.val;
+	
+	if(progressPercentage < 0 || progressPercentage > 100) {
+		return;
+	}
+
     getState('playbackInfo.durationMs').then(function (state) {
     	var duration = state.val;
 
     	if(duration > 0) {
-    		var ms = Math.floor(obj.state.val / 100 * duration);
+    		var progress = Math.floor(progressPercentage / 100 * duration);
 
-    	    sendRequest('/v1/me/player/seek?position_ms=' + ms,
+    	    sendRequest('/v1/me/player/seek?position_ms=' + progress,
     	            'PUT', '').then(function() {
-    	            return pollStatusApi(true);
+    	            setTimeout(pollStatusApi, 1000, true);
+
+    	            return Promise.all([
+    	        		setState('playbackInfo.progressMs', progress, true),
+    	        		setState('playbackInfo.progress', convertToDigiClock(progress), true),
+    	    			setState('player.progressMs', progress, true),
+    	        		setState('playbackInfo.progressPercentage', progressPercentage, true)
+    	            ]);
     	        }).catch(function(err) {
     	            adapter.log.error('could not execute command: ' + err);
     	        });
     	}
-    })
+    });
 }
 
 function listenOnShuffle(obj) {
     sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === true ? 'true' : 'false'),
         'PUT', '').then(function() {
-        return pollStatusApi(true);
+        	setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1530,7 +1591,7 @@ function listenOnTrackId(obj) {
         }
     };
     sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send)).then(function() {
-        return pollStatusApi(true);
+    	setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });

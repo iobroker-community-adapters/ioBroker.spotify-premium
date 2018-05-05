@@ -622,7 +622,19 @@
                 "type": "string",
                 "read": true,
                 "write": false,
-                "states": "{\"album\": \"Album\",\"artist\": \"Artist\",\"playlist\": \"Playlist\"}"
+                "states": "{\"album\": \"Album\",\"artist\": \"Artist\",\"playlist\": \"Playlist\",\"track\": \"Track\"}"
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.contextDescription",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "description of the current context",
+                "type": "string",
+                "read": true,
+                "write": false
             },
             "native": {}
         },
