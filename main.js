@@ -1080,7 +1080,13 @@ function getToken() {
     return request(options)
         .then(function(response) {
             var body = response.body;
-            saveToken(JSON.parse(body)).then(function(tokenObj) {
+            var parsedBody;
+            try {
+                parsedBody = JSON.parse(body);
+            } catch (e) {
+                parsedBody = {};
+            }
+            saveToken(parsedBody).then(function(tokenObj) {
                 return Promise.all([
                     setState('authorization.authorizationUrl', '', true),
                     setState('authorization.authorizationReturnUri', '', true),
@@ -1121,7 +1127,12 @@ function refreshToken() {
                     var body = response.body;
                     adapter.log.debug('new token arrived');
                     adapter.log.debug(body);
-                    var parsedJson = JSON.parse(body);
+                    var parsedJson;
+                    try {
+                    	parsedJson = JSON.parse(body);
+                    } catch (e) {
+                    	parsedJson = {};
+                    }
                     if (!parsedJson.hasOwnProperty('refresh_token')) {
                         parsedJson.refresh_token = application.refreshToken;
                     }
