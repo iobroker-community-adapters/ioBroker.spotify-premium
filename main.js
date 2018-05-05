@@ -596,8 +596,8 @@ function createPlaybackInfo(data) {
 
                         contextDescription = 'Playlist: ' + playListName;
 
-                        var songId = loadOrDefault(data, 'item.id', '');
-                        var playlistImage = loadOrDefault(data, 'images[0].url', '');
+                        var songId = loadOrDefault(parseJson, 'item.id', '');
+                        var playlistImage = loadOrDefault(parseJson, 'images[0].url', '');
                         contextImage = playlistImage;
                         var p = Promise.all([
                             setOrDefault(parseJson, 'owner.id', 'playbackInfo.playlist.owner', ''),
