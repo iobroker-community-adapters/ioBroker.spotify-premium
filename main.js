@@ -546,7 +546,6 @@ function createPlaybackInfo(data) {
         
         for(var i = 0; i < 100;i++) {
         	var id = loadOrDefault(data, 'item.artists['+i+'].id', '');
-        	adapter.log.info('id: '+ id);
         	if(isEmpty(id)) {
         		break;
         	} else {
@@ -559,7 +558,6 @@ function createPlaybackInfo(data) {
             return sendRequest('/v1/artists/' + artist,
                     'GET', '').then(
                     function(parseJson) {
-                    	adapter.log.info('url: '+ url);
                     	var url = loadOrDefault(parseJson, 'images[0].url', '');
                     	if(!isEmpty(url)) {
                     		urls.push(url);
