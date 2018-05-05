@@ -602,11 +602,23 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.artist",
+            "_id": "playbackInfo.artistName",
             "type": "state",
             "common": {
                 "role": "value",
-                "name": "artist",
+                "name": "artist name; comma separated if multiple artists",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.artistImageUrl",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "artist image url of the first available artist if multiple artists",
                 "type": "string",
                 "read": true,
                 "write": false
@@ -632,6 +644,18 @@
             "common": {
                 "role": "value",
                 "name": "description of the current context",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playbackInfo.contextImageUrl",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "image url of the current context; album, artist or playlist",
                 "type": "string",
                 "read": true,
                 "write": false

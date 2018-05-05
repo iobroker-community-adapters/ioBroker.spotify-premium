@@ -441,16 +441,22 @@ function createPlaybackInfo(data) {
     	progressPercentage = Math.floor(progress / duration * 100);
     }
     var contextDescription;
+    var contextImage;
     
     var album = loadOrDefault(data, 'item.album.name', '');
+    var albumUrl = loadOrDefault(data, 'item.album.images[0].url', '');
     var artist = getArtistNamesOrDefault(data, 'item.artists');
 
     if(type == 'album') {
     	contextDescription = 'Album: ' + album;
+    	contextImage = albumUrl;
     } else if(type == 'artist') {
     	contextDescription = 'Artist: ' + artist;
     } else if(type == 'track') {
     	contextDescription = 'Track';
+    	
+    	// tracks has no images
+    	contextImage = albumUrl;
     }
 
     Promise.all([
@@ -471,9 +477,9 @@ function createPlaybackInfo(data) {
         }),
         setState('playbackInfo.isPlaying', isPlaying, true),
         setOrDefault(data, 'item.id', 'playbackInfo.trackId', ''),
-        setState('playbackInfo.artist', artist, true),
+        setState('playbackInfo.artistName', artist, true),
         setState('playbackInfo.album', album, true),
-        setOrDefault(data, 'item.album.images[0].url', 'playbackInfo.albumImageUrl', ''),
+        setState('playbackInfo.albumImageUrl', albumUrl, true),
         setOrDefault(data, 'item.name', 'playbackInfo.trackName', ''),
         setState('playbackInfo.durationMs', duration, true),
         setState('playbackInfo.duration', convertToDigiClock(duration), true),
@@ -534,6 +540,43 @@ function createPlaybackInfo(data) {
                 1);
         }
     }).then(function() {
+        var album = loadOrDefault(data, 'item.album.name', '');
+
+        var artists = [];
+        
+        for(var i = 0; i < 100;i++) {
+        	var id = loadOrDefault(data, 'item.artists['+i+'].id', '');
+        	adapter.log.info('id: '+ id);
+        	if(isEmpty(id)) {
+        		break;
+        	} else {
+        		artists.push(id);
+        	}
+        }
+
+        var urls = [];
+        var fn = function(artist) {
+            return sendRequest('/v1/artists/' + artist,
+                    'GET', '').then(
+                    function(parseJson) {
+                    	adapter.log.info('url: '+ url);
+                    	var url = loadOrDefault(parseJson, 'images[0].url', '');
+                    	if(!isEmpty(url)) {
+                    		urls.push(url);
+                    	}
+                    });
+        };
+        return Promise.all(artists.map(fn)).then(function () {
+        	var set = '';
+        	if(urls.length !== 0) {
+        		set = urls[0];
+        	}
+        	if(type == 'artist') {
+        		contextImage = set;
+        	}
+        	return setState('playbackInfo.artistImageUrl', set, true);
+        });
+    }).then(function() {
         var uri = loadOrDefault(data, 'context.uri', '');
         if (type == 'playlist' && uri) {
             var indexOfUser = uri.indexOf('user:') + 5;
@@ -556,15 +599,13 @@ function createPlaybackInfo(data) {
                         contextDescription = 'Playlist: ' + playListName;
 
                         var songId = loadOrDefault(data, 'item.id', '');
+                        var playlistImage = loadOrDefault(data, 'images[0].url', '');
+                        contextImage = playlistImage;
                         var p = Promise.all([
-                            setOrDefault(parseJson, 'owner.id',
-                                'playbackInfo.playlist.owner', ''),
-                            setOrDefault(parseJson, 'owner.id',
-                                'player.playlist.owner', ''),
-                            setOrDefault(parseJson, 'tracks.total',
-                                'playbackInfo.playlist.tracksTotal', ''),
-                            setOrDefault(parseJson, 'images[0].url',
-                                'playbackInfo.playlist.imageUrl', ''),
+                            setOrDefault(parseJson, 'owner.id', 'playbackInfo.playlist.owner', ''),
+                            setOrDefault(parseJson, 'owner.id', 'player.playlist.owner', ''),
+                            setOrDefault(parseJson, 'tracks.total', 'playbackInfo.playlist.tracksTotal', ''),
+                            setState('playbackInfo.playlist.imageUrl', playlistImage, true),
                         ]);
                         if (playListName) {
                             p.then(function() {
@@ -665,7 +706,10 @@ function createPlaybackInfo(data) {
             ]);
         }
     }).then(function () {
-    	return setState('playbackInfo.contextDescription', contextDescription, true);
+    	return Promise.all([
+    		setState('playbackInfo.contextImageUrl', contextImage, true),
+    		setState('playbackInfo.contextDescription', contextDescription, true)
+    	]);
     });
 }
 
