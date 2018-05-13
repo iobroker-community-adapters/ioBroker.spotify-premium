@@ -12,10 +12,10 @@
   "manual3": "в настройках приложения вашего приложения введите 'http://localhost' в Redirect URIs",
   "manual4": "введите свои Cliend ID и Client Secret здесь",
   "manual5": "Запустить экземпляр",
-  "manual6": "перейдите на вкладку Объекты и нажмите кнопку Get_Authorization в разделе 'spotify-premium.X.Authorization'",
-  "manual7": "Скопируйте URL-адрес, отображаемый в разделе 'spotify-premium.X.Authorization.Authorization_URL' в веб-браузер и перейдите к нему.",
+  "manual6": "перейдите на вкладку Объекты и нажмите кнопку getAuthorization в разделе 'spotify-premium.X.authorization'",
+  "manual7": "Скопируйте URL-адрес, отображаемый в разделе 'spotify-premium.X.authorization.authorizationUrl' в веб-браузер и перейдите к нему.",
   "manual8": "Вам может потребоваться войти в Spotify и разрешить доступ.",
   "manual9": "Браузер отклонит соединение и вернет URL-адрес в адресной строке. Если появляется ошибка «invalid redirect uri», убедитесь, что был выполнен шаг 3.",
-  "manual10": "Теперь скопируйте этот URL-адрес и вставьте его в состояние 'spotify-premium.X.Authorization.Authorization_Return_URI'",
-  "manual11": "все правильно настроено, если true в 'spotify-premium.X.Authorization.Authorized'"
+  "manual10": "Теперь скопируйте этот URL-адрес и вставьте его в состояние 'spotify-premium.X.authorization.authorizationReturnUri'",
+  "manual11": "все правильно настроено, если true в 'spotify-premium.X.authorization.authorized'"
 }

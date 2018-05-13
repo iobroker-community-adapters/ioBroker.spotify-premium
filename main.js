@@ -3,9 +3,122 @@
 /*jslint node: true */
 'use strict';
 var utils = require(__dirname + '/lib/utils');
-var request = require('request');
 var querystring = require('querystring');
+var Promise = require('promise');
 var adapter = new utils.Adapter('spotify-premium');
+var request = Promise.denodeify(require('request'));
+var artistImageUrlCache = {};
+var playlistCache = {};
+
+function setState(id, state, ack, options) {
+    return new Promise(function(resolve, reject) {
+        var retFunc = function(err, id) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(id);
+            }
+        }
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
+        if (typeof state === 'object') {
+            state = {
+                val: state,
+                ack: ack
+            };
+            ack = undefined;
+        }
+        if (ack === undefined && typeof options === 'function') {
+            ack = options;
+            options = undefined;
+        }
+        adapter.setState(id, state, ack, options, retFunc);
+    });
+}
+
+function setObjectNotExists(id, object, options) {
+    return new Promise(function(resolve, reject) {
+        var retFunc = function(err, obj) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(obj);
+            }
+        }
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
+        adapter.setObjectNotExists(id, object, options, retFunc);
+    });
+}
+
+function setObject(id, object, options) {
+    return new Promise(function(resolve, reject) {
+        var retFunc = function(err, obj) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(obj);
+            }
+        }
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
+        adapter.setObject(id, object, options, retFunc);
+    });
+}
+
+function getStates(pattern, options) {
+    return new Promise(function(resolve, reject) {
+        var retFunc = function(err, states) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(states);
+            }
+        }
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
+        adapter.getStates(pattern, options, retFunc);
+    });
+}
+
+function getState(id) {
+    return new Promise(function(resolve, reject) {
+        adapter.getState(id, function(err, state) {
+            if (err) {
+                reject(err);
+            } else if (state !== null) {
+                resolve(state);
+            } else {
+                reject('not existing state ' + id);
+            }
+        });
+    });
+}
+
+function delObject(id, options, callback) {
+    return new Promise(function(resolve, reject) {
+        var retFunc = function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        }
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
+        adapter.delObject(id, options, retFunc);
+    });
+}
 var listener = [];
 var application = {
     userId: '',
@@ -25,7 +138,8 @@ var application = {
     devicePollingDelaySeconds: 300,
     playlistPollingHandle: null,
     playlistPollingDelaySeconds: 900,
-    error202shown: false
+    error202shown: false,
+    cacheClearHandle: null
 };
 var deviceData = {
     lastActiveDeviceId: '',
@@ -33,7 +147,7 @@ var deviceData = {
 };
 
 function isEmpty(str) {
-    return (!str || 0 === str.length);
+    return ((!str && typeof str != 'number') || 0 === str.length);
 }
 
 function main() {
@@ -82,70 +196,54 @@ function main() {
 }
 
 function start() {
-    readTokenStates(function(err, tokenObj) {
-        if (!err) {
+    clearCache();
+    return readTokenStates()
+        .then(function(tokenObj) {
             application.token = tokenObj.accessToken;
             application.refreshToken = tokenObj.refreshToken;
-            sendRequest('/v1/me', 'GET', '', function(err, data) {
-                if (!err) {
-                    getUserInformation(data);
-                    adapter.setState('Authorization.Authorized', {
-                        val: true,
-                        ack: true
-                    });
-                    sendRequest('/v1/me/player/devices', 'GET', '', function(err,
-                        data) {
-                        if (!err) {
-                            reloadDevices(data);
-                        }
-                    });
-                } else {
-                    adapter.setState('Authorization.Authorized', {
-                        val: false,
-                        ack: true
-                    });
-                    adapter.log.error('sendRequest in readTokenStates ' + err);
-                }
-            });
-        } else {
-            adapter.setState('Authorization.Authorized', {
-                val: false,
-                ack: true
-            });
+        })
+        .then(function() {
+            return sendRequest('/v1/me', 'GET', '')
+                .then(function(data) {
+                    return setUserInformation(data).then(function() {
+                        return setState('authorization.authorized', true, true)
+                            .then(function() {
+                                return listenOnGetPlaybackInfo().catch(function() {});
+                            })
+                            .then(function() {
+                                return reloadUsersPlaylist().catch(function() {});
+                            })
+                            .then(function() {
+                                return listenOnGetDevices().catch(function() {});
+                            });
+                    })
+                });
+        })
+        .catch(function(err) {
             adapter.log.warn(err);
-        }
-    });
+            return setState('authorization.authorized', false, true);
+        });
 }
 
-function readTokenStates(callback) {
-    adapter.getState('Authorization.Token', function(err, state) {
-        if (state !== null) {
-            var tokenObj = state.val;
-            var validAccessToken = 'undefined' !== typeof tokenObj.accessToken && (tokenObj.accessToken !==
-                '');
-            var validRefreshToken = 'undefined' !== typeof tokenObj.refreshToken && (tokenObj.refreshToken !==
-                '');
-            var validClientId = 'undefined' !== typeof tokenObj.clientId && (tokenObj.clientId !== '') &&
-                tokenObj.clientId == application.clientId;
-            var validClientSecret = 'undefined' !== typeof tokenObj.clientSecret && (tokenObj.clientSecret !==
-                '') && tokenObj.clientSecret == application.clientSecret;
-            if (validAccessToken && validRefreshToken && validClientId && validClientSecret) {
-                adapter.log.debug('spotify token readed');
-                callback(null, tokenObj);
-            } else {
-                callback('invalid or no spotify token', null);
-            }
+function readTokenStates() {
+    return getState('authorization.token').then(function(state) {
+        var tokenObj = state.val;
+        var validAccessToken = !isEmpty(loadOrDefault(tokenObj, 'accessToken', ''));
+        var validRefreshToken = !isEmpty(loadOrDefault(tokenObj, 'refreshToken', ''));
+        var validClientId = !isEmpty(loadOrDefault(tokenObj, 'clientId', '')) && tokenObj.clientId ==
+            application.clientId;
+        var validClientSecret = !isEmpty(loadOrDefault(tokenObj, 'clientSecret', '')) && tokenObj.clientSecret ==
+            application.clientSecret;
+        if (validAccessToken && validRefreshToken && validClientId && validClientSecret) {
+            adapter.log.debug('spotify token readed');
+            return tokenObj;
         } else {
-            adapter.setState('Authorization.Authorized', {
-                val: false,
-                ack: true
-            });
-            adapter.log.warn('no spotify token');
+            return Promise.reject('invalid or no spotify token');
         }
     });
 }
 
-function sendRequest(endpoint, method, sendBody, callback) {
+function sendRequest(endpoint, method, sendBody) {
     var options = {
         url: application.baseUrl + endpoint,
         method: method,
@@ -154,115 +252,117 @@ function sendRequest(endpoint, method, sendBody, callback) {
         },
         form: sendBody
     };
-    adapter.log.debug('Spotify API Call...' + endpoint + '; ' + options.form);
+    adapter.log.debug('spotify api call...' + endpoint + '; ' + options.form);
     var callStack = new Error().stack;
-    request(
-        options,
-        function(error, response, body) {
-            if (!error) {
-            	var parsedBody;
-            	try {
-            		parsedBody = JSON.parse(body);
-            	} catch (e) {
-            		parsedBody = {error: {message: "no active device"}};
-            	}
-                switch (response.statusCode) {
-                    case 200:
-                        // OK
-                        callback(null, parsedBody);
-                        break;
-                    case 202:
-                        // Accepted, processing has not been completed.
-                        adapter.log.debug('http response: ' + JSON.stringify(response));
-                        callback(response.statusCode, null);
-                        break;
-                    case 204:
-                        // OK, No Content
-                        callback(null, null);
-                        break;
-                    case 400:
-                        // Bad Request, message body will contain more
-                        // information
-                    case 500:
-                        // Server Error
-                    case 503:
-                        // Service Unavailable
-                    case 404:
-                        // Not Found
-                    case 502:
-                        // Bad Gateway
-                        callback(response.statusCode, null);
-                        break;
-                    case 401:
-                        // Unauthorized
-                        if (parsedBody.error.message == 'The access token expired') {
-                            adapter.log.debug('Access Token expired!');
-                            adapter.setState('Authorization.Authorized', {
-                                val: false,
-                                ack: true
-                            });
-                            refreshToken(function(err) {
-                                if (!err) {
-                                    adapter.setState('Authorization.Authorized', {
-                                        val: true,
-                                        ack: true
-                                    });
-                                    sendRequest(endpoint, method, sendBody, function(err, data) {
-                                        // this Request get the data which requested with the old token
-                                        if (!err) {
-                                            adapter.log.debug('data with new token');
-                                            callback(null, data);
-                                        } else if (err == 202) {
-                                            adapter.log.debug(err +
-                                                ' Request accepted but no data, try again'
-                                            );
-                                            callback(err, null);
-                                        } else {
-                                            adapter.log.error(
-                                                'Error on request data again. ' +
-                                                err);
-                                            callback(err, null);
-                                        }
-                                    });
-                                } else {
-                                    adapter.log.error(err);
-                                    callback(err, null);
-                                }
-                            });
-                        } else {
-                            // if other error with code 401
-                            adapter.setState('Authorization.Authorized', {
-                                val: false,
-                                ack: true
-                            });
-                            adapter.log.error(parsedBody.error.message);
-                            callback(response.statusCode, null);
-                        }
-                        break;
-                    case 429:
-                        // Too Many Requests
-                        var wait = 1;
-                        if (response.headers.hasOwnProperty('retry-after') && response.headers[
-                                'retry-after'] > 0) {
-                            wait = response.headers['retry-after'];
-                            adapter.log.warn('too many requests, wait ' + wait + 's');
-                        }
-                        setTimeout(function() {
-                            sendRequest(endpoint, method, sendBody, callback);
-                        }, wait * 1000);
-                        break;
-                    default:
-                        adapter.log
-                            .warn('HTTP Request Error not handled, please debug');
-                        adapter.log.warn(callStack);
-                        adapter.log.warn(new Error().stack);
-                        callback(response.statusCode, null);
-                        break;
-                }
-            } else {
-                adapter.log.error('erron in Request');
-                callback(0, null);
+    return request(options)
+        .then(function(response) {
+            var body = response.body;
+            var ret;
+            var parsedBody;
+            try {
+                parsedBody = JSON.parse(body);
+            } catch (e) {
+                parsedBody = {
+                    error: {
+                        message: "no active device"
+                    }
+                };
             }
+            switch (response.statusCode) {
+                case 200:
+                    // OK
+                    ret = parsedBody;
+                    break;
+                case 202:
+                    // Accepted, processing has not been completed.
+                    adapter.log.debug('http response: ' + JSON.stringify(response));
+                    ret = Promise.reject(response.statusCode);
+                    break;
+                case 204:
+                    // OK, No Content
+                    ret = null;
+                    break;
+                case 400:
+                    // Bad Request, message body will contain more
+                    // information
+                case 500:
+                    // Server Error
+                case 503:
+                    // Service Unavailable
+                case 404:
+                    // Not Found
+                case 502:
+                    // Bad Gateway
+                    ret = Promise.reject(response.statusCode);
+                    break;
+                case 401:
+                    // Unauthorized
+                    if (parsedBody.error.message == 'The access token expired') {
+                        adapter.log.debug('access token expired!');
+                        ret = setState('authorization.authorized', false, true)
+                            .then(function() {
+                                return refreshToken().then(function() {
+                                    return setState('authorization.authorized', true, true).then(
+                                        function() {
+                                            return sendRequest(endpoint, method, sendBody)
+                                                .then(function(data) {
+                                                    // this Request get the data which requested with the old token
+                                                    adapter.log.debug(
+                                                        'data with new token');
+                                                    return data;
+                                                }).catch(function(err) {
+                                                    if (err == 202) {
+                                                        adapter.log.debug(err +
+                                                            ' request accepted but no data, try again'
+                                                        );
+                                                    } else {
+                                                        adapter.log.error(
+                                                            'error on request data again. ' +
+                                                            err);
+                                                    }
+                                                    return Promise.reject(err);
+                                                });
+                                        });
+                                }).catch(function(err) {
+                                    adapter.log.error(err);
+                                    return Promise.reject(err);
+                                });
+                            });
+                    } else {
+                        // if other error with code 401
+                        ret = setState('authorization.authorized', false, true)
+                            .then(function() {
+                                adapter.log.error(parsedBody.error.message);
+                                return Promise.reject(response.statusCode);
+                            });
+                    }
+                    break;
+                case 429:
+                    // Too Many Requests
+                    var wait = 1;
+                    if (response.headers.hasOwnProperty('retry-after') && response.headers['retry-after'] >
+                        0) {
+                        wait = response.headers['retry-after'];
+                        adapter.log.warn('too many requests, wait ' + wait + 's');
+                    }
+                    ret = new Promise(function(resolve) {
+                        setTimeout(resolve, wait * 1000)
+                    }).then(function() {
+                        return sendRequest(endpoint, method, sendBody);
+                    });
+                    break;
+                default:
+                    adapter.log.warn('http request error not handled, please debug');
+                    adapter.log.warn(callStack);
+                    adapter.log.warn(new Error().stack);
+                    adapter.log.debug('status code: ' + response.statusCode);
+                    adapter.log.debug('body: ' + body);
+                    ret = Promise.reject(response.statusCode);
+            }
+            return ret;
+        }).catch(function(err) {
+            adapter.log.error('erron in request: ' + err);
+            return 0;
         });
 }
 
@@ -277,183 +377,447 @@ function loadOrDefault(obj, name, defaultVal) {
     return t;
 }
 
-function createOrDefault(obj, name, state, defaultVal, role) {
+function createOrDefault(obj, name, state, defaultVal, description, type, states) {
     var t = loadOrDefault(obj, name, defaultVal);
-
-    adapter.setObjectNotExists(state, {
+    var object = {
         type: 'state',
         common: {
-            name: role,
-            type: typeof t,
-            role: role,
-            write: false
+            name: description,
+            type: type,
+            role: 'value',
+            write: false,
+            read: true
         },
         native: {}
+    };
+    if (!isEmpty(states)) {
+        object.states = states;
+    }
+    return setObjectNotExists(state, object).then(function() {
+        return setState(state, t, true);
     });
-    adapter.setState(state, {
-        val: t,
-        ack: true
-    });
-    return t;
 }
 
 function setOrDefault(obj, name, state, defaultVal) {
     var t = loadOrDefault(obj, name, defaultVal);
-    adapter.setState(state, {
-        val: t,
-        ack: true
+    return setState(state, t, true);
+}
+
+function shrinkStateName(v) {
+    return v.replace(/\s+/g, '').replace(/\.+/g, '');
+}
+
+function getArtistNamesOrDefault(data, name) {
+    var ret = '';
+    for (var i = 0; i < 100; i++) {
+        var artist = loadOrDefault(data, name + '[' + i + '].name', '');
+        if (!isEmpty(artist)) {
+            if (i > 0) {
+                ret += ', ';
+            }
+            ret += artist;
+        } else {
+            break;
+        }
+    }
+    return ret;
+}
+
+function copyState(src, dst) {
+    var s;
+    return getState(src).then(function(state) {
+        s = state.val;
+        return setState(dst, state.val, true);
+    }).then(function() {
+        return s;
     });
-    return t;
 }
 
 function createPlaybackInfo(data) {
     if (isEmpty(data)) {
-        adapter.log.warn('no playback content')
-        return;
+        adapter.log.warn('no playback content');
+        return Promise.reject('no playback content');
     }
-    var deviceId = setOrDefault(data, 'device.id', 'PlaybackInfo.Device.id', '');
-    var isDeviceActive = setOrDefault(data, 'device.is_active', 'PlaybackInfo.Device.is_active', false);
-    var isDeviceRestricted = setOrDefault(data, 'device.is_restricted', 'PlaybackInfo.Device.is_restricted',
-        false);
-    var deviceName = setOrDefault(data, 'device.name', 'PlaybackInfo.Device.name', '');
-    var deviceType = setOrDefault(data, 'device.type', 'PlaybackInfo.Device.type', '');
-    var deviceVolume = setOrDefault(data, 'device.volume_percent', 'PlaybackInfo.Device.volume_percent', 100);
-    if (deviceId) {
-        deviceData.lastActiveDeviceId = deviceId;
-        adapter.getStates('Devices.*.is_active', function(err, state) {
-            var keys = Object.keys(state);
-            keys.forEach(function(key) {
-                key = removeNameSpace(key);
-                if (key !== 'Devices.' + deviceName.replace(/\s+/g, '') + '.is_active' &&
-                    key.endsWith(
-                        '.is_active')) {
-                    adapter.setState(key, {
-                        val: false,
-                        ack: true
-                    });
-                }
-            });
-        });
-        createDevices({
-            devices: [{
-                id: deviceId,
-                is_active: isDeviceActive,
-                is_restricted: isDeviceRestricted,
-                name: deviceName,
-                type: deviceType,
-                volume_percent: deviceVolume
-            }]
-        });
-    } else {
-        adapter.getStates('Devices.*.is_active', function(err, state) {
-            var keys = Object.keys(state);
-            keys.forEach(function(key) {
-                key = removeNameSpace(key);
-                if (key.endsWith('.is_active')) {
-                    adapter.setState(key, {
-                        val: false,
-                        ack: true
-                    });
-                }
-            });
-        });
-    }
-    var isPlaying = setOrDefault(data, 'is_playing', 'PlaybackInfo.is_playing', false);
-    setOrDefault(data, 'item.id', 'PlaybackInfo.Track_Id', '');
-    setOrDefault(data, 'item.artists[0].name', 'PlaybackInfo.Artist_Name', '');
-    setOrDefault(data, 'item.album.name', 'PlaybackInfo.Album', '');
-    // TODO deprecated
-    setOrDefault(data, 'item.album.images[0].url', 'PlaybackInfo.image_url', '');
-    setOrDefault(data, 'item.album.images[0].url', 'PlaybackInfo.Album_image_url', '');
-    setOrDefault(data, 'item.name', 'PlaybackInfo.Track_Name', '');
-    var duration = setOrDefault(data, 'item.duration_ms', 'PlaybackInfo.duration_ms', 0);
-    adapter.setState('PlaybackInfo.duration', {
-        val: convertToDigiClock(duration),
-        ack: true
-    });
-    var type = setOrDefault(data, 'context.type', 'PlaybackInfo.Type', '');
+    var deviceId = loadOrDefault(data, 'device.id', '');
+    var isDeviceActive = loadOrDefault(data, 'device.is_active', false);
+    var isDeviceRestricted = loadOrDefault(data, 'device.is_restricted', false);
+    var deviceName = loadOrDefault(data, 'device.name', '');
+    var deviceType = loadOrDefault(data, 'device.type', 'Speaker');
+    var deviceVolume = loadOrDefault(data, 'device.volume_percent', 100);
+    var isPlaying = loadOrDefault(data, 'is_playing', false);
+    var duration = loadOrDefault(data, 'item.duration_ms', 0);
+    var type = loadOrDefault(data, 'context.type', '');
     if (!type) {
-        type = setOrDefault(data, 'item.type', 'PlaybackInfo.Type', '');
+        type = loadOrDefault(data, 'item.type', '');
     }
-    var uri = loadOrDefault(data, 'context.uri', '');
-    if (type == 'playlist' && uri) {
-        var indexOfUser = uri.indexOf('user:') + 5;
-        var endIndexOfUser = uri.indexOf(':', indexOfUser);
-        var indexOfPlaylistId = uri.indexOf('playlist:') + 9;
-        var playlistId = uri.slice(indexOfPlaylistId);
-        adapter.setState('Player.Playlist_ID', {
-            val: playlistId,
-            ack: true
-        });
-        var query = {
-            fields: 'name,id,owner.id,tracks.total,images',
-        };
-        sendRequest('/v1/users/' +
-            uri.substring(indexOfUser, endIndexOfUser) + '/playlists/' + playlistId +
-            '?' + querystring.stringify(query),
-            'GET', '',
-            function(err, parseJson) {
-                if (!err) {
-                    var playListName = setOrDefault(parseJson, 'name', 'PlaybackInfo.Playlist', '');
-                    setOrDefault(parseJson, 'images[0].url', 'PlaybackInfo.Playlist_image_url', '');
-                    if (playListName) {
-                        adapter.getState('Playlists.' + playListName.replace(/\s+/g, '') + '.name',
-                            function(err, state) {
-                                if (state === null) {
-                                    persistPlaylist({
-                                        items: [parseJson]
-                                    });
-                                }
-                            });
+    var progress = loadOrDefault(data, 'progress_ms', 0);
+    var progressPercentage = 0;
+    if (duration > 0) {
+        progressPercentage = Math.floor(progress / duration * 100);
+    }
+    var contextDescription;
+    var contextImage;
+    var album = loadOrDefault(data, 'item.album.name', '');
+    var albumUrl = loadOrDefault(data, 'item.album.images[0].url', '');
+    var artist = getArtistNamesOrDefault(data, 'item.artists');
+    if (type == 'album') {
+        contextDescription = 'Album: ' + album;
+        contextImage = albumUrl;
+    } else if (type == 'artist') {
+        contextDescription = 'Artist: ' + artist;
+    } else if (type == 'track') {
+        contextDescription = 'Track';
+        // tracks has no images
+        contextImage = albumUrl;
+    }
+    Promise.all([
+        setState('playbackInfo.device.id', deviceId, true),
+        setState('playbackInfo.device.isActive', isDeviceActive, true),
+        setState('playbackInfo.device.isRestricted', isDeviceRestricted, true),
+        setState('playbackInfo.device.name', deviceName, true),
+        setState('playbackInfo.device.type', deviceType, true),
+        setState('playbackInfo.device.volume', deviceVolume, true),
+        setState('playbackInfo.device.isAvailable', true, true),
+        setObject('playbackInfo.device', {
+            type: 'device',
+            common: {
+                name: deviceName,
+                icon: getIconByType(deviceType)
+            },
+            native: {}
+        }),
+        setState('playbackInfo.isPlaying', isPlaying, true),
+        setOrDefault(data, 'item.id', 'playbackInfo.trackId', ''),
+        setState('playbackInfo.artistName', artist, true),
+        setState('playbackInfo.album', album, true),
+        setState('playbackInfo.albumImageUrl', albumUrl, true),
+        setOrDefault(data, 'item.name', 'playbackInfo.trackName', ''),
+        setState('playbackInfo.durationMs', duration, true),
+        setState('playbackInfo.duration', convertToDigiClock(duration), true),
+        setState('playbackInfo.type', type, true),
+        setOrDefault(data, 'timestamp', 'playbackInfo.timestamp', 0),
+        setState('playbackInfo.progressMs', progress, true),
+        setState('playbackInfo.progressPercentage', progressPercentage, true),
+        setState('playbackInfo.progress', convertToDigiClock(progress), true),
+        setOrDefault(data, 'shuffle_state', 'playbackInfo.shuffle', false),
+        setOrDefault(data, 'repeat_state', 'playbackInfo.repeat', 'off'),
+        // refresh Player states too
+        setOrDefault(data, 'shuffle_state', 'player.shuffle', false),
+        setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
+        setOrDefault(data, 'item.id', 'player.trackId', ''),
+        setOrDefault(data, 'device.volume_percent', 'player.volume', 100),
+        setState('player.progressMs', progress, true),
+        setState('player.progressPercentage', progressPercentage, true)
+    ]).then(function() {
+        if (deviceId) {
+            deviceData.lastActiveDeviceId = deviceId;
+            return getStates('devices.*.isActive').then(function(state) {
+                var keys = Object.keys(state);
+                var fn = function(key) {
+                    key = removeNameSpace(key);
+                    if (key !== 'devices.' + shrinkStateName(deviceName) + '.isActive' &&
+                        key.endsWith('.isActive')) {
+                        return setState(key, false, true);
                     }
+                };
+                return Promise.all(keys.map(fn));
+            }).then(function() {
+                return createDevices({
+                    devices: [{
+                        id: deviceId,
+                        is_active: isDeviceActive,
+                        is_restricted: isDeviceRestricted,
+                        name: deviceName,
+                        type: deviceType,
+                        volume_percent: deviceVolume
+                    }]
+                });
+            });
+        } else {
+            return getStates('devices.*.isActive').then(function(state) {
+                var keys = Object.keys(state);
+                var fn = function(key) {
+                    key = removeNameSpace(key);
+                    if (key.endsWith('.isActive')) {
+                        return setState(key, false, true);
+                    }
+                };
+                return Promise.all(keys.map(fn));
+            });
+        }
+    }).then(function() {
+        if (progress && isPlaying && application.statusPollingDelaySeconds > 0) {
+            scheduleStatusInternalTimer(duration, progress, Date.now(), application.statusPollingDelaySeconds -
+                1);
+        }
+    }).then(function() {
+        var album = loadOrDefault(data, 'item.album.name', '');
+        var artists = [];
+        for (var i = 0; i < 100; i++) {
+            var id = loadOrDefault(data, 'item.artists[' + i + '].id', '');
+            if (isEmpty(id)) {
+                break;
+            } else {
+                artists.push(id);
+            }
+        }
+        var urls = [];
+        var fn = function(artist) {
+            if (artistImageUrlCache.hasOwnProperty(artist)) {
+                urls.push(artistImageUrlCache[artist]);
+            } else {
+                return sendRequest('/v1/artists/' + artist,
+                    'GET', '').then(
+                    function(parseJson) {
+                        var url = loadOrDefault(parseJson, 'images[0].url', '');
+                        if (!isEmpty(url)) {
+                            artistImageUrlCache[artist] = url;
+                            urls.push(url);
+                        }
+                    });
+            }
+        };
+        return Promise.all(artists.map(fn)).then(function() {
+            var set = '';
+            if (urls.length !== 0) {
+                set = urls[0];
+            }
+            if (type == 'artist') {
+                contextImage = set;
+            }
+            return setState('playbackInfo.artistImageUrl', set, true);
+        });
+    }).then(function() {
+        var uri = loadOrDefault(data, 'context.uri', '');
+        if (type == 'playlist' && uri) {
+            var indexOfUser = uri.indexOf('user:') + 5;
+            var endIndexOfUser = uri.indexOf(':', indexOfUser);
+            var indexOfPlaylistId = uri.indexOf('playlist:') + 9;
+            var playlistId = uri.slice(indexOfPlaylistId);
+            var userId = uri.substring(indexOfUser, endIndexOfUser)
+            var query = {
+                fields: 'name,id,owner.id,tracks.total,images',
+            };
+            return Promise.all([
+                setState('player.playlist.id', playlistId, true),
+                setState('playbackInfo.playlist.id', playlistId, true)
+            ]).then(function() {
+                var refreshPlaylist = function(parseJson) {
+                    var playlistName = loadOrDefault(parseJson, 'name', '');
+                    contextDescription = 'Playlist: ' + playlistName;
                     var songId = loadOrDefault(data, 'item.id', '');
-                    adapter.getObject('Playlists.' + playListName.replace(/\s+/g, '') + '.Track_List',
-                        function(err, obj) {
-                            if (obj === null) {
-                                return;
-                            }
-                            var stateName = obj.common.Track_ID.split(';');
-                            var stateArr = [];
-                            for (var i = 0; i < stateName.length; i++) {
-                                var ele = stateName[i].split(':');
-                                stateArr[ele[1]] = ele[0];
-                            }
-                            if (stateArr[songId] !== '' && (stateArr[songId] !== null)) {
-                                adapter.setState('Playlists.' + playListName.replace(/\s+/g, '') +
-                                    '.Track_List', {
-                                        val: stateArr[songId],
-                                        ack: true
+                    var playlistImage = loadOrDefault(parseJson, 'images[0].url', '');
+                    contextImage = playlistImage;
+                    var ownerId = loadOrDefault(parseJson, 'owner.id', '');
+                    var trackCount = loadOrDefault(parseJson, 'tracks.total', '');
+                    playlistCache[ownerId + '-' + playlistId] = {
+                        id: playlistId,
+                        name: playlistName,
+                        images: [{
+                            url: playlistImage
+                        }],
+                        owner: {
+                            id: ownerId
+                        },
+                        tracks: {
+                            total: trackCount
+                        }
+                    };
+                    var p = Promise.all([
+                        setState('playbackInfo.playlist.owner', ownerId, true),
+                        setState('player.playlist.owner', ownerId, true),
+                        setState('playbackInfo.playlist.tracksTotal', trackCount,
+                            true),
+                        setState('playbackInfo.playlist.imageUrl', playlistImage,
+                            true),
+                    ]);
+                    if (playlistName) {
+                        p.then(function() {
+                            var shrinkPlaylistName = shrinkStateName(
+                                playlistName);
+                            return Promise.all([
+                                setState('playbackInfo.playlist.name',
+                                    playlistName, true),
+                                setObject('playbackInfo.playlist', {
+                                    type: 'channel',
+                                    common: {
+                                        name: playlistName
+                                    },
+                                    native: {}
+                                }),
+                                setObject('player.playlist', {
+                                    type: 'channel',
+                                    common: {
+                                        name: playlistName
+                                    },
+                                    native: {}
+                                })
+                            ]).then(function() {
+                                return getState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListIds')
+                                    .catch(
+                                        function() {
+                                            return persistPlaylist({
+                                                items: [
+                                                    parseJson
+                                                ]
+                                            });
+                                        })
+                            }).then(function() {
+                                return Promise.all([
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListNumber',
+                                        'playbackInfo.playlist.trackListNumber'
+                                    ),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListString',
+                                        'playbackInfo.playlist.trackListString'
+                                    ),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListStates',
+                                        'playbackInfo.playlist.trackListStates'
+                                    ).then(function(state) {
+                                        return setObject(
+                                            'playbackInfo.playlist.trackList', {
+                                                type: 'state',
+                                                common: {
+                                                    name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
+                                                    type: 'number',
+                                                    role: 'value',
+                                                    states: state
+                                                        .val,
+                                                    read: true,
+                                                    write: true
+                                                },
+                                                native: {}
+                                            }).then(
+                                            function() {
+                                                return setState(
+                                                    'playbackInfo.playlist.trackList',
+                                                    '',
+                                                    true
+                                                );
+                                            });
+                                    }),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListIdMap',
+                                        'playbackInfo.playlist.trackListIdMap'
+                                    ),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListIds',
+                                        'playbackInfo.playlist.trackListIds'
+                                    ),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListArray',
+                                        'playbackInfo.playlist.trackListArray'
+                                    )
+                                ]);
+                            }).then(function() {
+                                return getState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListIds')
+                                    .then(function(state) {
+                                        var ids = loadOrDefault(
+                                            state, 'val', '');
+                                        if (isEmpty(ids)) {
+                                            return Promise.reject(
+                                                'no ids in trackListIds'
+                                            );
+                                        }
+                                        var stateName = ids.split(
+                                            ';');
+                                        var stateArr = [];
+                                        for (var i = 0; i <
+                                            stateName.length; i++
+                                        ) {
+                                            var ele = stateName[i]
+                                                .split(':');
+                                            stateArr[ele[1]] =
+                                                ele[0];
+                                        }
+                                        if (stateArr[songId] !==
+                                            '' && (stateArr[
+                                                    songId] !==
+                                                null)) {
+                                            return Promise.all([
+                                                setState(
+                                                    'playlists.' +
+                                                    shrinkPlaylistName +
+                                                    '.trackList',
+                                                    stateArr[
+                                                        songId
+                                                    ],
+                                                    true),
+                                                setState(
+                                                    'playbackInfo.playlist.trackList',
+                                                    stateArr[
+                                                        songId
+                                                    ],
+                                                    true),
+                                                setState(
+                                                    'playbackInfo.playlist.trackNo',
+                                                    stateArr[
+                                                        songId
+                                                    ],
+                                                    true),
+                                                setState(
+                                                    'player.playlist.trackNo',
+                                                    stateArr[
+                                                        songId
+                                                    ],
+                                                    true)
+                                            ]);
+                                        }
                                     });
-                            }
-                        });
+                            });
+                        })
+                    }
+                    return p;
+                }
+                if (playlistCache.hasOwnProperty(userId + '-' + playlistId)) {
+                    return Promise.resolve().then(refreshPlaylist(playlistCache[userId + '-' +
+                        playlistId]));
+                } else {
+                    return sendRequest('/v1/users/' + userId + '/playlists/' +
+                        playlistId +
+                        '?' + querystring.stringify(query),
+                        'GET', '').then(refreshPlaylist);
                 }
             });
-    } else {
-        adapter.log.debug('context type: ' + type);
-        adapter.setState('PlaybackInfo.Playlist', {
-            val: '',
-            ack: true
-        });
-        adapter.setState(playlistId, {
-            val: '',
-            ack: true
-        });
-    }
-    setOrDefault(data, 'timestamp', 'PlaybackInfo.timestamp', 0);
-    var progress = setOrDefault(data, 'progress_ms', 'PlaybackInfo.progress_ms', 0);
-    adapter.setState('PlaybackInfo.progress', {
-        val: convertToDigiClock(progress),
-        ack: true
+        } else {
+            adapter.log.debug('context type: ' + type);
+            return Promise.all([
+                setState('playbackInfo.playlist.id', '', true),
+                setState('playbackInfo.playlist.name', '', true),
+                setState('playbackInfo.playlist.owner', '', true),
+                setState('playbackInfo.playlist.tracksTotal', '', true),
+                setState('playbackInfo.playlist.imageUrl', '', true),
+                setState('playbackInfo.playlist.trackList', '', true),
+                setState('playbackInfo.playlist.trackListNumber', '', true),
+                setState('playbackInfo.playlist.trackListString', '', true),
+                setState('playbackInfo.playlist.trackListStates', '', true),
+                setState('playbackInfo.playlist.trackListIdMap', '', true),
+                setState('playbackInfo.playlist.trackListIds', '', true),
+                setState('playbackInfo.playlist.trackListArray', '', true),
+                setState('playbackInfo.playlist.trackNo', '', true),
+                setState('player.playlist.id', '', true),
+                setState('player.playlist.owner', '', true),
+                setState('player.playlist.trackNo', '', true)
+            ]);
+        }
+    }).then(function() {
+        return Promise.all([
+            setState('playbackInfo.contextImageUrl', contextImage, true),
+            setState('playbackInfo.contextDescription', contextDescription, true)
+        ]);
     });
-    if (progress && isPlaying && application.statusPollingDelaySeconds > 0) {
-        scheduleStatusInternalTimer(duration, progress, Date.now(), application.statusPollingDelaySeconds - 1);
-    }
-    setOrDefault(data, 'shuffle_state', 'PlaybackInfo.shuffle', false);
-    setOrDefault(data, 'repeat_state', 'PlaybackInfo.repeat', 'off');
-    // refresh Player states too
-    setOrDefault(data, 'shuffle_state', 'Player.Shuffle', false);
-    setOrDefault(data, 'item.id', 'Player.TrackId', '');
-    setOrDefault(data, 'device.volume_percent', 'Player.Volume', 100);
 }
 
 function convertToDigiClock(ms) {
@@ -472,128 +836,133 @@ function convertToDigiClock(ms) {
     return min + ':' + sec;
 }
 
-function getUserInformation(data) {
+function setUserInformation(data) {
     application.userId = data.id;
-    adapter.setState('Authorization.User_ID', {
-        val: data.id,
-        ack: true
-    });
+    return setState('authorization.userId', data.id, true);
 }
 
 function reloadUsersPlaylist() {
     if (application.deletePlaylists) {
-        deleteUsersPlaylist(function() {
-            getUsersPlaylist(0);
+        return deleteUsersPlaylist().then(function() {
+            return getUsersPlaylist(0);
         });
     } else {
-        getUsersPlaylist(0);
+        return getUsersPlaylist(0);
     }
 }
 
-function deleteUsersPlaylist(callback) {
-    adapter.getStates('Playlists.*', function(err, state) {
+function deleteUsersPlaylist() {
+    return getStates('playlists.*').then(function(state) {
         var keys = Object.keys(state);
-        keys.forEach(function(key) {
+        var fn = function(key) {
             key = removeNameSpace(key);
-            adapter.delObject(key);
-        });
-        callback();
+            return delObject(key);
+        };
+        return Promise.all(keys.map(fn));
     });
 }
 
 function persistPlaylist(parseJson, autoContinue) {
-    parseJson.items.forEach(function(item) {
-        var path = 'Playlists.' +
-            item.name.replace(/\s+/g, '');
-        adapter.setObjectNotExists(path + '.Play_this_List', {
-            type: 'state',
-            common: {
-                name: 'button',
-                type: 'boolean',
-                role: 'button'
-            },
-            native: {}
-        });
-        adapter.setObjectNotExists(path + '.id', {
-            type: 'state',
-            common: {
-                name: 'id',
-                type: 'string',
-                role: 'id',
-                write: false
-            },
-            native: {}
-        });
-        adapter.setObjectNotExists(path + '.owner', {
-            type: 'state',
-            common: {
-                name: 'owner',
-                type: 'string',
-                role: 'owner',
-                write: false
-            },
-            native: {}
-        });
-        adapter.setObjectNotExists(path + '.name', {
-            type: 'state',
-            common: {
-                name: 'Name',
-                type: 'string',
-                role: 'string',
-                write: false
-            },
-            native: {}
-        });
-        adapter.setObjectNotExists(path + '.tracks_total', {
-            type: 'state',
-            common: {
-                name: 'tracks_total',
-                type: 'number',
-                role: 'tracks_total',
-                write: false
-            },
-            native: {}
-        });
-        adapter.setObjectNotExists(path + '.image_url', {
-            type: 'state',
-            common: {
-                name: 'image url',
-                type: 'string',
-                role: 'Image URL',
-                write: false
-            },
-            native: {}
-        });
-        adapter.setState(path + '.Play_this_List', {
-            val: false,
-            ack: true
-        });
-        adapter.setState(path + '.id', {
-            val: item.id,
-            ack: true
-        });
-        adapter.setState(path + '.owner', {
-            val: item.owner.id,
-            ack: true
-        });
-        adapter.setState(path + '.name', {
-            val: item.name,
-            ack: true
-        });
-        adapter.setState(path + '.tracks_total', {
-            val: item.tracks.total,
-            ack: true
-        });
-        adapter.setState(path + '.image_url', {
-            val: item.images[0].url,
-            ack: true
-        });
-        getPlaylistTracks(item.owner.id,
-            item.id, path, 0);
-    });
-    if (autoContinue && parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
-        getUsersPlaylist(parseJson.offset + parseJson.limit);
+    if (isEmpty(parseJson) || isEmpty(parseJson.items)) {
+        adapter.log.warn('no playlist content');
+        return Promise.reject('no playlist content');
     }
+    var fn = function(item) {
+        var playlistName = loadOrDefault(item, 'name', '');
+        if (isEmpty(playlistName)) {
+            adapter.log.warn('empty playlist name');
+            return Promise.reject('empty playlist name');
+        }
+        var playlistId = loadOrDefault(item, 'id', '');
+        var ownerId = loadOrDefault(item, 'owner.id', '');
+        var trackCount = loadOrDefault(item, 'tracks.total', '');
+        var imageUrl = loadOrDefault(item, 'images[0].url', '');
+        playlistCache[ownerId + '-' + playlistId] = {
+            id: playlistId,
+            name: playlistName,
+            images: [{
+                url: imageUrl
+            }],
+            owner: {
+                id: ownerId
+            },
+            tracks: {
+                total: trackCount
+            }
+        };
+        var prefix = 'playlists.' + shrinkStateName(playlistName);
+        return Promise.all([
+            setObjectNotExists(prefix + '.playThisList', {
+                type: 'state',
+                common: {
+                    name: 'press to play this playlist',
+                    type: 'boolean',
+                    role: 'button',
+                    read: false,
+                    write: true,
+                    icon: 'icons/play.png'
+                },
+                native: {}
+            }),
+            setState(prefix + '.playThisList', false, true),
+            createOrDefault(item, 'id', prefix + '.id', '', 'playlist id', 'string'),
+            createOrDefault(item, 'owner.id', prefix + '.owner', '', 'playlist owner', 'string'),
+            createOrDefault(item, 'name', prefix + '.name', '', 'playlist name', 'string'),
+            createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs',
+                'number'),
+            createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url',
+                'string')
+        ]).then(function() {
+            return getPlaylistTracks(ownerId, playlistId, 0).then(function(
+                playlistObject) {
+                return Promise.all([
+                    setObject(prefix + '.trackList', {
+                        type: 'state',
+                        common: {
+                            name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
+                            type: 'number',
+                            role: 'value',
+                            states: playlistObject.stateString,
+                            read: true,
+                            write: true
+                        },
+                        native: {}
+                    }).then(function() {
+                        return setState(prefix + '.trackList', '', true);
+                    }),
+                    createOrDefault(playlistObject, 'listNumber', prefix +
+                        '.trackListNumber', '',
+                        'contains list of tracks as string, patter: 0;1;2;...',
+                        'string'),
+                    createOrDefault(playlistObject, 'listString', prefix +
+                        '.trackListString', '',
+                        'contains list of tracks as string, patter: title - artist;title - artist;title - artist;...',
+                        'string'),
+                    createOrDefault(playlistObject, 'stateString', prefix +
+                        '.trackListStates', '',
+                        'contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...',
+                        'string'),
+                    createOrDefault(playlistObject, 'trackIdMap', prefix +
+                        '.trackListIdMap', '',
+                        'contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...',
+                        'string'),
+                    createOrDefault(playlistObject, 'trackIds', prefix +
+                        '.trackListIds', '',
+                        'contains list of track ids as string, pattern: id;id;id;...',
+                        'string'),
+                    createOrDefault(playlistObject, 'songs', prefix +
+                        '.trackListArray', '',
+                        'contains list of tracks as array object, pattern: [{id: "id", title: "title", artist: "artist"}, {id: "id", title: "title", artist: "artist"},...]',
+                        'object')
+                ]);
+            });
+        });
+    };
+    return Promise.all(parseJson.items.map(fn)).then(function() {
+        if (autoContinue && parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
+            return getUsersPlaylist(parseJson.offset + parseJson.limit);
+        }
+    });
 }
 
 function getUsersPlaylist(offset) {
@@ -602,17 +971,16 @@ function getUsersPlaylist(offset) {
             limit: 30,
             offset: offset
         };
-        sendRequest('/v1/users/' + application.userId + '/playlists?' +
-            querystring.stringify(query), 'GET', '',
-            function(err, parsedJson) {
-                if (!err) {
-                    persistPlaylist(parsedJson, true);
-                } else {
-                    adapter.log.error('playlist error ' + err);
-                }
-            });
+        return sendRequest('/v1/users/' + application.userId + '/playlists?' +
+            querystring.stringify(query), 'GET', '').then(
+            function(parsedJson) {
+                persistPlaylist(parsedJson, true);
+            }).catch(function(err) {
+            adapter.log.error('playlist error ' + err);
+        });
     } else {
-        adapter.log.warn('no User_ID');
+        adapter.log.warn('no userId');
+        return Promise.reject('no userId');
     }
 }
 
@@ -636,11 +1004,13 @@ function cleanState(str) {
     return str.trim();
 }
 
-function getPlaylistTracks(owner, id, path, offset, playListObject) {
-    playListObject = playListObject && playListObject !== undefined ? playListObject : {
-        StateString: '',
-        ListString: '',
-        Track_ID_String: '',
+function getPlaylistTracks(owner, id, offset, playlistObject) {
+    playlistObject = playlistObject && playlistObject !== undefined ? playlistObject : {
+        stateString: '',
+        listString: '',
+        listNumber: '',
+        trackIdMap: '',
+        trackIds: '',
         songs: []
     };
     var regParam = owner + '/playlists/' + id + '/tracks';
@@ -649,64 +1019,49 @@ function getPlaylistTracks(owner, id, path, offset, playListObject) {
         limit: 100,
         offset: offset
     };
-    sendRequest('/v1/users/' + regParam + '?' + querystring.stringify(query),
-        'GET', '',
-        function(err, data) {
-            if (!err) {
-                var i = offset;
-                data.items.forEach(function(item) {
-                    playListObject.StateString += i.toString() + ':' + cleanState(item.track.name) +
-                        ' - ' + cleanState(item.track.artists[0].name) + ';';
-                    playListObject.ListString += item.track.name + ' - ' + item.track.artists[0].name +
-                        ';';
-                    playListObject.Track_ID_String += i.toString() + ':' + cleanState(item.track.id) +
-                        ';';
-                    var a = {
-                        id: item.track.id,
-                        title: item.track.name,
-                        artist: item.track.artists[0].name
-                    };
-                    playListObject.songs.push(a);
-                    i++;
-                });
-                if (offset + 100 < data.total) {
-                    getPlaylistTracks(owner, id, path, offset + 100, playListObject);
-                } else {
-                    adapter.setObject(path + '.Track_List', {
-                        type: 'state',
-                        common: {
-                            name: 'Tracks',
-                            type: 'number',
-                            role: 'Tracks',
-                            states: playListObject.StateString,
-                            Track_ID: playListObject.Track_ID_String,
-                            arrayObject: playListObject.songs
-                        },
-                        native: {}
-                    });
-                    adapter.setState(path + '.Track_List', {
-                        val: '',
-                        ack: true
-                    });
-                    adapter.setObjectNotExists(path + '.Track_List_String', {
-                        type: 'state',
-                        common: {
-                            name: 'Tracks List String',
-                            type: 'string',
-                            role: 'Tracks List String',
-                            write: false
-                        },
-                        native: {}
-                    });
-                    adapter.setState(path + '.Track_List_String', {
-                        val: playListObject.ListString,
-                        ack: true
-                    });
+    return sendRequest('/v1/users/' + regParam + '?' + querystring.stringify(query), 'GET', '').then(
+        function(data) {
+            var i = offset;
+            data.items.forEach(function(item) {
+                var no = i.toString();
+                var artist = getArtistNamesOrDefault(item, 'track.artists');
+                var trackName = loadOrDefault(item, 'track.name', '');
+                var trackId = loadOrDefault(item, 'track.id', '');
+                if (isEmpty(trackId)) {
+                    adapter.log.debug(
+                        'There was a playlist track ignored because of missing id; playlist: ' +
+                        id + '; track name: ' + trackName);
+                    return;
                 }
+                if (playlistObject.songs.length > 0) {
+                    playlistObject.stateString += ';';
+                    playlistObject.listString += ';';
+                    playlistObject.trackIdMap += ';';
+                    playlistObject.trackIds += ';';
+                    playlistObject.listNumber += ';';
+                }
+                playlistObject.stateString += no + ':' + cleanState(trackName) + ' - ' +
+                    cleanState(artist);
+                playlistObject.listString += cleanState(trackName) + ' - ' + cleanState(artist);
+                playlistObject.trackIdMap += cleanState(trackId);
+                playlistObject.trackIds += no + ':' + cleanState(trackId);
+                playlistObject.listNumber += no;
+                var a = {
+                    id: trackId,
+                    title: trackName,
+                    artist: artist
+                };
+                playlistObject.songs.push(a);
+                i++;
+            });
+            if (offset + 100 < data.total) {
+                return getPlaylistTracks(owner, id, offset + 100, playlistObject);
             } else {
-                adapter.log.warn('error on load tracks: ' + err);
+                return Promise.resolve(playlistObject);
             }
-        });
+        }).catch(function(err) {
+        adapter.log.warn('error on load tracks: ' + err);
+    });
 }
 
 function removeNameSpace(id) {
@@ -716,95 +1071,110 @@ function removeNameSpace(id) {
 
 function reloadDevices(data) {
     if (application.deleteDevices) {
-        deleteDevices(function() {
-            createDevices(data);
+        return deleteDevices().then(function() {
+            return createDevices(data);
         });
     } else {
-        disableDevices(function() {
-            createDevices(data);
+        return disableDevices().then(function() {
+            return createDevices(data);
         });
     }
 }
 
-function disableDevices(callback) {
-    adapter.getStates('Devices.*', function(err, state) {
+function disableDevices() {
+    return getStates('devices.*').then(function(state) {
         var keys = Object.keys(state);
-        keys.forEach(function(key) {
+        var fn = function(key) {
             key = removeNameSpace(key);
-            if (key == 'Devices.Get_Devices') {
-                return;
+            if (key.endsWith('.isAvailable')) {
+                return setState(key, false, true);
             }
-            if (key.endsWith('.is_available')) {
-                adapter.setState(key, {
-                    val: false,
-                    ack: true
-                });
-            }
-        });
-        callback();
+        };
+        return Promise.all(keys.map(fn));
     });
 }
 
-function deleteDevices(callback) {
-    adapter.getStates('Devices.*', function(err, state) {
+function deleteDevices() {
+    return getStates('devices.*').then(function(state) {
         var keys = Object.keys(state);
-        keys.forEach(function(key) {
+        var fn = function(key) {
             key = removeNameSpace(key);
-            if (key == 'Devices.Get_Devices') {
-                return;
-            }
-            adapter.delObject(key);
-        });
-        callback();
+            return delObject(key);
+        };
+        return Promise.all(keys.map(fn));
     });
+}
+
+function getIconByType(type) {
+    if (type == 'Computer') {
+        return 'icons/computer.png';
+    } else if (type == 'Smartphone') {
+        return 'icons/smartphone.png';
+    }
+    // Speaker
+    return 'icons/speaker.png';
 }
 
 function createDevices(data) {
     if (isEmpty(data) || isEmpty(data.devices)) {
         adapter.log.warn('no device content')
-        return;
+        return Promise.reject('no device content');
     }
-    data.devices.forEach(function(device) {
-    	var deviceName = loadOrDefault(device, 'name', '');
-    	if(isEmpty(deviceName)) {
-    		adapter.log.warn('empty device name')
-    		return;
-    	}
-    	var prefix = 'Devices.' + deviceName.replace(/\s+/g, '') + '.';
-    	createOrDefault(device, 'id', prefix + 'id', '', 'id');
-    	createOrDefault(device, 'is_active', prefix + 'is_active', false, 'current active device');
-    	createOrDefault(device, 'is_restricted', prefix + 'is_restricted', false, 'restricted');
-    	createOrDefault(device, 'name', prefix + 'name', '', 'name');
-    	createOrDefault(device, 'type', prefix + 'type', 'Unknown', 'type');
-    	createOrDefault(device, 'volume_percent', prefix + 'volume_percent', '', 'volume in percent');
-
-    	adapter.setObjectNotExists(prefix + 'Use_for_Playback', {
-    		type: 'state',
-    		common: {
-    			name: 'Press to use device for playback',
-    			type: 'boolean',
-    			role: 'button'
-    		},
-    		native: {}
-    	});
-    	adapter.setObjectNotExists(prefix + 'is_available', {
-    		type: 'state',
-    		common: {
-    			name: 'can used for playing',
-    			type: 'boolean',
-    			role: 'can used for playing'
-    		},
-    		native: {}
-    	});
-    	adapter.setState(prefix + 'Use_for_Playback', {
-    		val: false,
-    		ack: true
-    	});
-    	adapter.setState(prefix + 'is_available', {
-    		val: true,
-    		ack: true
-    	});
-    });
+    var fn = function(device) {
+        var deviceName = loadOrDefault(device, 'name', '');
+        if (isEmpty(deviceName)) {
+            adapter.log.warn('empty device name')
+            return Promise.reject('empty device name');
+        }
+        var prefix = 'devices.' + shrinkStateName(deviceName);
+        return Promise.all([
+            setObjectNotExists(prefix, {
+                type: 'device',
+                common: {
+                    name: deviceName,
+                    icon: getIconByType(loadOrDefault(device, 'type', 'Computer'))
+                },
+                native: {}
+            }),
+            createOrDefault(device, 'id', prefix + '.id', '', 'device id', 'string'),
+            createOrDefault(device, 'is_active', prefix + '.isActive', false,
+                'current active device', 'boolean'),
+            createOrDefault(device, 'is_restricted', prefix + '.isRestricted', false,
+                'restricted', 'boolean'),
+            createOrDefault(device, 'name', prefix + '.name', '', 'device name', 'string'),
+            createOrDefault(device, 'type', prefix + '.type', 'Speaker', 'device type', 'string',
+                "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"
+            ),
+            createOrDefault(device, 'volume_percent', prefix + '.volume', '', 'volume in percent',
+                'number'),
+            setObjectNotExists(prefix + '.useForPlayback', {
+                type: 'state',
+                common: {
+                    name: 'press to use device for playback',
+                    type: 'boolean',
+                    role: 'button',
+                    read: false,
+                    write: true,
+                    icon: 'icons/play.png'
+                },
+                native: {}
+            }),
+            setObjectNotExists(prefix + '.isAvailable', {
+                type: 'state',
+                common: {
+                    name: 'can used for playing',
+                    type: 'boolean',
+                    role: 'value',
+                    read: true,
+                    write: false
+                },
+                native: {}
+            }),
+            setState(prefix + '.useForPlayback', false, true),
+            setState(prefix + '.isAvailable', true, true)
+        ]);
+    };
+    return Promise.all(data.devices.map(fn));
 }
 
 function generateRandomString(length) {
@@ -814,29 +1184,6 @@ function generateRandomString(length) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
     return text;
-}
-
-function requestAuthorization() {
-    var state = generateRandomString(20);
-    adapter.setState('Authorization.State', {
-        val: state
-    });
-    var query = {
-        client_id: application.clientId,
-        response_type: 'code',
-        redirect_uri: application.redirect_uri,
-        state: state,
-        scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private'
-    };
-    var options = {
-        url: 'https://accounts.spotify.com/de/authorize/?' +
-            querystring.stringify(query),
-        method: 'GET',
-        followAllRedirects: true,
-    };
-    adapter.setState('Authorization.Authorization_URL', {
-        val: options.url
-    });
 }
 
 function getToken() {
@@ -856,33 +1203,33 @@ function getToken() {
             redirect_uri: application.redirect_uri
         }
     };
-    request(options, function(error, response, body) {
-        saveToken(JSON.parse(body), function(err, tokenObj) {
-            if (!err) {
-                adapter.setState('Authorization.Authorization_URL', {
-                    val: '',
-                    ack: true
-                });
-                adapter.setState('Authorization.Authorization_Return_URI', {
-                    val: '',
-                    ack: true
-                });
-                adapter.setState('Authorization.Authorized', {
-                    val: true,
-                    ack: true
-                });
-                application.token = tokenObj.accessToken;
-                application.refreshToken = tokenObj.refreshToken;
-                start();
-            } else {
-                adapter.log.debug(err)
+    return request(options)
+        .then(function(response) {
+            var body = response.body;
+            var parsedBody;
+            try {
+                parsedBody = JSON.parse(body);
+            } catch (e) {
+                parsedBody = {};
             }
+            saveToken(parsedBody).then(function(tokenObj) {
+                return Promise.all([
+                    setState('authorization.authorizationUrl', '', true),
+                    setState('authorization.authorizationReturnUri', '', true),
+                    setState('authorization.authorized', true, true)
+                ]).then(function() {
+                    application.token = tokenObj.accessToken;
+                    application.refreshToken = tokenObj.refreshToken;
+                    return start();
+                });
+            }).catch(function(err) {
+                adapter.log.debug(err);
+            })
         });
-    });
 }
 
-function refreshToken(callback) {
-    adapter.log.debug('Token is requested again');
+function refreshToken() {
+    adapter.log.debug('token is requested again');
     var options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
@@ -899,62 +1246,64 @@ function refreshToken(callback) {
         }
     };
     if (application.refreshToken !== '') {
-        request(
-            options,
-            function(error, response, body) {
+        return request(options)
+            .then(function(response) {
                 // this request gets the new token
                 if (response.statusCode == 200) {
+                    var body = response.body;
                     adapter.log.debug('new token arrived');
                     adapter.log.debug(body);
-                    var parsedJson = JSON.parse(body);
+                    var parsedJson;
+                    try {
+                        parsedJson = JSON.parse(body);
+                    } catch (e) {
+                        parsedJson = {};
+                    }
                     if (!parsedJson.hasOwnProperty('refresh_token')) {
-                        parsedJson.refresh_token = application.refreshToken
+                        parsedJson.refresh_token = application.refreshToken;
                     }
                     adapter.log.debug(JSON.stringify(parsedJson))
-                    saveToken(
-                        parsedJson,
-                        function(err, tokenObj) {
-                            if (!err) {
-                                application.token = tokenObj.accessToken;
-                                callback(null);
-                            } else {
-                                adapter.log.debug(err);
-                                callback(err, null);
-                            }
-                        });
+                    return saveToken(parsedJson).then(
+                        function(tokenObj) {
+                            application.token = tokenObj.accessToken;
+                        }).catch(function(err) {
+                        adapter.log.debug(err);
+                        return Promise.reject(err);
+                    })
                 } else {
-                    callback(response.statusCode);
+                    return Promise.reject(response.statusCode);
                 }
             });
     }
+    return Promise.reject('no refresh token');
 }
 
-function saveToken(data, callback) {
-    adapter.log.debug(data.hasOwnProperty('access_token'))
-    if ('undefined' !== typeof data.access_token &&
-        ('undefined' !== typeof data.refresh_token)) {
+function saveToken(data) {
+    adapter.log.debug('saveToken');
+    if ('undefined' !== typeof data.access_token && ('undefined' !== typeof data.refresh_token)) {
         var token = {
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
             clientId: application.clientId,
             clientSecret: application.clientSecret
         };
-        adapter.setState('Authorization.Token', {
-            val: token,
-            ack: true
-        }, function() {
-            callback(null, token);
+        return setState('authorization.token', token, true).then(function() {
+            return token;
         });
     } else {
         adapter.log.error(JSON.stringify(data));
-        callback('no tokens found in server response', null)
+        return Promise.reject('no tokens found in server response');
     }
 }
 
-function on(str, obj) {
+function on(str, obj, triggeredByOtherService) {
+    if (isEmpty(triggeredByOtherService)) {
+        triggeredByOtherService = false;
+    }
     var a = {
         name: str,
-        func: obj
+        func: obj,
+        ackIsFalse: triggeredByOtherService
     };
     listener.push(a);
 }
@@ -963,17 +1312,29 @@ function increaseTime(duration_ms, progress_ms, startDate, count) {
     var now = Date.now();
     count--;
     progress_ms += now - startDate;
-    adapter.setState('PlaybackInfo.progress_ms', {
-        val: progress_ms,
-        ack: false
-    });
-    adapter.setState('PlaybackInfo.progress', {
-        val: convertToDigiClock(progress_ms),
-        ack: false
-    });
-    if (count > 0 && progress_ms + 1000 < duration_ms) {
-        scheduleStatusInternalTimer(duration_ms, progress_ms, now, count);
-    }
+    return Promise.all([
+        setState('playbackInfo.progressMs', progress_ms),
+        setState('playbackInfo.progress', convertToDigiClock(progress_ms)),
+        setState('player.progressMs', progress_ms, true),
+        getState('playbackInfo.durationMs').then(function(state) {
+            var val = state.val;
+            if (val > 0) {
+                var percentage = Math.floor(progress_ms / val * 100);
+                return Promise.all([
+                    setState('playbackInfo.progressPercentage', percentage),
+                    setState('player.progressPercentage', percentage, true)
+                ]);
+            }
+        })
+    ]).then(function() {
+        if (count > 0) {
+            if (progress_ms + 1000 > duration_ms) {
+                setTimeout(pollStatusApi, 1000);
+            } else {
+                scheduleStatusInternalTimer(duration_ms, progress_ms, now, count);
+            }
+        }
+    })
 }
 
 function scheduleStatusInternalTimer(duration_ms, progress_ms, startDate, count) {
@@ -990,26 +1351,30 @@ function scheduleStatusPolling() {
     }
 }
 
-function pollStatusApi() {
-    clearTimeout(application.statusInternalTimer);
+function pollStatusApi(noReschedule) {
+    if (!noReschedule) {
+        clearTimeout(application.statusInternalTimer);
+    }
     adapter.log.debug('call status polling');
-    sendRequest('/v1/me/player', 'GET', '', function(err, data) {
+    return sendRequest('/v1/me/player', 'GET', '').then(function(data) {
+        createPlaybackInfo(data);
+        if (!noReschedule) {
+            scheduleStatusPolling();
+        }
+    }).catch(function(err) {
         if (err != 202) {
             application.error202shown = false;
         }
-        if (!err) {
-            createPlaybackInfo(data);
-            scheduleStatusPolling();
-        } else if (err == 202 || err == 401 || err == 502) {
+        if (err == 202 || err == 401 || err == 502) {
             if (err == 202) {
                 if (!application.error202shown) {
                     adapter.log.debug(
-                        'Unexpected api response http 202; continue polling; You will see a 202 response the first time a user connects to the Spotify Connect API or when the device is temporarily unavailable'
+                        'unexpected api response http 202; continue polling; nothing is wrong with the adapter; you will see a 202 response the first time a user connects to the spotify connect api or when the device is temporarily unavailable'
                     );
                 }
                 application.error202shown = true;
             } else {
-                adapter.log.warn('Unexpected api response http ' + err + '; continue polling');
+                adapter.log.warn('unexpected api response http ' + err + '; continue polling');
             }
             // 202, 401 and 502 keep the polling running
             var dummyBody = {
@@ -1017,7 +1382,9 @@ function pollStatusApi() {
             };
             // occurs when no player is open
             createPlaybackInfo(dummyBody);
-            scheduleStatusPolling();
+            if (!noReschedule) {
+                scheduleStatusPolling();
+            }
         } else {
             // other errors stop the polling
             adapter.log.error('spotify status polling stopped with error ' + err);
@@ -1036,13 +1403,11 @@ function scheduleDevicePolling() {
 function pollDeviceApi() {
     clearTimeout(application.deviceInternalTimer);
     adapter.log.debug('call device polling');
-    sendRequest('/v1/me/player/devices', 'GET', '', function(err, data) {
-        if (!err) {
-            reloadDevices(data);
-            scheduleDevicePolling();
-        } else {
-            adapter.log.error('spotify device polling stopped with error ' + err);
-        }
+    sendRequest('/v1/me/player/devices', 'GET', '').then(function(data) {
+        reloadDevices(data);
+        scheduleDevicePolling();
+    }).catch(function(err) {
+        adapter.log.error('spotify device polling stopped with error ' + err);
     });
 }
 
@@ -1060,265 +1425,388 @@ function pollPlaylistApi() {
     reloadUsersPlaylist();
     schedulePlaylistPolling();
 }
-on('Authorization.Authorization_Return_URI', function(obj) {
-    if (!obj.state.ack) {
-        adapter.getState('Authorization.State', function(err, state) {
-            var returnUri = querystring.parse(obj.state.val.slice(obj.state.val
-                .search('[?]') + 1, obj.state.val.length));
-            if ('undefined' !== typeof returnUri.state) {
-                returnUri.state = returnUri.state.replace(/#_=_$/g, '');
-            }
-            if (returnUri.state == state.val) {
-                adapter.log.debug('getToken');
-                application.code = returnUri.code;
-                getToken();
-            } else {
-                adapter.log.error(
-                    'invalid session. You need to open the actual Authorization.Authorization_URL'
-                );
-                adapter.setState('Authorization.Authorization_Return_URI', {
-                    val: 'invalid session. You need to open the actual Authorization.Authorization_URL again',
-                    ack: true
-                });
-            }
-        });
+
+function startPlaylist(playlist, owner, trackNo) {
+    if (isEmpty(owner)) {
+        owner = application.userId;
     }
-});
-on('Authorization.Get_Authorization', function(obj) {
-    if (obj.state.val) {
-        adapter.log.debug('requestAuthorization');
-        requestAuthorization();
-        adapter.setState('Authorization.Authorized', {
-            val: false,
-            ack: true
-        });
+    if (isEmpty(trackNo)) {
+        return Promise.reject('no track no');
     }
-});
-on(/\.Use_for_Playback$/, function(obj) {
-    if (obj.state != null && obj.state.val) {
-        adapter.getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id', function(err, state) {
-            deviceData.lastSelectDeviceId = state.val;
-            var send = {
-                device_ids: [deviceData.lastSelectDeviceId],
-            };
-            sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), function(err,
-                data) {});
-        });
+    if (isEmpty(playlist)) {
+        return Promise.reject('no playlist no');
     }
-});
-on(/\.Track_List$/, function(obj) {
-    if (obj.state != null && !obj.state.ack && obj.state.val != null && obj.state.val >= 0) {
-        var track = obj.state.val;
-        adapter.getObject(removeNameSpace(obj.id), function(err, obj) {
-            // Play a specific track from Playlist immediately
-            var stateName = obj.common.Track_ID.split(';');
-            var stateArr = [];
-            for (var i = 0; i < stateName.length; i++) {
-                var ele = stateName[i].split(':');
-                stateArr[ele[0]] = ele[1];
-            }
-            if (stateArr[track] !== '' &&
-                (stateArr[track] !== null)) {
-                var send = {
-                    uris: ['spotify:track:' + stateArr[track]],
-                    offset: {
-                        position: 0
-                    }
-                };
-                sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send),
-                    function(err) {
-                        if (!err) {
-                            adapter.setState(obj.id, {
-                                val: track,
-                                ack: true
-                            })
-                        }
-                    });
-            }
-        });
-    }
-});
-on(/\.Play_this_List$/,
-    function(obj) {
-        if (obj.state != null && obj.state.val) {
-            // Play a specific playlist immediately
-            adapter.getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.owner', function(err, state) {
-                var owner = state;
-                adapter.getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id', function(err,
-                    state) {
-                    var id = state;
-                    var send = {
-                        context_uri: 'spotify:user:' +
-                            owner.val +
-                            ':playlist:' +
-                            id.val,
-                        offset: {
-                            position: 1
-                        }
-                    };
-                    var query = {
-                        device_id: getSelectedDevice(deviceData)
-                    };
-                    sendRequest('/v1/me/player/play?' +
-                        querystring.stringify(query), 'PUT', JSON
-                        .stringify(send),
-                        function() {
-                            sendRequest('/v1/me/player', 'GET', '',
-                                function(err, data) {
-                                    if (!err) {
-                                        createPlaybackInfo(data);
-                                    }
-                                });
-                        });
-                });
-            });
+    var send = {
+        context_uri: 'spotify:user:' + owner + ':playlist:' + playlist,
+        offset: {
+            position: trackNo
+        }
+    };
+    return sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send)).then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+    }).catch(function(err) {
+        adapter.log.error('could not start playlist ' + playlist + ' of user ' + owner + '; error: ' +
+            err);
+    });
+}
+
+function listenOnAuthorizationReturnUri(obj) {
+    return getState('authorization.state').then(function(state) {
+        var returnUri = querystring.parse(obj.state.val.slice(obj.state.val
+            .search('[?]') + 1, obj.state.val.length));
+        if ('undefined' !== typeof returnUri.state) {
+            returnUri.state = returnUri.state.replace(/#_=_$/g, '');
+        }
+        if (returnUri.state == state.val) {
+            adapter.log.debug('getToken');
+            application.code = returnUri.code;
+            return getToken();
+        } else {
+            adapter.log.error(
+                'invalid session. you need to open the actual authorization.authorizationUrl'
+            );
+            return setState('Authorization.Authorization_Return_URI',
+                'invalid session. You need to open the actual Authorization.Authorization_URL again',
+                true);
         }
     });
-on('Player.Play', function(obj) {
-    if (obj.state.val) {
-        var query = {
-            device_id: getSelectedDevice(deviceData)
-        };
-        adapter.log.debug(getSelectedDevice(deviceData))
-        sendRequest('/v1/me/player/play?' + querystring.stringify(query),
-            'PUT', '',
-            function() {});
-    }
-});
-on('Player.Pause', function(obj) {
-    if (obj.state.val) {
-        var query = {
-            device_id: getSelectedDevice(deviceData)
-        };
-        sendRequest('/v1/me/player/pause?' + querystring.stringify(query),
-            'PUT', '',
-            function() {});
-    }
-});
-on('Player.Skip_Plus', function(obj) {
-    if (obj.state.val) {
-        var query = {
-            device_id: getSelectedDevice(deviceData)
-        };
-        sendRequest('/v1/me/player/next?' + querystring.stringify(query),
-            'POST', '',
-            function(err, data) {});
-    }
-});
-on('Player.Skip_Minus', function(obj) {
-    if (obj.state.val) {
-        var query = {
-            device_id: getSelectedDevice(deviceData)
-        };
-        sendRequest('/v1/me/player/previous?' + querystring.stringify(query),
-            'POST', '',
-            function() {});
-    }
-});
-on('Player.Repeat_Track', function(obj) {
-    if (obj.state.val) {
-        sendRequest('/v1/me/player/repeat?state=track', 'PUT', '', function() {});
-    }
-});
-on('Player.Repeat_Context', function(obj) {
-    if (obj.state.val) {
-        sendRequest('/v1/me/player/repeat?state=context', 'PUT', '',
-            function() {});
-    }
-});
-on('Player.Repeat_off', function(obj) {
-    if (obj.state.val) {
-        sendRequest('/v1/me/player/repeat?state=off', 'PUT', '', function() {});
-    }
-});
-on('Player.Volume', function(obj) {
-    if (!obj.state.ack) {
-        sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '', function() {});
-    }
-});
-on('Player.Seek', function(obj) {
-    if (!obj.state.ack) {
-        sendRequest('/v1/me/player/seek?position_ms=' + (obj.state.val * 1000),
-            'PUT', '',
-            function(err) {
-                if (!err) {
-                    adapter.setState('Player.Seek', {
-                        val: '',
-                        ack: true
-                    });
-                }
-            });
-    }
-});
-on('Player.Shuffle', function(obj) {
-    if (!obj.state.ack) {
-        sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === true ? 'true' : 'false'),
-            'PUT', '',
-            function() {});
-    }
-});
-on('Player.TrackId', function(obj) {
-    if (!obj.state.ack) {
-        var send = {
-            uris: ['spotify:track:' + obj.state.val],
-            offset: {
-                position: 0
-            }
-        };
-        sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function() {});
-    }
-});
-on('Player.Playlist_ID', function(obj) {
-    if (!obj.state.ack) {
-        var send = {
-            context_uri: 'spotify:user:' + application.userId + ':playlist:' +
-                obj.state.val,
-            offset: {
-                position: 1
-            }
-        };
-        sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), function(err, data) {
-            if (err) {
-                adapter.log.error('Could not start playlist ' + obj.state.val + ' of user ' +
-                    application.userId);
-            }
-        });
-    }
-});
-on('Get_User_Playlists', function(obj) {
-    reloadUsersPlaylist();
-});
-on('Devices.Get_Devices', function(obj) {
-    sendRequest('/v1/me/player/devices', 'GET', '', function(err, data) {
-        if (!err) {
-            reloadDevices(data);
-        }
-    });
-});
-on('Get_Playback_Info', function(obj) {
-    sendRequest('/v1/me/player', 'GET', '', function(err, data) {
-        if (!err) {
-            createPlaybackInfo(data);
-        }
-    });
-});
-on('Authorization.Authorized', function(obj) {
+}
+
+function listenOnGetAuthorization() {
+    adapter.log.debug('requestAuthorization');
+    var state = generateRandomString(20);
+    var query = {
+        client_id: application.clientId,
+        response_type: 'code',
+        redirect_uri: application.redirect_uri,
+        state: state,
+        scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private'
+    };
+    var options = {
+        url: 'https://accounts.spotify.com/de/authorize/?' +
+            querystring.stringify(query),
+        method: 'GET',
+        followAllRedirects: true,
+    };
+    return Promise.all([
+        setState('authorization.state', state, true),
+        setState('authorization.authorizationUrl', options.url, true),
+        setState('authorization.authorized', false, true)
+    ]);
+}
+
+function listenOnAuthorized(obj) {
     if (obj.state.val === true) {
         scheduleStatusPolling();
         scheduleDevicePolling();
         schedulePlaylistPolling();
     }
-});
+}
+
+function listenOnUseForPlayback(obj) {
+    return getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id').then(function(state) {
+        deviceData.lastSelectDeviceId = state.val;
+        var send = {
+            device_ids: [deviceData.lastSelectDeviceId],
+        };
+        return sendRequest('/v1/me/player', 'PUT', JSON.stringify(send)).then(function() {
+            setTimeout(pollStatusApi, 1000, true);
+        }).catch(function(err) {
+            adapter.log.error('could not execute command: ' + err);
+        });
+    });
+}
+
+function listenOnTrackList(obj) {
+    if (obj.state.val >= 0) {
+        listenOnPlayThisList(obj, obj.state.val);
+    }
+}
+
+function listenOnPlayThisList(obj, pos) {
+    if (isEmpty(pos)) {
+        pos = 1;
+    }
+    // Play a specific playlist immediately
+    return getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.owner').then(function(state) {
+        var owner = state;
+        return getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id')
+            .then(function(state) {
+                var id = state;
+                var send = {
+                    context_uri: 'spotify:user:' + owner.val + ':playlist:' + id.val,
+                    offset: {
+                        position: pos
+                    }
+                };
+                var query = {
+                    device_id: getSelectedDevice(deviceData)
+                };
+                return sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT',
+                        JSON.stringify(send))
+                    .then(function() {
+                        setTimeout(pollStatusApi, 1000, true);
+                    }).catch(function(err) {
+                        adapter.log.error('could not execute command: ' + err);
+                    });
+            });
+    });
+}
+
+function listenOnPlay() {
+    var query = {
+        device_id: getSelectedDevice(deviceData)
+    };
+    adapter.log.debug(getSelectedDevice(deviceData))
+    sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', '').then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
+}
+
+function listenOnPause() {
+    var query = {
+        device_id: getSelectedDevice(deviceData)
+    };
+    sendRequest('/v1/me/player/pause?' + querystring.stringify(query), 'PUT', '').then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
+}
+
+function listenOnSkipPlus() {
+    var query = {
+        device_id: getSelectedDevice(deviceData)
+    };
+    sendRequest('/v1/me/player/next?' + querystring.stringify(query), 'POST', '').then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
+}
+
+function listenOnSkipMinus() {
+    var query = {
+        device_id: getSelectedDevice(deviceData)
+    };
+    sendRequest('/v1/me/player/previous?' + querystring.stringify(query), 'POST', '').then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
+}
+
+function listenOnRepeat(obj) {
+    if (['track', 'context', 'off'].indexOf(obj.state.val) >= 0) {
+        sendRequest('/v1/me/player/repeat?state=' + obj.state.val, 'PUT', '').then(function() {
+            setTimeout(pollStatusApi, 1000, true);
+        }).catch(function(err) {
+            adapter.log.error('could not execute command: ' + err);
+        });
+    }
+}
+
+function listenOnRepeatTrack() {
+    listenOnRepeat({
+        state: {
+            val: 'track'
+        }
+    });
+}
+
+function listenOnRepeatContext() {
+    listenOnRepeat({
+        state: {
+            val: 'context'
+        }
+    });
+}
+
+function listenOnRepeatOff() {
+    listenOnRepeat({
+        state: {
+            val: 'off'
+        }
+    });
+}
+
+function listenOnVolume(obj) {
+    sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '').then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
+}
+
+function listenOnProgressMs(obj) {
+    var progress = obj.state.val;
+    sendRequest('/v1/me/player/seek?position_ms=' + progress,
+        'PUT', '').then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+        return getState('playbackInfo.durationMs').then(function(state) {
+            var duration = state.val;
+            if (duration > 0 && duration <= progress) {
+                var progressPercentage = Math.floor(progress / duration * 100);
+                return Promise.all([
+                    setState('playbackInfo.progressMs', progress, true),
+                    setState('playbackInfo.progress', convertToDigiClock(progress),
+                        true),
+                    setState('player.progressPercentage', progressPercentage, true),
+                    setState('playbackInfo.progressPercentage', progressPercentage,
+                        true)
+                ]);
+            }
+        });
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
+}
+
+function listenOnProgressPercentage(obj) {
+    var progressPercentage = obj.state.val;
+    if (progressPercentage < 0 || progressPercentage > 100) {
+        return;
+    }
+    getState('playbackInfo.durationMs').then(function(state) {
+        var duration = state.val;
+        if (duration > 0) {
+            var progress = Math.floor(progressPercentage / 100 * duration);
+            sendRequest('/v1/me/player/seek?position_ms=' + progress,
+                'PUT', '').then(function() {
+                setTimeout(pollStatusApi, 1000, true);
+                return Promise.all([
+                    setState('playbackInfo.progressMs', progress, true),
+                    setState('playbackInfo.progress', convertToDigiClock(progress),
+                        true),
+                    setState('player.progressMs', progress, true),
+                    setState('playbackInfo.progressPercentage', progressPercentage,
+                        true)
+                ]);
+            }).catch(function(err) {
+                adapter.log.error('could not execute command: ' + err);
+            });
+        }
+    });
+}
+
+function listenOnShuffle(obj) {
+    sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === true ? 'true' : 'false'),
+        'PUT', '').then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
+}
+
+function listenOnShuffleOff() {
+    listenOnShuffle({
+        state: {
+            val: false
+        }
+    });
+}
+
+function listenOnShuffleOn() {
+    listenOnShuffle({
+        state: {
+            val: true
+        }
+    });
+}
+
+function listenOnTrackId(obj) {
+    var send = {
+        uris: ['spotify:track:' + obj.state.val],
+        offset: {
+            position: 0
+        }
+    };
+    sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send)).then(function() {
+        setTimeout(pollStatusApi, 1000, true);
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
+}
+
+function listenOnPlaylistId(obj) {
+    return getState('player.playlist.owner').then(function(state) {
+        return startPlaylist(obj.state.val, state.val, 1);
+    });
+}
+
+function listenOnPlaylistOwner(obj) {
+    return getState('player.playlist.id').then(function(state) {
+        return startPlaylist(state.val, obj.state.val, 1);
+    });
+}
+
+function listenOnPlaylistTrackNo(obj) {
+    getState('player.playlist.owner').then(function(state) {
+        var owner = state.val;
+        return getState('player.playlist.id').then(function(state) {
+            return startPlaylist(state.val, owner, obj.state.val);
+        });
+    });
+}
+
+function listenOnGetPlaybackInfo() {
+    return pollStatusApi(true);
+}
+
+function listenOnGetDevices() {
+    return sendRequest('/v1/me/player/devices', 'GET', '').then(function(data) {
+        return reloadDevices(data);
+    });
+}
+
+function clearCache() {
+    artistImageUrlCache = {};
+    playlistCache = {};
+    application.cacheClearHandle = setTimeout(clearCache, 1000 * 60 * 60 * 24);
+}
+on('authorization.authorizationReturnUri', listenOnAuthorizationReturnUri, true);
+on('authorization.getAuthorization', listenOnGetAuthorization);
+on('authorization.authorized', listenOnAuthorized);
+on(/\.useForPlayback$/, listenOnUseForPlayback);
+on(/\.trackList$/, listenOnTrackList, true);
+on(/\.playThisList$/, listenOnPlayThisList);
+on('player.play', listenOnPlay);
+on('player.pause', listenOnPause);
+on('player.skipPlus', listenOnSkipPlus);
+on('player.skipMinus', listenOnSkipMinus);
+on('player.repeat', listenOnRepeat, true);
+on('player.repeatTrack', listenOnRepeatTrack);
+on('player.repeatContext', listenOnRepeatContext);
+on('player.repeatOff', listenOnRepeatOff);
+on('player.volume', listenOnVolume, true);
+on('player.progressMs', listenOnProgressMs, true);
+on('player.progressPercentage', listenOnProgressPercentage, true);
+on('player.shuffle', listenOnShuffle, true);
+on('player.shuffleOff', listenOnShuffleOff);
+on('player.shuffleOn', listenOnShuffleOn);
+on('player.trackId', listenOnTrackId, true);
+on('player.playlist.id', listenOnPlaylistId, true);
+on('player.playlist.owner', listenOnPlaylistOwner, true);
+on('player.playlist.trackNo', listenOnPlaylistTrackNo, true);
+on('getPlaylists', reloadUsersPlaylist);
+on('getPlaybackInfo', listenOnGetPlaybackInfo);
+on('getDevices', listenOnGetDevices);
 adapter.on('ready', function() {
     main();
 });
 adapter.on('stateChange', function(id, state) {
-    var found = false;
+    if (state == null || (!state.val && typeof state.val != 'number')) {
+        return;
+    }
     var shrikId = removeNameSpace(id);
     listener.forEach(function(value) {
+        if (value.ackIsFalse && state.ack) {
+            return;
+        }
         if ((value.name instanceof RegExp && value.name.test(shrikId)) || value.name ==
             shrikId) {
-            found = true;
             value.func({
                 id: shrikId,
                 state: state
@@ -1327,37 +1815,28 @@ adapter.on('stateChange', function(id, state) {
     });
 });
 adapter.on('unload', function(callback) {
-    try {
-        adapter.setState('Authorization.Authorization_URL', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('Authorization.Authorization_Return_URI', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('Player.TrackId', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('Player.Playlist_ID', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('Authorization.User_ID', {
-            val: '',
-            ack: true
-        });
-        adapter.setState('Authorization.Authorized', {
-            val: false,
-            ack: true
-        });
+    Promise.all([
+        setState('authorization.authorizationUrl', '', true),
+        setState('authorization.authorizationReturnUri', '', true),
+        setState('authorization.userId', '', true),
+        setState('player.trackId', '', true),
+        setState('player.playlist.id', '', true),
+        setState('player.playlist.trackNo', '', true),
+        setState('player.playlist.owner', '', true),
+        setState('authorization.authorized', false, true)
+    ]).then(function() {
         if ('undefined' !== typeof application.statusPollingHandle) {
             clearTimeout(application.statusPollingHandle);
             clearTimeout(application.statusInternalTimer);
         }
-        callback();
-    } catch (e) {
-        callback();
-    }
+        if ('undefined' !== typeof application.devicePollingHandle) {
+            clearTimeout(application.devicePollingHandle);
+        }
+        if ('undefined' !== typeof application.playlistPollingHandle) {
+            clearTimeout(application.playlistPollingHandle);
+        }
+        if ('undefined' !== typeof application.cacheClearHandle) {
+            clearTimeout(application.cacheClearHandle);
+        }
+    }).nodeify(callback);
 });
