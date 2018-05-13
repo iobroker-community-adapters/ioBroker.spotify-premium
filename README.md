@@ -37,6 +37,7 @@ In general there are a split between control and read-only states.
 * `spotify-premium.X.player.*` - Commands to control playback
 
 ### VIS usage
+_...to be done..._
 
 ## Changelog
 
