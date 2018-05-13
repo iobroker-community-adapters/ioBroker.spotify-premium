@@ -196,7 +196,7 @@ function main() {
 }
 
 function start() {
-	clearCache();
+    clearCache();
     return readTokenStates()
         .then(function(tokenObj) {
             application.token = tokenObj.accessToken;
@@ -563,19 +563,19 @@ function createPlaybackInfo(data) {
         }
         var urls = [];
         var fn = function(artist) {
-        	if (artistImageUrlCache.hasOwnProperty(artist)) {
-        		urls.push(artistImageUrlCache[artist]);
-        	} else {
-        		return sendRequest('/v1/artists/' + artist,
-        				'GET', '').then(
-        						function(parseJson) {
-        							var url = loadOrDefault(parseJson, 'images[0].url', '');
-        							if (!isEmpty(url)) {
-        								artistImageUrlCache[artist] = url;
-        								urls.push(url);
-        							}
-        						});
-        	}
+            if (artistImageUrlCache.hasOwnProperty(artist)) {
+                urls.push(artistImageUrlCache[artist]);
+            } else {
+                return sendRequest('/v1/artists/' + artist,
+                    'GET', '').then(
+                    function(parseJson) {
+                        var url = loadOrDefault(parseJson, 'images[0].url', '');
+                        if (!isEmpty(url)) {
+                            artistImageUrlCache[artist] = url;
+                            urls.push(url);
+                        }
+                    });
+            }
         };
         return Promise.all(artists.map(fn)).then(function() {
             var set = '';
@@ -602,7 +602,7 @@ function createPlaybackInfo(data) {
                 setState('player.playlist.id', playlistId, true),
                 setState('playbackInfo.playlist.id', playlistId, true)
             ]).then(function() {
-            	var refreshPlaylist = function(parseJson) {
+                var refreshPlaylist = function(parseJson) {
                     var playlistName = loadOrDefault(parseJson, 'name', '');
                     contextDescription = 'Playlist: ' + playlistName;
                     var songId = loadOrDefault(data, 'item.id', '');
@@ -610,27 +610,34 @@ function createPlaybackInfo(data) {
                     contextImage = playlistImage;
                     var ownerId = loadOrDefault(parseJson, 'owner.id', '');
                     var trackCount = loadOrDefault(parseJson, 'tracks.total', '');
-
                     playlistCache[ownerId + '-' + playlistId] = {
-                    		id: playlistId,
-                    		name: playlistName,
-                    		images: [{url: playlistImage}],
-                    		owner: {id: ownerId},
-                    		tracks: {total: trackCount}
-                        };
-                    
+                        id: playlistId,
+                        name: playlistName,
+                        images: [{
+                            url: playlistImage
+                        }],
+                        owner: {
+                            id: ownerId
+                        },
+                        tracks: {
+                            total: trackCount
+                        }
+                    };
                     var p = Promise.all([
-                    	setState('playbackInfo.playlist.owner', ownerId, true),
-                    	setState('player.playlist.owner', ownerId, true),
-                    	setState('playbackInfo.playlist.tracksTotal', trackCount, true),
-                        setState('playbackInfo.playlist.imageUrl', playlistImage, true),
+                        setState('playbackInfo.playlist.owner', ownerId, true),
+                        setState('player.playlist.owner', ownerId, true),
+                        setState('playbackInfo.playlist.tracksTotal', trackCount,
+                            true),
+                        setState('playbackInfo.playlist.imageUrl', playlistImage,
+                            true),
                     ]);
                     if (playlistName) {
                         p.then(function() {
                             var shrinkPlaylistName = shrinkStateName(
-                            		playlistName);
+                                playlistName);
                             return Promise.all([
-                                setState('playbackInfo.playlist.name', playlistName, true),
+                                setState('playbackInfo.playlist.name',
+                                    playlistName, true),
                                 setObject('playbackInfo.playlist', {
                                     type: 'channel',
                                     common: {
@@ -659,9 +666,20 @@ function createPlaybackInfo(data) {
                                         })
                             }).then(function() {
                                 return Promise.all([
-                                    copyState('playlists.' +shrinkPlaylistName +'.trackListNumber','playbackInfo.playlist.trackListNumber'),
-                                    copyState('playlists.' +shrinkPlaylistName +'.trackListString','playbackInfo.playlist.trackListString'),
-                                    copyState('playlists.' +shrinkPlaylistName +'.trackListStates','playbackInfo.playlist.trackListStates'
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListNumber',
+                                        'playbackInfo.playlist.trackListNumber'
+                                    ),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListString',
+                                        'playbackInfo.playlist.trackListString'
+                                    ),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListStates',
+                                        'playbackInfo.playlist.trackListStates'
                                     ).then(function(state) {
                                         return setObject(
                                             'playbackInfo.playlist.trackList', {
@@ -685,9 +703,21 @@ function createPlaybackInfo(data) {
                                                 );
                                             });
                                     }),
-                                    copyState('playlists.' +shrinkPlaylistName +'.trackListIdMap','playbackInfo.playlist.trackListIdMap'),
-                                    copyState('playlists.' +shrinkPlaylistName +'.trackListIds','playbackInfo.playlist.trackListIds'),
-                                    copyState('playlists.' +shrinkPlaylistName +'.trackListArray','playbackInfo.playlist.trackListArray')
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListIdMap',
+                                        'playbackInfo.playlist.trackListIdMap'
+                                    ),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListIds',
+                                        'playbackInfo.playlist.trackListIds'
+                                    ),
+                                    copyState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListArray',
+                                        'playbackInfo.playlist.trackListArray'
+                                    )
                                 ]);
                             }).then(function() {
                                 return getState('playlists.' +
@@ -750,16 +780,16 @@ function createPlaybackInfo(data) {
                         })
                     }
                     return p;
-                } 
-            	
-            	if (playlistCache.hasOwnProperty(userId + '-' + playlistId)) {
-            		return Promise.resolve().then(refreshPlaylist(playlistCache[userId + '-' + playlistId]));
-            	} else {
-            		return sendRequest('/v1/users/' + userId + '/playlists/' +
-            				playlistId +
-            				'?' + querystring.stringify(query),
-            				'GET', '').then(refreshPlaylist);
-            	}
+                }
+                if (playlistCache.hasOwnProperty(userId + '-' + playlistId)) {
+                    return Promise.resolve().then(refreshPlaylist(playlistCache[userId + '-' +
+                        playlistId]));
+                } else {
+                    return sendRequest('/v1/users/' + userId + '/playlists/' +
+                        playlistId +
+                        '?' + querystring.stringify(query),
+                        'GET', '').then(refreshPlaylist);
+                }
             });
         } else {
             adapter.log.debug('context type: ' + type);
@@ -847,15 +877,19 @@ function persistPlaylist(parseJson, autoContinue) {
         var ownerId = loadOrDefault(item, 'owner.id', '');
         var trackCount = loadOrDefault(item, 'tracks.total', '');
         var imageUrl = loadOrDefault(item, 'images[0].url', '');
-
         playlistCache[ownerId + '-' + playlistId] = {
-    		id: playlistId,
-    		name: playlistName,
-    		images: [{url: imageUrl}],
-    		owner: {id: ownerId},
-    		tracks: {total: trackCount}
+            id: playlistId,
+            name: playlistName,
+            images: [{
+                url: imageUrl
+            }],
+            owner: {
+                id: ownerId
+            },
+            tracks: {
+                total: trackCount
+            }
         };
-        
         var prefix = 'playlists.' + shrinkStateName(playlistName);
         return Promise.all([
             setObjectNotExists(prefix + '.playThisList', {
@@ -872,13 +906,15 @@ function persistPlaylist(parseJson, autoContinue) {
             }),
             setState(prefix + '.playThisList', false, true),
             createOrDefault(item, 'id', prefix + '.id', '', 'playlist id', 'string'),
-            createOrDefault(item, 'owner.id', prefix + '.owner', '' ,'playlist owner','string'),
-            createOrDefault(item, 'name',prefix + '.name', '','playlist name','string'),
-            createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs', 'number'),
-            createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url', 'string')
+            createOrDefault(item, 'owner.id', prefix + '.owner', '', 'playlist owner', 'string'),
+            createOrDefault(item, 'name', prefix + '.name', '', 'playlist name', 'string'),
+            createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs',
+                'number'),
+            createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url',
+                'string')
         ]).then(function() {
             return getPlaylistTracks(ownerId, playlistId, 0).then(function(
-            		playlistObject) {
+                playlistObject) {
                 return Promise.all([
                     setObject(prefix + '.trackList', {
                         type: 'state',
@@ -969,7 +1005,7 @@ function cleanState(str) {
 }
 
 function getPlaylistTracks(owner, id, offset, playlistObject) {
-	playlistObject = playlistObject && playlistObject !== undefined ? playlistObject : {
+    playlistObject = playlistObject && playlistObject !== undefined ? playlistObject : {
         stateString: '',
         listString: '',
         listNumber: '',
@@ -998,8 +1034,8 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                     return;
                 }
                 if (playlistObject.songs.length > 0) {
-                	playlistObject.stateString += ';';
-                	playlistObject.listString += ';';
+                    playlistObject.stateString += ';';
+                    playlistObject.listString += ';';
                     playlistObject.trackIdMap += ';';
                     playlistObject.trackIds += ';';
                     playlistObject.listNumber += ';';
@@ -1726,11 +1762,10 @@ function listenOnGetDevices() {
 }
 
 function clearCache() {
-	artistImageUrlCache = {};
-	playlistCache = {};
-	application.cacheClearHandle = setTimeout(clearCache, 1000 * 60 * 60 * 24);
+    artistImageUrlCache = {};
+    playlistCache = {};
+    application.cacheClearHandle = setTimeout(clearCache, 1000 * 60 * 60 * 24);
 }
-
 on('authorization.authorizationReturnUri', listenOnAuthorizationReturnUri, true);
 on('authorization.getAuthorization', listenOnGetAuthorization);
 on('authorization.authorized', listenOnAuthorized);
