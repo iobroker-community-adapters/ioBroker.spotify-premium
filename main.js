@@ -7,6 +7,8 @@ var querystring = require('querystring');
 var Promise = require('promise');
 var adapter = new utils.Adapter('spotify-premium');
 var request = Promise.denodeify(require('request'));
+var artistImageUrlCache = {};
+var playlistCache = {};
 
 function setState(id, state, ack, options) {
     return new Promise(function(resolve, reject) {
@@ -136,7 +138,8 @@ var application = {
     devicePollingDelaySeconds: 300,
     playlistPollingHandle: null,
     playlistPollingDelaySeconds: 900,
-    error202shown: false
+    error202shown: false,
+    cacheClearHandle: null
 };
 var deviceData = {
     lastActiveDeviceId: '',
@@ -193,6 +196,7 @@ function main() {
 }
 
 function start() {
+	clearCache();
     return readTokenStates()
         .then(function(tokenObj) {
             application.token = tokenObj.accessToken;
@@ -559,14 +563,19 @@ function createPlaybackInfo(data) {
         }
         var urls = [];
         var fn = function(artist) {
-            return sendRequest('/v1/artists/' + artist,
-                'GET', '').then(
-                function(parseJson) {
-                    var url = loadOrDefault(parseJson, 'images[0].url', '');
-                    if (!isEmpty(url)) {
-                        urls.push(url);
-                    }
-                });
+        	if (artistImageUrlCache.hasOwnProperty(artist)) {
+        		urls.push(artistImageUrlCache[artist]);
+        	} else {
+        		return sendRequest('/v1/artists/' + artist,
+        				'GET', '').then(
+        						function(parseJson) {
+        							var url = loadOrDefault(parseJson, 'images[0].url', '');
+        							if (!isEmpty(url)) {
+        								artistImageUrlCache[artist] = url;
+        								urls.push(url);
+        							}
+        						});
+        	}
         };
         return Promise.all(artists.map(fn)).then(function() {
             var set = '';
@@ -585,6 +594,7 @@ function createPlaybackInfo(data) {
             var endIndexOfUser = uri.indexOf(':', indexOfUser);
             var indexOfPlaylistId = uri.indexOf('playlist:') + 9;
             var playlistId = uri.slice(indexOfPlaylistId);
+            var userId = uri.substring(indexOfUser, endIndexOfUser)
             var query = {
                 fields: 'name,id,owner.id,tracks.total,images',
             };
@@ -592,177 +602,164 @@ function createPlaybackInfo(data) {
                 setState('player.playlist.id', playlistId, true),
                 setState('playbackInfo.playlist.id', playlistId, true)
             ]).then(function() {
-                sendRequest('/v1/users/' +
-                    uri.substring(indexOfUser, endIndexOfUser) + '/playlists/' +
-                    playlistId +
-                    '?' + querystring.stringify(query),
-                    'GET', '').then(
-                    function(parseJson) {
-                        var playListName = loadOrDefault(parseJson, 'name', '');
-                        contextDescription = 'Playlist: ' + playListName;
-                        var songId = loadOrDefault(data, 'item.id', '');
-                        var playlistImage = loadOrDefault(parseJson, 'images[0].url', '');
-                        contextImage = playlistImage;
-                        var p = Promise.all([
-                            setOrDefault(parseJson, 'owner.id',
-                                'playbackInfo.playlist.owner', ''),
-                            setOrDefault(parseJson, 'owner.id',
-                                'player.playlist.owner', ''),
-                            setOrDefault(parseJson, 'tracks.total',
-                                'playbackInfo.playlist.tracksTotal', ''),
-                            setState('playbackInfo.playlist.imageUrl',
-                                playlistImage, true),
-                        ]);
-                        if (playListName) {
-                            p.then(function() {
-                                var shrinkPlaylistName = shrinkStateName(
-                                    playListName);
+            	var refreshPlaylist = function(parseJson) {
+                    var playlistName = loadOrDefault(parseJson, 'name', '');
+                    contextDescription = 'Playlist: ' + playlistName;
+                    var songId = loadOrDefault(data, 'item.id', '');
+                    var playlistImage = loadOrDefault(parseJson, 'images[0].url', '');
+                    contextImage = playlistImage;
+                    var ownerId = loadOrDefault(parseJson, 'owner.id', '');
+                    var trackCount = loadOrDefault(parseJson, 'tracks.total', '');
+
+                    playlistCache[ownerId + '-' + playlistId] = {
+                    		id: playlistId,
+                    		name: playlistName,
+                    		images: [{url: playlistImage}],
+                    		owner: {id: ownerId},
+                    		tracks: {total: trackCount}
+                        };
+                    
+                    var p = Promise.all([
+                    	setState('playbackInfo.playlist.owner', ownerId, true),
+                    	setState('player.playlist.owner', ownerId, true),
+                    	setState('playbackInfo.playlist.tracksTotal', trackCount, true),
+                        setState('playbackInfo.playlist.imageUrl', playlistImage, true),
+                    ]);
+                    if (playlistName) {
+                        p.then(function() {
+                            var shrinkPlaylistName = shrinkStateName(
+                            		playlistName);
+                            return Promise.all([
+                                setState('playbackInfo.playlist.name', playlistName, true),
+                                setObject('playbackInfo.playlist', {
+                                    type: 'channel',
+                                    common: {
+                                        name: playlistName
+                                    },
+                                    native: {}
+                                }),
+                                setObject('player.playlist', {
+                                    type: 'channel',
+                                    common: {
+                                        name: playlistName
+                                    },
+                                    native: {}
+                                })
+                            ]).then(function() {
+                                return getState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListIds')
+                                    .catch(
+                                        function() {
+                                            return persistPlaylist({
+                                                items: [
+                                                    parseJson
+                                                ]
+                                            });
+                                        })
+                            }).then(function() {
                                 return Promise.all([
-                                    setState('playbackInfo.playlist.name',
-                                        playListName, true),
-                                    setObject('playbackInfo.playlist', {
-                                        type: 'channel',
-                                        common: {
-                                            name: playListName
-                                        },
-                                        native: {}
-                                    }),
-                                    setObject('player.playlist', {
-                                        type: 'channel',
-                                        common: {
-                                            name: playListName
-                                        },
-                                        native: {}
-                                    })
-                                ]).then(function() {
-                                    return getState('playlists.' +
-                                            shrinkPlaylistName +
-                                            '.trackListIds')
-                                        .catch(
+                                    copyState('playlists.' +shrinkPlaylistName +'.trackListNumber','playbackInfo.playlist.trackListNumber'),
+                                    copyState('playlists.' +shrinkPlaylistName +'.trackListString','playbackInfo.playlist.trackListString'),
+                                    copyState('playlists.' +shrinkPlaylistName +'.trackListStates','playbackInfo.playlist.trackListStates'
+                                    ).then(function(state) {
+                                        return setObject(
+                                            'playbackInfo.playlist.trackList', {
+                                                type: 'state',
+                                                common: {
+                                                    name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
+                                                    type: 'number',
+                                                    role: 'value',
+                                                    states: state
+                                                        .val,
+                                                    read: true,
+                                                    write: true
+                                                },
+                                                native: {}
+                                            }).then(
                                             function() {
-                                                return persistPlaylist({
-                                                    items: [
-                                                        parseJson
-                                                    ]
-                                                });
-                                            })
-                                }).then(function() {
-                                    return Promise.all([
-                                        copyState('playlists.' +
-                                            shrinkPlaylistName +
-                                            '.trackListNumber',
-                                            'playbackInfo.playlist.trackListNumber'
-                                        ),
-                                        copyState('playlists.' +
-                                            shrinkPlaylistName +
-                                            '.trackListString',
-                                            'playbackInfo.playlist.trackListString'
-                                        ),
-                                        copyState('playlists.' +
-                                            shrinkPlaylistName +
-                                            '.trackListStates',
-                                            'playbackInfo.playlist.trackListStates'
-                                        ).then(function(state) {
-                                            return setObject(
-                                                'playbackInfo.playlist.trackList', {
-                                                    type: 'state',
-                                                    common: {
-                                                        name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
-                                                        type: 'number',
-                                                        role: 'value',
-                                                        states: state
-                                                            .val,
-                                                        read: true,
-                                                        write: true
-                                                    },
-                                                    native: {}
-                                                }).then(
-                                                function() {
-                                                    return setState(
-                                                        'playbackInfo.playlist.trackList',
-                                                        '',
-                                                        true
-                                                    );
-                                                });
-                                        }),
-                                        copyState('playlists.' +
-                                            shrinkPlaylistName +
-                                            '.trackListIdMap',
-                                            'playbackInfo.playlist.trackListIdMap'
-                                        ),
-                                        copyState('playlists.' +
-                                            shrinkPlaylistName +
-                                            '.trackListIds',
-                                            'playbackInfo.playlist.trackListIds'
-                                        ),
-                                        copyState('playlists.' +
-                                            shrinkPlaylistName +
-                                            '.trackListArray',
-                                            'playbackInfo.playlist.trackListArray'
-                                        )
-                                    ]);
-                                }).then(function() {
-                                    return getState('playlists.' +
-                                            shrinkPlaylistName +
-                                            '.trackListIds')
-                                        .then(function(state) {
-                                            var ids = loadOrDefault(
-                                                state, 'val', '');
-                                            if (isEmpty(ids)) {
-                                                return Promise.reject(
-                                                    'no ids in trackListIds'
+                                                return setState(
+                                                    'playbackInfo.playlist.trackList',
+                                                    '',
+                                                    true
                                                 );
-                                            }
-                                            var stateName = ids.split(
-                                                ';');
-                                            var stateArr = [];
-                                            for (var i = 0; i <
-                                                stateName.length; i++
-                                            ) {
-                                                var ele = stateName[i]
-                                                    .split(':');
-                                                stateArr[ele[1]] =
-                                                    ele[0];
-                                            }
-                                            if (stateArr[songId] !==
-                                                '' && (stateArr[
-                                                        songId] !==
-                                                    null)) {
-                                                return Promise.all([
-                                                    setState(
-                                                        'playlists.' +
-                                                        shrinkPlaylistName +
-                                                        '.trackList',
-                                                        stateArr[
-                                                            songId
-                                                        ],
-                                                        true),
-                                                    setState(
-                                                        'playbackInfo.playlist.trackList',
-                                                        stateArr[
-                                                            songId
-                                                        ],
-                                                        true),
-                                                    setState(
-                                                        'playbackInfo.playlist.trackNo',
-                                                        stateArr[
-                                                            songId
-                                                        ],
-                                                        true),
-                                                    setState(
-                                                        'player.playlist.trackNo',
-                                                        stateArr[
-                                                            songId
-                                                        ],
-                                                        true)
-                                                ]);
-                                            }
-                                        });
-                                });
-                            })
-                        }
-                        return p;
-                    });
+                                            });
+                                    }),
+                                    copyState('playlists.' +shrinkPlaylistName +'.trackListIdMap','playbackInfo.playlist.trackListIdMap'),
+                                    copyState('playlists.' +shrinkPlaylistName +'.trackListIds','playbackInfo.playlist.trackListIds'),
+                                    copyState('playlists.' +shrinkPlaylistName +'.trackListArray','playbackInfo.playlist.trackListArray')
+                                ]);
+                            }).then(function() {
+                                return getState('playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackListIds')
+                                    .then(function(state) {
+                                        var ids = loadOrDefault(
+                                            state, 'val', '');
+                                        if (isEmpty(ids)) {
+                                            return Promise.reject(
+                                                'no ids in trackListIds'
+                                            );
+                                        }
+                                        var stateName = ids.split(
+                                            ';');
+                                        var stateArr = [];
+                                        for (var i = 0; i <
+                                            stateName.length; i++
+                                        ) {
+                                            var ele = stateName[i]
+                                                .split(':');
+                                            stateArr[ele[1]] =
+                                                ele[0];
+                                        }
+                                        if (stateArr[songId] !==
+                                            '' && (stateArr[
+                                                    songId] !==
+                                                null)) {
+                                            return Promise.all([
+                                                setState(
+                                                    'playlists.' +
+                                                    shrinkPlaylistName +
+                                                    '.trackList',
+                                                    stateArr[
+                                                        songId
+                                                    ],
+                                                    true),
+                                                setState(
+                                                    'playbackInfo.playlist.trackList',
+                                                    stateArr[
+                                                        songId
+                                                    ],
+                                                    true),
+                                                setState(
+                                                    'playbackInfo.playlist.trackNo',
+                                                    stateArr[
+                                                        songId
+                                                    ],
+                                                    true),
+                                                setState(
+                                                    'player.playlist.trackNo',
+                                                    stateArr[
+                                                        songId
+                                                    ],
+                                                    true)
+                                            ]);
+                                        }
+                                    });
+                            });
+                        })
+                    }
+                    return p;
+                } 
+            	
+            	if (playlistCache.hasOwnProperty(userId + '-' + playlistId)) {
+            		return Promise.resolve().then(refreshPlaylist(playlistCache[userId + '-' + playlistId]));
+            	} else {
+            		return sendRequest('/v1/users/' + userId + '/playlists/' +
+            				playlistId +
+            				'?' + querystring.stringify(query),
+            				'GET', '').then(refreshPlaylist);
+            	}
             });
         } else {
             adapter.log.debug('context type: ' + type);
@@ -846,6 +843,19 @@ function persistPlaylist(parseJson, autoContinue) {
             adapter.log.warn('empty playlist name');
             return Promise.reject('empty playlist name');
         }
+        var playlistId = loadOrDefault(item, 'id', '');
+        var ownerId = loadOrDefault(item, 'owner.id', '');
+        var trackCount = loadOrDefault(item, 'tracks.total', '');
+        var imageUrl = loadOrDefault(item, 'images[0].url', '');
+
+        playlistCache[ownerId + '-' + playlistId] = {
+    		id: playlistId,
+    		name: playlistName,
+    		images: [{url: imageUrl}],
+    		owner: {id: ownerId},
+    		tracks: {total: trackCount}
+        };
+        
         var prefix = 'playlists.' + shrinkStateName(playlistName);
         return Promise.all([
             setObjectNotExists(prefix + '.playThisList', {
@@ -862,15 +872,13 @@ function persistPlaylist(parseJson, autoContinue) {
             }),
             setState(prefix + '.playThisList', false, true),
             createOrDefault(item, 'id', prefix + '.id', '', 'playlist id', 'string'),
-            createOrDefault(item, 'owner.id', prefix + '.owner', '', 'playlist owner', 'string'),
-            createOrDefault(item, 'name', prefix + '.name', '', 'playlist name', 'string'),
-            createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs',
-                'number'),
-            createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url',
-                'string')
+            createOrDefault(item, 'owner.id', prefix + '.owner', '' ,'playlist owner','string'),
+            createOrDefault(item, 'name',prefix + '.name', '','playlist name','string'),
+            createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs', 'number'),
+            createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url', 'string')
         ]).then(function() {
-            return getPlaylistTracks(item.owner.id, item.id, 0).then(function(
-                playListObject) {
+            return getPlaylistTracks(ownerId, playlistId, 0).then(function(
+            		playlistObject) {
                 return Promise.all([
                     setObject(prefix + '.trackList', {
                         type: 'state',
@@ -878,7 +886,7 @@ function persistPlaylist(parseJson, autoContinue) {
                             name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
                             type: 'number',
                             role: 'value',
-                            states: playListObject.stateString,
+                            states: playlistObject.stateString,
                             read: true,
                             write: true
                         },
@@ -886,27 +894,27 @@ function persistPlaylist(parseJson, autoContinue) {
                     }).then(function() {
                         return setState(prefix + '.trackList', '', true);
                     }),
-                    createOrDefault(playListObject, 'listNumber', prefix +
+                    createOrDefault(playlistObject, 'listNumber', prefix +
                         '.trackListNumber', '',
                         'contains list of tracks as string, patter: 0;1;2;...',
                         'string'),
-                    createOrDefault(playListObject, 'listString', prefix +
+                    createOrDefault(playlistObject, 'listString', prefix +
                         '.trackListString', '',
                         'contains list of tracks as string, patter: title - artist;title - artist;title - artist;...',
                         'string'),
-                    createOrDefault(playListObject, 'stateString', prefix +
+                    createOrDefault(playlistObject, 'stateString', prefix +
                         '.trackListStates', '',
                         'contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...',
                         'string'),
-                    createOrDefault(playListObject, 'trackIdMap', prefix +
+                    createOrDefault(playlistObject, 'trackIdMap', prefix +
                         '.trackListIdMap', '',
                         'contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...',
                         'string'),
-                    createOrDefault(playListObject, 'trackIds', prefix +
+                    createOrDefault(playlistObject, 'trackIds', prefix +
                         '.trackListIds', '',
                         'contains list of track ids as string, pattern: id;id;id;...',
                         'string'),
-                    createOrDefault(playListObject, 'songs', prefix +
+                    createOrDefault(playlistObject, 'songs', prefix +
                         '.trackListArray', '',
                         'contains list of tracks as array object, pattern: [{id: "id", title: "title", artist: "artist"}, {id: "id", title: "title", artist: "artist"},...]',
                         'object')
@@ -960,8 +968,8 @@ function cleanState(str) {
     return str.trim();
 }
 
-function getPlaylistTracks(owner, id, offset, playListObject) {
-    playListObject = playListObject && playListObject !== undefined ? playListObject : {
+function getPlaylistTracks(owner, id, offset, playlistObject) {
+	playlistObject = playlistObject && playlistObject !== undefined ? playlistObject : {
         stateString: '',
         listString: '',
         listNumber: '',
@@ -989,31 +997,31 @@ function getPlaylistTracks(owner, id, offset, playListObject) {
                         id + '; track name: ' + trackName);
                     return;
                 }
-                if (playListObject.songs.length > 0) {
-                    playListObject.stateString += ';';
-                    playListObject.listString += ';';
-                    playListObject.trackIdMap += ';';
-                    playListObject.trackIds += ';';
-                    playListObject.listNumber += ';';
+                if (playlistObject.songs.length > 0) {
+                	playlistObject.stateString += ';';
+                	playlistObject.listString += ';';
+                    playlistObject.trackIdMap += ';';
+                    playlistObject.trackIds += ';';
+                    playlistObject.listNumber += ';';
                 }
-                playListObject.stateString += no + ':' + cleanState(trackName) + ' - ' +
+                playlistObject.stateString += no + ':' + cleanState(trackName) + ' - ' +
                     cleanState(artist);
-                playListObject.listString += cleanState(trackName) + ' - ' + cleanState(artist);
-                playListObject.trackIdMap += cleanState(trackId);
-                playListObject.trackIds += no + ':' + cleanState(trackId);
-                playListObject.listNumber += no;
+                playlistObject.listString += cleanState(trackName) + ' - ' + cleanState(artist);
+                playlistObject.trackIdMap += cleanState(trackId);
+                playlistObject.trackIds += no + ':' + cleanState(trackId);
+                playlistObject.listNumber += no;
                 var a = {
                     id: trackId,
                     title: trackName,
                     artist: artist
                 };
-                playListObject.songs.push(a);
+                playlistObject.songs.push(a);
                 i++;
             });
             if (offset + 100 < data.total) {
-                return getPlaylistTracks(owner, id, offset + 100, playListObject);
+                return getPlaylistTracks(owner, id, offset + 100, playlistObject);
             } else {
-                return Promise.resolve(playListObject);
+                return Promise.resolve(playlistObject);
             }
         }).catch(function(err) {
         adapter.log.warn('error on load tracks: ' + err);
@@ -1716,6 +1724,13 @@ function listenOnGetDevices() {
         return reloadDevices(data);
     });
 }
+
+function clearCache() {
+	artistImageUrlCache = {};
+	playlistCache = {};
+	application.cacheClearHandle = setTimeout(clearCache, 1000 * 60 * 60 * 24);
+}
+
 on('authorization.authorizationReturnUri', listenOnAuthorizationReturnUri, true);
 on('authorization.getAuthorization', listenOnGetAuthorization);
 on('authorization.authorized', listenOnAuthorized);
@@ -1784,6 +1799,9 @@ adapter.on('unload', function(callback) {
         }
         if ('undefined' !== typeof application.playlistPollingHandle) {
             clearTimeout(application.playlistPollingHandle);
+        }
+        if ('undefined' !== typeof application.cacheClearHandle) {
+            clearTimeout(application.cacheClearHandle);
         }
     }).nodeify(callback);
 });
