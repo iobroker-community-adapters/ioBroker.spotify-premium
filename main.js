@@ -204,14 +204,13 @@ function start() {
                     return setUserInformation(data).then(function() {
                         return setState('authorization.authorized', true, true)
                             .then(function() {
-                                return listenOnGetPlaybackInfo();
-                            }).catch(function() {
-                            }).then(function() {
-                                return reloadUsersPlaylist();
-                            }).catch(function() {
-                            }).then(function() {
-                                return listenOnGetDevices();
-                            }).catch(function() {
+                                return listenOnGetPlaybackInfo().catch(function() {});
+                            })
+                            .then(function() {
+                                return reloadUsersPlaylist().catch(function() {});
+                            })
+                            .then(function() {
+                                return listenOnGetDevices().catch(function() {});
                             });
                     })
                 });
@@ -352,6 +351,8 @@ function sendRequest(endpoint, method, sendBody) {
                     adapter.log.warn('http request error not handled, please debug');
                     adapter.log.warn(callStack);
                     adapter.log.warn(new Error().stack);
+                    adapter.log.debug('status code: ' + response.statusCode);
+                    adapter.log.debug('body: ' + body);
                     ret = Promise.reject(response.statusCode);
             }
             return ret;
@@ -399,23 +400,33 @@ function setOrDefault(obj, name, state, defaultVal) {
 }
 
 function shrinkStateName(v) {
-	return v.replace(/\s+/g, '').replace(/\.+/g, '');
+    return v.replace(/\s+/g, '').replace(/\.+/g, '');
 }
 
 function getArtistNamesOrDefault(data, name) {
-	var ret = '';
-	for(var i = 0; i < 100; i++) {
-		var artist = loadOrDefault(data, name + '[' + i + '].name', '');
-		if(!isEmpty(artist)) {
-			if(i > 0) {
-				ret += ', ';
-			}
-			ret += artist;
-		} else {
-		 	break;
-		}
-	}
-	return ret;
+    var ret = '';
+    for (var i = 0; i < 100; i++) {
+        var artist = loadOrDefault(data, name + '[' + i + '].name', '');
+        if (!isEmpty(artist)) {
+            if (i > 0) {
+                ret += ', ';
+            }
+            ret += artist;
+        } else {
+            break;
+        }
+    }
+    return ret;
+}
+
+function copyState(src, dst) {
+    var s;
+    return getState(src).then(function(state) {
+        s = state.val;
+        return setState(dst, state.val, true);
+    }).then(function() {
+        return s;
+    });
 }
 
 function createPlaybackInfo(data) {
@@ -437,28 +448,24 @@ function createPlaybackInfo(data) {
     }
     var progress = loadOrDefault(data, 'progress_ms', 0);
     var progressPercentage = 0;
-    if(duration > 0) {
-    	progressPercentage = Math.floor(progress / duration * 100);
+    if (duration > 0) {
+        progressPercentage = Math.floor(progress / duration * 100);
     }
     var contextDescription;
     var contextImage;
-    
     var album = loadOrDefault(data, 'item.album.name', '');
     var albumUrl = loadOrDefault(data, 'item.album.images[0].url', '');
     var artist = getArtistNamesOrDefault(data, 'item.artists');
-
-    if(type == 'album') {
-    	contextDescription = 'Album: ' + album;
-    	contextImage = albumUrl;
-    } else if(type == 'artist') {
-    	contextDescription = 'Artist: ' + artist;
-    } else if(type == 'track') {
-    	contextDescription = 'Track';
-    	
-    	// tracks has no images
-    	contextImage = albumUrl;
+    if (type == 'album') {
+        contextDescription = 'Album: ' + album;
+        contextImage = albumUrl;
+    } else if (type == 'artist') {
+        contextDescription = 'Artist: ' + artist;
+    } else if (type == 'track') {
+        contextDescription = 'Track';
+        // tracks has no images
+        contextImage = albumUrl;
     }
-
     Promise.all([
         setState('playbackInfo.device.id', deviceId, true),
         setState('playbackInfo.device.isActive', isDeviceActive, true),
@@ -541,38 +548,35 @@ function createPlaybackInfo(data) {
         }
     }).then(function() {
         var album = loadOrDefault(data, 'item.album.name', '');
-
         var artists = [];
-        
-        for(var i = 0; i < 100;i++) {
-        	var id = loadOrDefault(data, 'item.artists['+i+'].id', '');
-        	if(isEmpty(id)) {
-        		break;
-        	} else {
-        		artists.push(id);
-        	}
+        for (var i = 0; i < 100; i++) {
+            var id = loadOrDefault(data, 'item.artists[' + i + '].id', '');
+            if (isEmpty(id)) {
+                break;
+            } else {
+                artists.push(id);
+            }
         }
-
         var urls = [];
         var fn = function(artist) {
             return sendRequest('/v1/artists/' + artist,
-                    'GET', '').then(
-                    function(parseJson) {
-                    	var url = loadOrDefault(parseJson, 'images[0].url', '');
-                    	if(!isEmpty(url)) {
-                    		urls.push(url);
-                    	}
-                    });
+                'GET', '').then(
+                function(parseJson) {
+                    var url = loadOrDefault(parseJson, 'images[0].url', '');
+                    if (!isEmpty(url)) {
+                        urls.push(url);
+                    }
+                });
         };
-        return Promise.all(artists.map(fn)).then(function () {
-        	var set = '';
-        	if(urls.length !== 0) {
-        		set = urls[0];
-        	}
-        	if(type == 'artist') {
-        		contextImage = set;
-        	}
-        	return setState('playbackInfo.artistImageUrl', set, true);
+        return Promise.all(artists.map(fn)).then(function() {
+            var set = '';
+            if (urls.length !== 0) {
+                set = urls[0];
+            }
+            if (type == 'artist') {
+                contextImage = set;
+            }
+            return setState('playbackInfo.artistImageUrl', set, true);
         });
     }).then(function() {
         var uri = loadOrDefault(data, 'context.uri', '');
@@ -586,28 +590,33 @@ function createPlaybackInfo(data) {
             };
             return Promise.all([
                 setState('player.playlist.id', playlistId, true),
-                setState('playbackInfo.playlist.id', playlistId, true),
+                setState('playbackInfo.playlist.id', playlistId, true)
+            ]).then(function() {
                 sendRequest('/v1/users/' +
-                    uri.substring(indexOfUser, endIndexOfUser) + '/playlists/' + playlistId +
+                    uri.substring(indexOfUser, endIndexOfUser) + '/playlists/' +
+                    playlistId +
                     '?' + querystring.stringify(query),
                     'GET', '').then(
                     function(parseJson) {
                         var playListName = loadOrDefault(parseJson, 'name', '');
-
                         contextDescription = 'Playlist: ' + playListName;
-
-                        var songId = loadOrDefault(parseJson, 'item.id', '');
+                        var songId = loadOrDefault(data, 'item.id', '');
                         var playlistImage = loadOrDefault(parseJson, 'images[0].url', '');
                         contextImage = playlistImage;
                         var p = Promise.all([
-                            setOrDefault(parseJson, 'owner.id', 'playbackInfo.playlist.owner', ''),
-                            setOrDefault(parseJson, 'owner.id', 'player.playlist.owner', ''),
-                            setOrDefault(parseJson, 'tracks.total', 'playbackInfo.playlist.tracksTotal', ''),
-                            setState('playbackInfo.playlist.imageUrl', playlistImage, true),
+                            setOrDefault(parseJson, 'owner.id',
+                                'playbackInfo.playlist.owner', ''),
+                            setOrDefault(parseJson, 'owner.id',
+                                'player.playlist.owner', ''),
+                            setOrDefault(parseJson, 'tracks.total',
+                                'playbackInfo.playlist.tracksTotal', ''),
+                            setState('playbackInfo.playlist.imageUrl',
+                                playlistImage, true),
                         ]);
                         if (playListName) {
                             p.then(function() {
-                                var shrinkPlaylistName = shrinkStateName(playListName);
+                                var shrinkPlaylistName = shrinkStateName(
+                                    playListName);
                                 return Promise.all([
                                     setState('playbackInfo.playlist.name',
                                         playListName, true),
@@ -624,64 +633,137 @@ function createPlaybackInfo(data) {
                                             name: playListName
                                         },
                                         native: {}
-                                    }),
-                                    getState('playlists.' +
-                                        shrinkPlaylistName + '.trackListIds')
-                                    .catch(
-                                        function() {
-                                            return persistPlaylist({
-                                                items: [parseJson]
-                                            });
-                                        }).then(function(state) {
-                                        var ids = loadOrDefault(state,
-                                            'val', '');
-                                        if (isEmpty(ids)) {
-                                            return Promise.reject(
-                                                'no ids in trackListIds'
-                                            );
-                                        }
-                                        var stateName = ids.split(';');
-                                        var stateArr = [];
-                                        for (var i = 0; i < stateName.length; i++) {
-                                            var ele = stateName[i].split(
-                                                ':');
-                                            stateArr[ele[1]] = ele[0];
-                                        }
-                                        if (stateArr[songId] !== '' && (
-                                                stateArr[songId] !== null
-                                            )) {
-                                            return Promise.all([
-                                                setState(
-                                                    'playlists.' +
-                                                    shrinkPlaylistName +
-                                                    '.trackList',
-                                                    stateArr[
-                                                        songId],
-                                                    true),
-                                                setState(
-                                                    'playbackInfo.playlist.trackList',
-                                                    stateArr[
-                                                        songId],
-                                                    true),
-                                                setState(
-                                                    'playbackInfo.playlist.trackNo',
-                                                    stateArr[
-                                                        songId],
-                                                    true),
-                                                setState(
-                                                    'player.playlist.trackNo',
-                                                    stateArr[
-                                                        songId],
-                                                    true)
-                                            ]);
-                                        }
                                     })
-                                ]);
+                                ]).then(function() {
+                                    return getState('playlists.' +
+                                            shrinkPlaylistName +
+                                            '.trackListIds')
+                                        .catch(
+                                            function() {
+                                                return persistPlaylist({
+                                                    items: [
+                                                        parseJson
+                                                    ]
+                                                });
+                                            })
+                                }).then(function() {
+                                    return Promise.all([
+                                        copyState('playlists.' +
+                                            shrinkPlaylistName +
+                                            '.trackListNumber',
+                                            'playbackInfo.playlist.trackListNumber'
+                                        ),
+                                        copyState('playlists.' +
+                                            shrinkPlaylistName +
+                                            '.trackListString',
+                                            'playbackInfo.playlist.trackListString'
+                                        ),
+                                        copyState('playlists.' +
+                                            shrinkPlaylistName +
+                                            '.trackListStates',
+                                            'playbackInfo.playlist.trackListStates'
+                                        ).then(function(state) {
+                                            return setObject(
+                                                'playbackInfo.playlist.trackList', {
+                                                    type: 'state',
+                                                    common: {
+                                                        name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
+                                                        type: 'number',
+                                                        role: 'value',
+                                                        states: state
+                                                            .val,
+                                                        read: true,
+                                                        write: true
+                                                    },
+                                                    native: {}
+                                                }).then(
+                                                function() {
+                                                    return setState(
+                                                        'playbackInfo.playlist.trackList',
+                                                        '',
+                                                        true
+                                                    );
+                                                });
+                                        }),
+                                        copyState('playlists.' +
+                                            shrinkPlaylistName +
+                                            '.trackListIdMap',
+                                            'playbackInfo.playlist.trackListIdMap'
+                                        ),
+                                        copyState('playlists.' +
+                                            shrinkPlaylistName +
+                                            '.trackListIds',
+                                            'playbackInfo.playlist.trackListIds'
+                                        ),
+                                        copyState('playlists.' +
+                                            shrinkPlaylistName +
+                                            '.trackListArray',
+                                            'playbackInfo.playlist.trackListArray'
+                                        )
+                                    ]);
+                                }).then(function() {
+                                    return getState('playlists.' +
+                                            shrinkPlaylistName +
+                                            '.trackListIds')
+                                        .then(function(state) {
+                                            var ids = loadOrDefault(
+                                                state, 'val', '');
+                                            if (isEmpty(ids)) {
+                                                return Promise.reject(
+                                                    'no ids in trackListIds'
+                                                );
+                                            }
+                                            var stateName = ids.split(
+                                                ';');
+                                            var stateArr = [];
+                                            for (var i = 0; i <
+                                                stateName.length; i++
+                                            ) {
+                                                var ele = stateName[i]
+                                                    .split(':');
+                                                stateArr[ele[1]] =
+                                                    ele[0];
+                                            }
+                                            if (stateArr[songId] !==
+                                                '' && (stateArr[
+                                                        songId] !==
+                                                    null)) {
+                                                return Promise.all([
+                                                    setState(
+                                                        'playlists.' +
+                                                        shrinkPlaylistName +
+                                                        '.trackList',
+                                                        stateArr[
+                                                            songId
+                                                        ],
+                                                        true),
+                                                    setState(
+                                                        'playbackInfo.playlist.trackList',
+                                                        stateArr[
+                                                            songId
+                                                        ],
+                                                        true),
+                                                    setState(
+                                                        'playbackInfo.playlist.trackNo',
+                                                        stateArr[
+                                                            songId
+                                                        ],
+                                                        true),
+                                                    setState(
+                                                        'player.playlist.trackNo',
+                                                        stateArr[
+                                                            songId
+                                                        ],
+                                                        true)
+                                                ]);
+                                            }
+                                        });
+                                });
                             })
                         }
                         return p;
-                    })
-            ]);
+                    });
+            });
         } else {
             adapter.log.debug('context type: ' + type);
             return Promise.all([
@@ -703,11 +785,11 @@ function createPlaybackInfo(data) {
                 setState('player.playlist.trackNo', '', true)
             ]);
         }
-    }).then(function () {
-    	return Promise.all([
-    		setState('playbackInfo.contextImageUrl', contextImage, true),
-    		setState('playbackInfo.contextDescription', contextDescription, true)
-    	]);
+    }).then(function() {
+        return Promise.all([
+            setState('playbackInfo.contextImageUrl', contextImage, true),
+            setState('playbackInfo.contextDescription', contextDescription, true)
+        ]);
     });
 }
 
@@ -787,7 +869,7 @@ function persistPlaylist(parseJson, autoContinue) {
             createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url',
                 'string')
         ]).then(function() {
-            return getPlaylistTracks(item.owner.id, item.id, prefix, 0).then(function(
+            return getPlaylistTracks(item.owner.id, item.id, 0).then(function(
                 playListObject) {
                 return Promise.all([
                     setObject(prefix + '.trackList', {
@@ -828,58 +910,7 @@ function persistPlaylist(parseJson, autoContinue) {
                         '.trackListArray', '',
                         'contains list of tracks as array object, pattern: [{id: "id", title: "title", artist: "artist"}, {id: "id", title: "title", artist: "artist"},...]',
                         'object')
-                ]).then(function() {
-                    return getState('playbackInfo.playlist.id').then(function(
-                        state) {
-                        if (state.val == item.id) {
-                            return Promise.all([
-                                setObject(
-                                    'playbackInfo.playlist.trackList', {
-                                        type: 'state',
-                                        common: {
-                                            name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
-                                            type: 'number',
-                                            role: 'value',
-                                            states: playListObject
-                                                .stateString,
-                                            read: true,
-                                            write: true
-                                        },
-                                        native: {}
-                                    }).then(function() {
-                                    return setState(
-                                        'playbackInfo.playlist.trackList',
-                                        '', true);
-                                }),
-                                setState(
-                                    'playbackInfo.playlist.trackListNumber',
-                                    playListObject.listNumber,
-                                    true),
-                                setState(
-                                    'playbackInfo.playlist.trackListString',
-                                    playListObject.listString,
-                                    true),
-                                setState(
-                                    'playbackInfo.playlist.trackListStates',
-                                    playListObject.stateString,
-                                    true),
-                                setState(
-                                    'playbackInfo.playlist.trackListIdMap',
-                                    playListObject.trackIdMap,
-                                    true),
-                                setState(
-                                    'playbackInfo.playlist.trackListIds',
-                                    playListObject.trackIds, true
-                                ),
-                                setState(
-                                    'playbackInfo.playlist.trackListArray',
-                                    playListObject.songs, true)
-                            ]);
-                        } else {
-                            return Promise.resolve();
-                        }
-                    });
-                });
+                ]);
             });
         });
     };
@@ -929,7 +960,7 @@ function cleanState(str) {
     return str.trim();
 }
 
-function getPlaylistTracks(owner, id, prefix, offset, playListObject) {
+function getPlaylistTracks(owner, id, offset, playListObject) {
     playListObject = playListObject && playListObject !== undefined ? playListObject : {
         stateString: '',
         listString: '',
@@ -949,6 +980,15 @@ function getPlaylistTracks(owner, id, prefix, offset, playListObject) {
             var i = offset;
             data.items.forEach(function(item) {
                 var no = i.toString();
+                var artist = getArtistNamesOrDefault(item, 'track.artists');
+                var trackName = loadOrDefault(item, 'track.name', '');
+                var trackId = loadOrDefault(item, 'track.id', '');
+                if (isEmpty(trackId)) {
+                    adapter.log.debug(
+                        'There was a playlist track ignored because of missing id; playlist: ' +
+                        id + '; track name: ' + trackName);
+                    return;
+                }
                 if (playListObject.songs.length > 0) {
                     playListObject.stateString += ';';
                     playListObject.listString += ';';
@@ -956,22 +996,22 @@ function getPlaylistTracks(owner, id, prefix, offset, playListObject) {
                     playListObject.trackIds += ';';
                     playListObject.listNumber += ';';
                 }
-                var artist = getArtistNamesOrDefault(item, 'track.artists');
-                playListObject.stateString += no + ':' + cleanState(item.track.name) + ' - ' + cleanState(artist);
-                playListObject.listString += cleanState(item.track.name) + ' - ' + cleanState(artist);
-                playListObject.trackIdMap += cleanState(item.track.id);
-                playListObject.trackIds += no + ':' + cleanState(item.track.id);
+                playListObject.stateString += no + ':' + cleanState(trackName) + ' - ' +
+                    cleanState(artist);
+                playListObject.listString += cleanState(trackName) + ' - ' + cleanState(artist);
+                playListObject.trackIdMap += cleanState(trackId);
+                playListObject.trackIds += no + ':' + cleanState(trackId);
                 playListObject.listNumber += no;
                 var a = {
-                    id: item.track.id,
-                    title: item.track.name,
+                    id: trackId,
+                    title: trackName,
                     artist: artist
                 };
                 playListObject.songs.push(a);
                 i++;
             });
             if (offset + 100 < data.total) {
-                return getPlaylistTracks(owner, id, prefix, offset + 100, playListObject);
+                return getPlaylistTracks(owner, id, offset + 100, playListObject);
             } else {
                 return Promise.resolve(playListObject);
             }
@@ -1171,9 +1211,9 @@ function refreshToken() {
                     adapter.log.debug(body);
                     var parsedJson;
                     try {
-                    	parsedJson = JSON.parse(body);
+                        parsedJson = JSON.parse(body);
                     } catch (e) {
-                    	parsedJson = {};
+                        parsedJson = {};
                     }
                     if (!parsedJson.hasOwnProperty('refresh_token')) {
                         parsedJson.refresh_token = application.refreshToken;
@@ -1232,16 +1272,15 @@ function increaseTime(duration_ms, progress_ms, startDate, count) {
         setState('playbackInfo.progressMs', progress_ms),
         setState('playbackInfo.progress', convertToDigiClock(progress_ms)),
         setState('player.progressMs', progress_ms, true),
-        getState('playbackInfo.durationMs').then(function (state) {
-        	var val = state.val;
-        	
-        	if(val > 0) {
-        		var percentage = Math.floor(progress_ms / val * 100);
-        		return Promise.all([
-	        			setState('playbackInfo.progressPercentage', percentage),
-	        			setState('player.progressPercentage', percentage, true)
-        			]);
-        	}
+        getState('playbackInfo.durationMs').then(function(state) {
+            var val = state.val;
+            if (val > 0) {
+                var percentage = Math.floor(progress_ms / val * 100);
+                return Promise.all([
+                    setState('playbackInfo.progressPercentage', percentage),
+                    setState('player.progressPercentage', percentage, true)
+                ]);
+            }
         })
     ]).then(function() {
         if (count > 0) {
@@ -1427,7 +1466,7 @@ function listenOnUseForPlayback(obj) {
             device_ids: [deviceData.lastSelectDeviceId],
         };
         return sendRequest('/v1/me/player', 'PUT', JSON.stringify(send)).then(function() {
-        	setTimeout(pollStatusApi, 1000, true);
+            setTimeout(pollStatusApi, 1000, true);
         }).catch(function(err) {
             adapter.log.error('could not execute command: ' + err);
         });
@@ -1462,7 +1501,7 @@ function listenOnPlayThisList(obj, pos) {
                 return sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT',
                         JSON.stringify(send))
                     .then(function() {
-                    	setTimeout(pollStatusApi, 1000, true);
+                        setTimeout(pollStatusApi, 1000, true);
                     }).catch(function(err) {
                         adapter.log.error('could not execute command: ' + err);
                     });
@@ -1476,7 +1515,7 @@ function listenOnPlay() {
     };
     adapter.log.debug(getSelectedDevice(deviceData))
     sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', '').then(function() {
-    	setTimeout(pollStatusApi, 1000, true);
+        setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1487,7 +1526,7 @@ function listenOnPause() {
         device_id: getSelectedDevice(deviceData)
     };
     sendRequest('/v1/me/player/pause?' + querystring.stringify(query), 'PUT', '').then(function() {
-    	setTimeout(pollStatusApi, 1000, true);
+        setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1498,7 +1537,7 @@ function listenOnSkipPlus() {
         device_id: getSelectedDevice(deviceData)
     };
     sendRequest('/v1/me/player/next?' + querystring.stringify(query), 'POST', '').then(function() {
-    	setTimeout(pollStatusApi, 1000, true);
+        setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1509,7 +1548,7 @@ function listenOnSkipMinus() {
         device_id: getSelectedDevice(deviceData)
     };
     sendRequest('/v1/me/player/previous?' + querystring.stringify(query), 'POST', '').then(function() {
-    	setTimeout(pollStatusApi, 1000, true);
+        setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1518,7 +1557,7 @@ function listenOnSkipMinus() {
 function listenOnRepeat(obj) {
     if (['track', 'context', 'off'].indexOf(obj.state.val) >= 0) {
         sendRequest('/v1/me/player/repeat?state=' + obj.state.val, 'PUT', '').then(function() {
-        	setTimeout(pollStatusApi, 1000, true);
+            setTimeout(pollStatusApi, 1000, true);
         }).catch(function(err) {
             adapter.log.error('could not execute command: ' + err);
         });
@@ -1551,70 +1590,67 @@ function listenOnRepeatOff() {
 
 function listenOnVolume(obj) {
     sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '').then(function() {
-    	setTimeout(pollStatusApi, 1000, true);
+        setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
 }
 
 function listenOnProgressMs(obj) {
-	var progress = obj.state.val;
-	sendRequest('/v1/me/player/seek?position_ms=' + progress,
+    var progress = obj.state.val;
+    sendRequest('/v1/me/player/seek?position_ms=' + progress,
         'PUT', '').then(function() {
-        	setTimeout(pollStatusApi, 1000, true);
-
-        	return getState('playbackInfo.durationMs').then(function (state) {
-        	    	var duration = state.val;
-
-        	    	if(duration > 0 && duration <= progress) {
-        	    		var progressPercentage = Math.floor(progress / duration * 100);
-        	    		return Promise.all([
-        	    			setState('playbackInfo.progressMs', progress, true),
-        	    			setState('playbackInfo.progress', convertToDigiClock(progress), true),
-        	    			setState('player.progressPercentage', progressPercentage, true),
-        	        		setState('playbackInfo.progressPercentage', progressPercentage, true)
-        	    		]);
-        	    	}
-        	    });
-        }).catch(function(err) {
-            adapter.log.error('could not execute command: ' + err);
+        setTimeout(pollStatusApi, 1000, true);
+        return getState('playbackInfo.durationMs').then(function(state) {
+            var duration = state.val;
+            if (duration > 0 && duration <= progress) {
+                var progressPercentage = Math.floor(progress / duration * 100);
+                return Promise.all([
+                    setState('playbackInfo.progressMs', progress, true),
+                    setState('playbackInfo.progress', convertToDigiClock(progress),
+                        true),
+                    setState('player.progressPercentage', progressPercentage, true),
+                    setState('playbackInfo.progressPercentage', progressPercentage,
+                        true)
+                ]);
+            }
         });
+    }).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    });
 }
 
 function listenOnProgressPercentage(obj) {
-	var progressPercentage = obj.state.val;
-	
-	if(progressPercentage < 0 || progressPercentage > 100) {
-		return;
-	}
-
-    getState('playbackInfo.durationMs').then(function (state) {
-    	var duration = state.val;
-
-    	if(duration > 0) {
-    		var progress = Math.floor(progressPercentage / 100 * duration);
-
-    	    sendRequest('/v1/me/player/seek?position_ms=' + progress,
-    	            'PUT', '').then(function() {
-    	            setTimeout(pollStatusApi, 1000, true);
-
-    	            return Promise.all([
-    	        		setState('playbackInfo.progressMs', progress, true),
-    	        		setState('playbackInfo.progress', convertToDigiClock(progress), true),
-    	    			setState('player.progressMs', progress, true),
-    	        		setState('playbackInfo.progressPercentage', progressPercentage, true)
-    	            ]);
-    	        }).catch(function(err) {
-    	            adapter.log.error('could not execute command: ' + err);
-    	        });
-    	}
+    var progressPercentage = obj.state.val;
+    if (progressPercentage < 0 || progressPercentage > 100) {
+        return;
+    }
+    getState('playbackInfo.durationMs').then(function(state) {
+        var duration = state.val;
+        if (duration > 0) {
+            var progress = Math.floor(progressPercentage / 100 * duration);
+            sendRequest('/v1/me/player/seek?position_ms=' + progress,
+                'PUT', '').then(function() {
+                setTimeout(pollStatusApi, 1000, true);
+                return Promise.all([
+                    setState('playbackInfo.progressMs', progress, true),
+                    setState('playbackInfo.progress', convertToDigiClock(progress),
+                        true),
+                    setState('player.progressMs', progress, true),
+                    setState('playbackInfo.progressPercentage', progressPercentage,
+                        true)
+                ]);
+            }).catch(function(err) {
+                adapter.log.error('could not execute command: ' + err);
+            });
+        }
     });
 }
 
 function listenOnShuffle(obj) {
     sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === true ? 'true' : 'false'),
         'PUT', '').then(function() {
-        	setTimeout(pollStatusApi, 1000, true);
+        setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
@@ -1644,7 +1680,7 @@ function listenOnTrackId(obj) {
         }
     };
     sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send)).then(function() {
-    	setTimeout(pollStatusApi, 1000, true);
+        setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
