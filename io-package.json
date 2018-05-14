@@ -4,12 +4,12 @@
         "version": "0.2.1",
         "news": {
         	"0.2.1": {
-                "en": "",
-                "de": "",
-                "ru": "",
-                "pt": "",
-                "fr": "",
-                "nl": ""
+                "en": "change state 'player.shuffle' to string with possible values 'on' and 'off'",
+                "de": "State 'player.shuffle' in String geändert, mit möglichen Werten 'on' und 'off'",
+                "ru": "Состояние 'player.shuffle' было изменено на строку с возможными значениями 'on' и 'off'",
+                "pt": "O estado 'player.shuffle' foi alterado para uma string, com os possíveis valores 'on' e 'off'",
+                "fr": "L'état 'player.shuffle' a été changé en chaîne, avec les valeurs possibles 'on' et 'off'",
+                "nl": "De status 'player.shuffle' is gewijzigd in een tekenreeks, met de mogelijke waarden 'on' en 'off'"
             },
             "0.2.0": {
                 "en": "renamed all states",
