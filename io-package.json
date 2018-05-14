@@ -1,9 +1,17 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "news": {
-        	"0.2.0": {
+        	"0.2.1": {
+                "en": "",
+                "de": "",
+                "ru": "",
+                "pt": "",
+                "fr": "",
+                "nl": ""
+            },
+            "0.2.0": {
                 "en": "renamed all states",
                 "de": "alle States überarbeitet",
                 "ru": "все штаты пересмотрены",
@@ -436,10 +444,11 @@
             "common": {
                 "role": "value",
                 "name": "shuffle",
-                "type": "boolean",
+                "type": "string",
                 "read": true,
                 "write": true,
-                "icon": "icons/shuffle_off.png"
+                "icon": "icons/shuffle_off.png",
+                "states": "{\"on\": \"On\",\"off\": \"Off\"}"
             },
             "native": {}
         },
