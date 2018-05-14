@@ -470,6 +470,8 @@ function createPlaybackInfo(data) {
         // tracks has no images
         contextImage = albumUrl;
     }
+    var shuffle = loadOrDefault(data, 'shuffle_state', false);
+
     Promise.all([
         setState('playbackInfo.device.id', deviceId, true),
         setState('playbackInfo.device.isActive', isDeviceActive, true),
@@ -502,7 +504,7 @@ function createPlaybackInfo(data) {
         setOrDefault(data, 'shuffle_state', 'playbackInfo.shuffle', false),
         setOrDefault(data, 'repeat_state', 'playbackInfo.repeat', 'off'),
         // refresh Player states too
-        setOrDefault(data, 'shuffle_state', 'player.shuffle', false),
+        setState('player.shuffle', (shuffle ? 'on': 'off'), true),
         setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
         setOrDefault(data, 'item.id', 'player.trackId', ''),
         setOrDefault(data, 'device.volume_percent', 'player.volume', 100),
@@ -1692,8 +1694,7 @@ function listenOnProgressPercentage(obj) {
 }
 
 function listenOnShuffle(obj) {
-    sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === true ? 'true' : 'false'),
-        'PUT', '').then(function() {
+    sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === 'on' ? 'true' : 'false'), 'PUT', '').then(function() {
         setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
@@ -1703,7 +1704,8 @@ function listenOnShuffle(obj) {
 function listenOnShuffleOff() {
     listenOnShuffle({
         state: {
-            val: false
+            val: 'off',
+            ack: false
         }
     });
 }
@@ -1711,7 +1713,8 @@ function listenOnShuffleOff() {
 function listenOnShuffleOn() {
     listenOnShuffle({
         state: {
-            val: true
+            val: 'on',
+            ack: false
         }
     });
 }
