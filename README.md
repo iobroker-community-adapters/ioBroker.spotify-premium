@@ -84,7 +84,7 @@ Click for widget source.
 ### 0.2.1 (2018.05.14)
 * (twonky) change state `player.shuffle` to string with possible values "on" and "off"
 
-### 0.2.0 (2018.04.10)
+### 0.2.0 (2018.05.13)
 * (twonky) removed support for deprecated state `PlaybackInfo.image_url`
 * (twonky) all states improved and proper descriptions added
 
