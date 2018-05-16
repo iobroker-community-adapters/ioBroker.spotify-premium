@@ -82,7 +82,7 @@ Click for widget source.
 ## Changelog
 
 ### 0.2.2 (2018.05.16)
-* (twonky) stop flickering of tracks SelectList (example "Choose track of current playlist")
+* (twonky) 'playbackInfo.playlist.track*' States are only reset when changed; stop flickering of tracks SelectList (example "Choose track of current playlist")
 
 ### 0.2.1 (2018.05.14)
 * (twonky) change state `player.shuffle` to string with possible values "on" and "off"

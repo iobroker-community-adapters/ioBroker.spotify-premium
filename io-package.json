@@ -4,12 +4,12 @@
         "version": "0.2.2",
         "news": {
         	"0.2.2": {
-                "en": "",
-                "de": "",
-                "ru": "",
-                "pt": "",
-                "fr": "",
-                "nl": ""
+                "en": "'playbackInfo.playlist.track*' States are only reset when changed",
+                "de": "'playbackInfo.playlist.track*' States werden nur bei Änderung neu gesetzt",
+                "ru": "'playbackInfo.playlist.track*' Государства сбрасываются только при изменении",
+                "pt": "'playbackInfo.playlist.track*' Estados só são redefinidos quando alterados",
+                "fr": "Les états 'playbackInfo.playlist.track*' ne sont réinitialisés que lorsqu'ils sont modifiés",
+                "nl": "'playbackInfo.playlist.track *' Staten worden alleen gereset als ze worden gewijzigd"
             },
             "0.2.1": {
                 "en": "change state 'player.shuffle' to string with possible values 'on' and 'off'",
