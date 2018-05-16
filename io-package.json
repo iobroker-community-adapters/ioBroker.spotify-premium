@@ -1,9 +1,17 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.2.1",
+        "version": "0.2.2",
         "news": {
-        	"0.2.1": {
+        	"0.2.2": {
+                "en": "",
+                "de": "",
+                "ru": "",
+                "pt": "",
+                "fr": "",
+                "nl": ""
+            },
+            "0.2.1": {
                 "en": "change state 'player.shuffle' to string with possible values 'on' and 'off'",
                 "de": "State 'player.shuffle' in String geändert, mit möglichen Werten 'on' und 'off'",
                 "ru": "Состояние 'player.shuffle' было изменено на строку с возможными значениями 'on' и 'off'",
