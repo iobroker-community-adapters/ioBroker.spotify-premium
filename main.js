@@ -103,6 +103,23 @@ function getState(id) {
     });
 }
 
+function getObject(id, options) {
+    return new Promise(function(resolve, reject) {
+        var retFunc = function(err, obj) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(obj);
+            }
+        }
+        if (options === undefined) {
+            options = retFunc;
+            retFunc = undefined;
+        }
+        adapter.getObject(id, options, retFunc);
+    });
+}
+
 function delObject(id, options, callback) {
     return new Promise(function(resolve, reject) {
         var retFunc = function(err) {
@@ -424,12 +441,38 @@ function getArtistNamesOrDefault(data, name) {
 }
 
 function copyState(src, dst) {
-    var s;
     return getState(src).then(function(state) {
-        s = state.val;
-        return setState(dst, state.val, true);
-    }).then(function() {
-        return s;
+        var s = state.val;
+        return getState(dst).then(function(state) {
+            var o = state.val;
+            if(JSON.stringify(s) != JSON.stringify(o)) {
+            	return setState(dst, s, true);
+            }
+        })
+    });
+}
+
+function copyObjectStates(src, dst) {
+    return getObject(src).then(function(obj) {
+        var s = obj;
+        return getObject(dst).then(function(obj) {
+            var o = obj;
+            if(s.common.states != o.common.states) {
+            	return setObject(
+            			dst, {
+            				type: o.type,
+            				common: {
+            					name: o.common.name,
+            					type: o.common.type,
+            					role: o.common.role,
+            					states: s.common.states,
+            					read: o.common.read,
+            					write: o.common.write
+            				},
+            				native: {}
+            			});
+            }
+        })
     });
 }
 
@@ -682,29 +725,11 @@ function createPlaybackInfo(data) {
                                         shrinkPlaylistName +
                                         '.trackListStates',
                                         'playbackInfo.playlist.trackListStates'
-                                    ).then(function(state) {
-                                        return setObject(
-                                            'playbackInfo.playlist.trackList', {
-                                                type: 'state',
-                                                common: {
-                                                    name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
-                                                    type: 'number',
-                                                    role: 'value',
-                                                    states: state
-                                                        .val,
-                                                    read: true,
-                                                    write: true
-                                                },
-                                                native: {}
-                                            }).then(
-                                            function() {
-                                                return setState(
-                                                    'playbackInfo.playlist.trackList',
-                                                    '',
-                                                    true
-                                                );
-                                            });
-                                    }),
+                                    ),
+                                    copyObjectStates(
+                                    	'playlists.' + shrinkPlaylistName + '.trackList',
+                                    	'playbackInfo.playlist.trackList'
+                                    ),
                                     copyState('playlists.' +
                                         shrinkPlaylistName +
                                         '.trackListIdMap',
