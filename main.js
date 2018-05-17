@@ -421,7 +421,7 @@ function setOrDefault(obj, name, state, defaultVal) {
 }
 
 function shrinkStateName(v) {
-    return v.replace(/\s+/g, '').replace(/\.+/g, '');
+    return v.replace(/[\s.,?[\]]+/g, '');
 }
 
 function getArtistNamesOrDefault(data, name) {

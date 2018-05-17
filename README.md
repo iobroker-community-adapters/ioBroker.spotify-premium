@@ -81,6 +81,9 @@ Click for widget source.
 
 ## Changelog
 
+### 0.2.3 (2018.05.17)
+* (twonky) remove special character (,?[]) from device and playlist state names
+
 ### 0.2.2 (2018.05.16)
 * (twonky) `playbackInfo.playlist.track*` States are only reset when changed; stop flickering of tracks SelectList (example "Choose track of current playlist")
 
