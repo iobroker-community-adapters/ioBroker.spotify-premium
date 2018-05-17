@@ -421,7 +421,11 @@ function setOrDefault(obj, name, state, defaultVal) {
 }
 
 function shrinkStateName(v) {
-    return v.replace(/[\s.,?[\]]+/g, '');
+    var n = v.replace(/[\s."'*,?[\]]+/g, '');
+    if (isEmpty(n)) {
+        n = 'onlySpecialCharacters';
+    }
+    return n;
 }
 
 function getArtistNamesOrDefault(data, name) {
@@ -445,8 +449,8 @@ function copyState(src, dst) {
         var s = state.val;
         return getState(dst).then(function(state) {
             var o = state.val;
-            if(JSON.stringify(s) != JSON.stringify(o)) {
-            	return setState(dst, s, true);
+            if (JSON.stringify(s) != JSON.stringify(o)) {
+                return setState(dst, s, true);
             }
         })
     });
@@ -457,20 +461,20 @@ function copyObjectStates(src, dst) {
         var s = obj;
         return getObject(dst).then(function(obj) {
             var o = obj;
-            if(s.common.states != o.common.states) {
-            	return setObject(
-            			dst, {
-            				type: o.type,
-            				common: {
-            					name: o.common.name,
-            					type: o.common.type,
-            					role: o.common.role,
-            					states: s.common.states,
-            					read: o.common.read,
-            					write: o.common.write
-            				},
-            				native: {}
-            			});
+            if (s.common.states != o.common.states) {
+                return setObject(
+                    dst, {
+                        type: o.type,
+                        common: {
+                            name: o.common.name,
+                            type: o.common.type,
+                            role: o.common.role,
+                            states: s.common.states,
+                            read: o.common.read,
+                            write: o.common.write
+                        },
+                        native: {}
+                    });
             }
         })
     });
@@ -514,7 +518,6 @@ function createPlaybackInfo(data) {
         contextImage = albumUrl;
     }
     var shuffle = loadOrDefault(data, 'shuffle_state', false);
-
     Promise.all([
         setState('playbackInfo.device.id', deviceId, true),
         setState('playbackInfo.device.isActive', isDeviceActive, true),
@@ -547,7 +550,7 @@ function createPlaybackInfo(data) {
         setOrDefault(data, 'shuffle_state', 'playbackInfo.shuffle', false),
         setOrDefault(data, 'repeat_state', 'playbackInfo.repeat', 'off'),
         // refresh Player states too
-        setState('player.shuffle', (shuffle ? 'on': 'off'), true),
+        setState('player.shuffle', (shuffle ? 'on' : 'off'), true),
         setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
         setOrDefault(data, 'item.id', 'player.trackId', ''),
         setOrDefault(data, 'device.volume_percent', 'player.volume', 100),
@@ -727,8 +730,10 @@ function createPlaybackInfo(data) {
                                         'playbackInfo.playlist.trackListStates'
                                     ),
                                     copyObjectStates(
-                                    	'playlists.' + shrinkPlaylistName + '.trackList',
-                                    	'playbackInfo.playlist.trackList'
+                                        'playlists.' +
+                                        shrinkPlaylistName +
+                                        '.trackList',
+                                        'playbackInfo.playlist.trackList'
                                     ),
                                     copyState('playlists.' +
                                         shrinkPlaylistName +
@@ -1719,9 +1724,10 @@ function listenOnProgressPercentage(obj) {
 }
 
 function listenOnShuffle(obj) {
-    sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === 'on' ? 'true' : 'false'), 'PUT', '').then(function() {
-        setTimeout(pollStatusApi, 1000, true);
-    }).catch(function(err) {
+    sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === 'on' ? 'true' : 'false'), 'PUT', '').then(
+        function() {
+            setTimeout(pollStatusApi, 1000, true);
+        }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     });
 }
