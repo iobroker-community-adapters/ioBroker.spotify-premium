@@ -1,9 +1,17 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.2.2",
+        "version": "0.2.3",
         "news": {
-        	"0.2.2": {
+        	"0.2.3": {
+                "en": "remove special character (,?[]) from device and playlist state names",
+                "de": "Sonderzeichen (,?[]) in Geräte- und Playlistnamen entfernt",
+                "ru": "Специальные символы (,? []) В именах устройств и списков воспроизведения удалены",
+                "pt": "Caracteres especiais (,? []) Em nomes de dispositivos e listas de reprodução removidos",
+                "fr": "Caractères spéciaux (,? []) Dans les noms de périphériques et de listes de lecture supprimés",
+                "nl": "Speciale tekens (,? []) Verwijderde apparaat- en afspeellijstnamen"
+            },
+            "0.2.2": {
                 "en": "'playbackInfo.playlist.track*' States are only reset when changed",
                 "de": "'playbackInfo.playlist.track*' States werden nur bei Änderung neu gesetzt",
                 "ru": "'playbackInfo.playlist.track*' Государства сбрасываются только при изменении",
