@@ -951,7 +951,7 @@ function persistPlaylist(parseJson, autoContinue) {
                     setObject(prefix + '.trackList', {
                         type: 'state',
                         common: {
-                            name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.',
+                            name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track. First track is 0',
                             type: 'number',
                             role: 'value',
                             states: playlistObject.stateString,
@@ -1557,7 +1557,7 @@ function listenOnTrackList(obj) {
 
 function listenOnPlayThisList(obj, pos) {
     if (isEmpty(pos)) {
-        pos = 1;
+        pos = 0;
     }
     // Play a specific playlist immediately
     return getState(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.owner').then(function(state) {

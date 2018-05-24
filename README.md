@@ -81,6 +81,9 @@ Click for widget source.
 
 ## Changelog
 
+### 0.2.5 (2018.05.24)
+* (twonky) Fix: `spotify-premium.0.playlists.YourPlaylistName.playThisList` starts always with second track
+
 ### 0.2.4 (2018.05.17)
 * (twonky) remove special character ("'*) from device and playlist state names
 

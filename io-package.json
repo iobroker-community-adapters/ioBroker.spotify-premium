@@ -1,8 +1,16 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.2.4",
+        "version": "0.2.5",
         "news": {
+        	"0.2.5": {
+                "en": "Fix: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' starts always with second track",
+                "de": "Behoben: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' startet immer das 2. Lied",
+                "ru": "Исправление: «spotify-premium.0.playlists.YourPlaylistName.playThisList» всегда начинается со второго трека",
+                "pt": "Correção: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' inicia sempre com a segunda faixa",
+                "fr": "Correction: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' commence toujours avec la deuxième piste",
+                "nl": "Fix: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' begint altijd met tweede nummer"
+            },
         	"0.2.4": {
                 "en": "remove special character (\"'*) from device and playlist state names",
                 "de": "Sonderzeichen (\"'*) in Geräte- und Playlistnamen entfernt",
