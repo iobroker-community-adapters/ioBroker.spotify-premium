@@ -274,6 +274,102 @@
             "native": {}
         },
         {
+            "_id": "playlists.playlistList",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "Available playlist saved in common part. Change this value to a userId-playlistId to start this playlist.",
+                "type": "string",
+                "read": true,
+                "write": true
+            },
+            "native": {}
+        },
+        {
+            "_id": "playlists.playlistListIds",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playlists.playlistListString",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of playlists as string, patter: name;name;name;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.deviceList",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "All devices saved in common part. Change this value to a device id to start playing on this.",
+                "type": "string",
+                "read": true,
+                "write": true
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.deviceListIds",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of all device ids as string, pattern: id;id;id;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.deviceListString",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of all devices as string, patter: name;name;name;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.availableDeviceListIds",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of available device ids as string, pattern: id;id;id;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.availableDeviceListString",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of available devices as string, patter: name;name;name;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
             "_id": "player.play",
             "type": "state",
             "common": {

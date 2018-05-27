@@ -136,6 +136,7 @@ function delObject(id, options, callback) {
         adapter.delObject(id, options, retFunc);
     });
 }
+
 var listener = [];
 var application = {
     userId: '',
@@ -421,7 +422,7 @@ function setOrDefault(obj, name, state, defaultVal) {
 }
 
 function shrinkStateName(v) {
-    var n = v.replace(/[\s."'*,?[\]]+/g, '');
+    var n = v.replace(/[\s."'*,?[\];:]+/g, '');
     if (isEmpty(n)) {
         n = 'onlySpecialCharacters';
     }
@@ -559,12 +560,14 @@ function createPlaybackInfo(data) {
     ]).then(function() {
         if (deviceId) {
             deviceData.lastActiveDeviceId = deviceId;
-            return getStates('devices.*.isActive').then(function(state) {
-                var keys = Object.keys(state);
+            return getStates('devices.*').then(function(states) {
+                var keys = Object.keys(states);
                 var fn = function(key) {
+                	if(!key.endsWith('.isActive')) {
+                		return;
+                	}
                     key = removeNameSpace(key);
-                    if (key !== 'devices.' + shrinkStateName(deviceId) + '.isActive' &&
-                        key.endsWith('.isActive')) {
+                    if (key !== 'devices.' + shrinkStateName(deviceId) + '.isActive') {
                         return setState(key, false, true);
                     }
                 };
@@ -582,13 +585,14 @@ function createPlaybackInfo(data) {
                 });
             });
         } else {
-            return getStates('devices.*.isActive').then(function(state) {
-                var keys = Object.keys(state);
+            return getStates('devices.*').then(function(states) {
+                var keys = Object.keys(states);
                 var fn = function(key) {
+                	if(!key.endsWith('.isActive')) {
+                		return;
+                	}
                     key = removeNameSpace(key);
-                    if (key.endsWith('.isActive')) {
-                        return setState(key, false, true);
-                    }
+                    return setState(key, false, true);
                 };
                 return Promise.all(keys.map(fn));
             });
@@ -889,11 +893,18 @@ function reloadUsersPlaylist() {
 }
 
 function deleteUsersPlaylist() {
-    return getStates('playlists.*').then(function(state) {
-        var keys = Object.keys(state);
+    return getStates('playlists.*').then(function(states) {
+        var keys = Object.keys(states);
         var fn = function(key) {
             key = removeNameSpace(key);
-            return delObject(key);
+
+			if(key != 'playlists.playlistList' &&
+				key != 'playlists.playlistListIds' &&
+				key != 'playlists.playlistListString') {
+				return delObject(key);
+			} else {
+				return Promise.resolve();
+			}
         };
         return Promise.all(keys.map(fn));
     });
@@ -1126,8 +1137,8 @@ function reloadDevices(data) {
 }
 
 function disableDevices() {
-    return getStates('devices.*').then(function(state) {
-        var keys = Object.keys(state);
+    return getStates('devices.*').then(function(states) {
+        var keys = Object.keys(states);
         var fn = function(key) {
             key = removeNameSpace(key);
             if (key.endsWith('.isAvailable')) {
@@ -1139,11 +1150,22 @@ function disableDevices() {
 }
 
 function deleteDevices() {
-    return getStates('devices.*').then(function(state) {
-        var keys = Object.keys(state);
+    return getStates('devices.*').then(function(states) {
+        var keys = Object.keys(states);
         var fn = function(key) {
             key = removeNameSpace(key);
-            return delObject(key);
+
+			if(key != 'devices.deviceList' &&
+					key != 'devices.deviceListIds' &&
+					key != 'devices.deviceListString' &&
+					key != 'devices.availableDeviceListIds' &&
+					key != 'devices.availableDeviceListString') {
+				return delObject(key).then(function () {
+					if(key.endsWith('.id')) {
+						return delObject(key.substring(0, key.length - 3));
+					}
+				})
+			}
         };
         return Promise.all(keys.map(fn));
     });
@@ -1172,6 +1194,7 @@ function createDevices(data) {
         }
         var deviceName = loadOrDefault(device, 'name', '');
         var prefix = 'devices.' + shrinkStateName(deviceId);
+        
         return Promise.all([
             setObjectNotExists(prefix, {
                 type: 'device',
@@ -1219,7 +1242,98 @@ function createDevices(data) {
             setState(prefix + '.isAvailable', true, true)
         ]);
     };
-    return Promise.all(data.devices.map(fn));
+    return Promise.all(data.devices.map(fn)).then(function() {
+    	return refreshDeviceList();
+    });
+}
+
+function refreshDeviceList() {
+	var a = [];
+    return getStates('devices.*').then(function(states) {
+        var keys = Object.keys(states);
+        var fn = function(key) {
+        	if(!key.endsWith('.name')) {
+        		return;
+        	}
+            var normKey = removeNameSpace(key);
+            var id = normKey.substring(8, normKey.length - 5);
+            return getState('devices.' + id + '.isAvailable').then(function(state) {
+            	a.push({
+            		id: id,
+            		name: states[key].val,
+            		available: state.val
+            	});
+            });
+        };
+        return Promise.all(keys.map(fn)).then(function () {
+        	var stateList = '';
+        	var listIds = '';
+        	var listString = '';
+        	var availableIds = '';
+        	var availableString = '';
+
+        	for (var i = 0, len = a.length; i < len; i++) {
+        		var normId = a[i].id;
+        		var normName = cleanState(a[i].name);
+
+        		if (stateList.length > 0) {
+        			stateList += ';';
+        			listIds += ';';
+            		listString += ';';
+        		}
+        		stateList += normId+':'+normName;
+        		listIds += normId;
+        		listString += normName;
+        		if(a[i].available) {
+            		if (availableIds.length > 0) {
+            			availableIds += ';';
+            			availableString += ';';
+            		}
+
+        			availableIds += normId;
+        			availableString += normName;
+        		}
+        	}
+
+        	return Promise.all([
+                setObject('devices.deviceList', {
+                    type: 'state',
+                    common: {
+                        name: 'All devices saved in common part. Change this value to a device id to start playing on this.',
+                        type: 'string',
+                        role: 'value',
+                        states: stateList,
+                        read: true,
+                        write: true
+                    },
+                    native: {}
+                }),
+        		setState('devices.deviceListIds', listIds, true),
+        		setState('devices.deviceListString', listString, true),
+        		setState('devices.availableDeviceListIds', availableIds, true),
+        		setState('devices.availableDeviceListString', availableString, true)
+        	]).then(function() {
+        		return getStates('devices.*').then(function (states) {
+        	        var keys = Object.keys(states);
+        	        var fn = function(key) {
+        	        	if(!key.endsWith('.isActive')) {
+        	        		return;
+        	        	}
+
+        	        	var val = states[key].val;
+        	            
+        	            if(val) {
+        	            	key = removeNameSpace(key);
+        	            	var id = key.substring(8, key.length - 9);
+        	            	return setState('devices.deviceList', id, true);
+        	            }
+        	        };
+
+        	        return Promise.all(keys.map(fn))
+        		});
+        	});
+        });
+    });
 }
 
 function generateRandomString(length) {
@@ -1598,6 +1712,12 @@ function listenOnPlayThisList(obj, pos) {
     });
 }
 
+function listenOnDeviceList(obj) {
+	if (!isEmpty(obj.state.val)) {
+		listenOnUseForPlayback({id: 'devices.' + obj.state.val + '.useForPlayback'});
+	}
+}
+
 function listenOnPlay() {
     var query = {
         device_id: getSelectedDevice(deviceData)
@@ -1819,6 +1939,7 @@ on('authorization.authorized', listenOnAuthorized);
 on(/\.useForPlayback$/, listenOnUseForPlayback);
 on(/\.trackList$/, listenOnTrackList, true);
 on(/\.playThisList$/, listenOnPlayThisList);
+on('devices.deviceList', listenOnDeviceList, true);
 on('player.play', listenOnPlay);
 on('player.pause', listenOnPause);
 on('player.skipPlus', listenOnSkipPlus);
