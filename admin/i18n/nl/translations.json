@@ -4,6 +4,7 @@
   "clientSecret": "Client Secret",
   "deleteDevices": "Verwijder apparaten die niet meer bestaan",
   "deletePlaylists": "Verwijder niet langer bestaande afspeellijsten",
+  "keepShuffleState": "Op sommige apparaten wordt de shuffle altijd uitgeschakeld als een afspeellijst wordt gestart. Met deze optie wordt een tijdelijke oplossing gebruikt om dit gedrag te voorkomen.",
   "statusInterval": "Vernieuw interval voor statusinformatie. (in seconden, aanbevolen 5, 0 = uitgeschakeld)",
   "deviceInterval": "Vernieuw interval voor apparaatinformatie. (in minuten, aanbevolen 5, 0 = uitgeschakeld)",
   "playlistInterval": "Vernieuw interval voor afspeellijstinformatie. (in minuten, aanbevolen 15, 0 = uitgeschakeld)",

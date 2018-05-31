@@ -4,6 +4,7 @@
   "clientSecret": "Client Secret",
   "deleteDevices": "Eliminar dispositivos que não existam mais",
   "deletePlaylists": "Eliminar já não existem listas de reprodução existentes",
+  "keepShuffleState": "Em alguns dispositivos, o shuffle sempre será desativado se uma lista de reprodução for iniciada. Com essa opção, uma solução alternativa é usada para evitar esse comportamento.",
   "statusInterval": "Intervalo de atualização para informações de status. (em segundos, recomendado 5, 0 = desativado)",
   "deviceInterval": "Intervalo de atualização para informações do dispositivo. (em minutos, recomendado 5, 0 = desativado)",
   "playlistInterval": "Intervalo de atualização para informações de playlist. (em minutos, recomendado 15, 0 = desativado)",

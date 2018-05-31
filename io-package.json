@@ -1,15 +1,23 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.2.5",
+        "version": "0.3.0",
         "news": {
+        	"0.3.0": {
+                "en": "Change playlist and device state names from name to id\nNew states for device selection: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNew states for playlist selection: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdd option to avoid shuffle state reset on some devices after starting a playlist",
+                "de": "Playlist und Geräte Statenamen von Name in Id geändert\nNeue States zur Geräteauswahl: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNeue States zur Playlistauswahl: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOption hinzufügt, um das Zurücksetzen von Shuffle auf einigen Geräten zu verhinden, beim starten einer Playlist",
+                "ru": "Изменение имен плейлиста и состояний устройства с имени на id\nНовые состояния для выбора устройства: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nНовые состояния для выбора плейлиста: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nДобавить параметр, чтобы избежать сброса состояния в случайном порядке на некоторых устройствах после запуска списка воспроизведения",
+                "pt": "Alterar nomes de estado de listas de reprodução e dispositivos de nome para id\nNovos estados para a seleção de dispositivos: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNovos estados para seleção de playlists: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdicionar opção para evitar redefinição de estado aleatório em alguns dispositivos depois de iniciar uma lista de reprodução",
+                "fr": "Changer la liste de lecture et les noms d'état de l'appareil du nom à l'identifiant\nNouveaux états pour la sélection de périphérique: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNouveaux états pour la sélection de playlist: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAjouter une option pour éviter la réinitialisation de l'état aléatoire sur certains appareils après le démarrage d'une liste de lecture",
+                "nl": "Wijzig afspeellijst en apparaatstatusnamen van naam in id\nNieuwe toestanden voor apparaatselectie: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.available Device ListIds', 'devices.available Device ListString'\nNieuwe staten voor afspeellijstselectie: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOptie toevoegen om shuffle-status opnieuw in te stellen op sommige apparaten na het starten van een afspeellijst"
+            },
         	"0.2.5": {
-                "en": "Fix: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' starts always with second track",
-                "de": "Behoben: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' startet immer das 2. Lied",
-                "ru": "Исправление: «spotify-premium.0.playlists.YourPlaylistName.playThisList» всегда начинается со второго трека",
-                "pt": "Correção: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' inicia sempre com a segunda faixa",
-                "fr": "Correction: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' commence toujours avec la deuxième piste",
-                "nl": "Fix: 'spotify-premium.0.playlists.YourPlaylistName.playThisList' begint altijd met tweede nummer"
+                "en": "Fix: 'playlists.YourPlaylistName.playThisList' starts always with second track",
+                "de": "Behoben: 'playlists.YourPlaylistName.playThisList' startet immer das 2. Lied",
+                "ru": "Исправление: 'playlists.YourPlaylistName.playThisList' всегда начинается со второго трека",
+                "pt": "Correção: 'playlists.YourPlaylistName.playThisList' inicia sempre com a segunda faixa",
+                "fr": "Correction: 'playlists.YourPlaylistName.playThisList' commence toujours avec la deuxième piste",
+                "nl": "Fix: 'playlists.YourPlaylistName.playThisList' begint altijd met tweede nummer"
             },
         	"0.2.4": {
                 "en": "remove special character (\"'*) from device and playlist state names",
@@ -60,12 +68,12 @@
                 "nl": "aangepast aan de Spotify API-wijziging"
             },
             "0.1.2": {
-                "en": "automatic updating of devices and playlists (configurable in the adapter); new state Devices.DEVICE.is_available indicates if a device is available; shows warning message http 202 only as debug and only one time; the States Player.Shuffle, Player.Playlist_ID, Player.TrackId and Player.Volume also show the current value; new states Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; marks the state PlaybackInfo.image_url as deprecated. Will not be included in a new installation and will not be updated in future versions; changing the State Playlists.PLAYLISTNAME.Track_ID now works like in Lucky's script",
-                "de": "automatische Aktualisieren der Geräte und Playlisten (im Adapter konfigurierbar); neuer State Devices.GERÄT.is_available zeigt an ob ein Gerät verfügbar ist; zeigt Warnmeldung http 202 nur noch als debug und nur noch einmal an; die States Player.Shuffle, Player.Playlist_ID, Player.TrackId und Player.Volume zeigen ebenfalls den aktuellen Wert an; neue States Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; den State PlaybackInfo.image_url als deprecated markiert. Wird bei Neuinstallation nicht mehr mit angelegt und in zukünftigen Versionen nicht mehr aktualisiert; das Ändern des State Playlists.PLAYLISTNAME.Track_ID funktioniert nun wie in Luckys Skript",
-                "ru": "автоматическое обновление устройств и списков воспроизведения (настраивается в адаптере); новое состояние Devices.DEVICE.is_available указывает, доступно ли устройство; показывает предупреждающее сообщение http 202 только как отладочное и только одно время; States Player.Shuffle, Player.Playlist_ID, Player.TrackId и Player.Volume также показывают текущее значение; новые состояния Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; отмечает состояние PlaybackInfo.image_url как устаревшее. Не будет включен в новую установку и не будет обновляться в будущих версиях; изменение состояния Playlists.PLAYLISTNAME.Track_ID теперь работает, как в сценарии Lucky",
-                "pt": "atualização automática de dispositivos e listas de reprodução (configurável no adaptador); novo estado Devices.DEVICE.is_available indica se um dispositivo está disponível; mostra mensagem de aviso http 202 apenas como depuração e apenas uma vez; os Estados Player.Shuffle, Player.Playlist_ID, Player.TrackId e Player.Volume também mostram o valor atual; novos estados Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; marca o estado PlaybackInfo.image_url como obsoleto. Não será incluído em uma nova instalação e não será atualizado em versões futuras; alterar o estado Playlists.PLAYLISTNAME.Track_ID agora funciona como no script de Lucky",
-                "fr": "mise à jour automatique des appareils et des listes de lecture (configurable dans l'adaptateur); le nouvel état Devices.DEVICE.is_available indique si un périphérique est disponible; affiche le message d'avertissement http 202 uniquement en tant que débogage et une seule fois; les états Player.Shuffle, Player.Playlist_ID, Player.TrackId et Player.Volume affichent également la valeur actuelle; nouveaux états Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; marque l'état PlaybackInfo.image_url comme obsolète. Ne sera pas inclus dans une nouvelle installation et ne sera pas mis à jour dans les futures versions; changer l'état Playlists.PLAYLISTNAME.Track_ID fonctionne maintenant comme dans le script de Lucky",
-                "nl": "automatische update van apparaten en afspeellijsten (configureerbaar in de adapter); nieuwe status Devices.DEVICE.is_available geeft aan of een apparaat beschikbaar is; toont waarschuwingsbericht http 202 alleen als foutopsporing en slechts één keer; de States Player.Shuffle, Player.Playlist_ID, Player.TrackId en Player.Volume tonen ook de huidige waarde; nieuwe staten Afspeellijsten.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url; markeert de staat PlaybackInfo.image_url als verouderd. Wordt niet opgenomen in een nieuwe installatie en zal niet worden bijgewerkt in toekomstige versies; het wijzigen van de staat Playlists.PLAYLISTNAME.Track_ID werkt nu zoals in Lucky's script"
+                "en": "automatic updating of devices and playlists (configurable in the adapter)\nnew state Devices.DEVICE.is_available indicates if a device is available\nshows warning message http 202 only as debug and only one time\nthe States Player.Shuffle, Player.Playlist_ID, Player.TrackId and Player.Volume also show the current value\nnew states Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url\nmarks the state PlaybackInfo.image_url as deprecated. Will not be included in a new installation and will not be updated in future versions\nchanging the State Playlists.PLAYLISTNAME.Track_ID now works like in Lucky's script",
+                "de": "automatische Aktualisieren der Geräte und Playlisten (im Adapter konfigurierbar)\nneuer State Devices.GERÄT.is_available zeigt an ob ein Gerät verfügbar ist\nzeigt Warnmeldung http 202 nur noch als debug und nur noch einmal an\ndie States Player.Shuffle, Player.Playlist_ID, Player.TrackId und Player.Volume zeigen ebenfalls den aktuellen Wert an\nneue States Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url\nden State PlaybackInfo.image_url als deprecated markiert. Wird bei Neuinstallation nicht mehr mit angelegt und in zukünftigen Versionen nicht mehr aktualisiert\ndas Ändern des State Playlists.PLAYLISTNAME.Track_ID funktioniert nun wie in Luckys Skript",
+                "ru": "автоматическое обновление устройств и списков воспроизведения (настраивается в адаптере)\nновое состояние Devices.DEVICE.is_available указывает, доступно ли устройство\nпоказывает предупреждающее сообщение http 202 только как отладочное и только одно время\nStates Player.Shuffle, Player.Playlist_ID, Player.TrackId и Player.Volume также показывают текущее значение\nновые состояния Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url\nотмечает состояние PlaybackInfo.image_url как устаревшее. Не будет включен в новую установку и не будет обновляться в будущих версиях\nизменение состояния Playlists.PLAYLISTNAME.Track_ID теперь работает, как в сценарии Lucky",
+                "pt": "atualização automática de dispositivos e listas de reprodução (configurável no adaptador)\nnovo estado Devices.DEVICE.is_available indica se um dispositivo está disponível\nmostra mensagem de aviso http 202 apenas como depuração e apenas uma vez\nos Estados Player.Shuffle, Player.Playlist_ID, Player.TrackId e Player.Volume também mostram o valor atual\nnovos estados Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url\nmarca o estado PlaybackInfo.image_url como obsoleto. Não será incluído em uma nova instalação e não será atualizado em versões futuras\nalterar o estado Playlists.PLAYLISTNAME.Track_ID agora funciona como no script de Lucky",
+                "fr": "mise à jour automatique des appareils et des listes de lecture (configurable dans l'adaptateur)\nle nouvel état Devices.DEVICE.is_available indique si un périphérique est disponible\naffiche le message d'avertissement http 202 uniquement en tant que débogage et une seule fois\nles états Player.Shuffle, Player.Playlist_ID, Player.TrackId et Player.Volume affichent également la valeur actuelle\nnouveaux états Playlists.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url\nmarque l'état PlaybackInfo.image_url comme obsolète. Ne sera pas inclus dans une nouvelle installation et ne sera pas mis à jour dans les futures versions\nchanger l'état Playlists.PLAYLISTNAME.Track_ID fonctionne maintenant comme dans le script de Lucky",
+                "nl": "automatische update van apparaten en afspeellijsten (configureerbaar in de adapter)\nnieuwe status Devices.DEVICE.is_available geeft aan of een apparaat beschikbaar is\ntoont waarschuwingsbericht http 202 alleen als foutopsporing en slechts één keer\nde States Player.Shuffle, Player.Playlist_ID, Player.TrackId en Player.Volume tonen ook de huidige waarde\nnieuwe staten Afspeellijsten.PLAYLISTNAME.image_url, PlaybackInfo.Playlist_image_url, PlaybackInfo.Album_image_url\nmarkeert de staat PlaybackInfo.image_url als verouderd. Wordt niet opgenomen in een nieuwe installatie en zal niet worden bijgewerkt in toekomstige versies\nhet wijzigen van de staat Playlists.PLAYLISTNAME.Track_ID werkt nu zoals in Lucky's script"
             },
             "0.1.1": {
                 "en": "fix several small issues",
@@ -84,20 +92,20 @@
                 "nl": "herwerk api polling mechanisme"
             },
             "0.0.9": {
-                "en": "new state 'PlaybackInfo.repeat' with possible values: off, context, track; new state 'PlaybackInfo.shuffle' with possible values: true, false; states for the playing device will also updated in 5s intervals; states in 'PlaybackInfo' are now updated also if no device is active playing; states in 'PlaybackInfo' are now cleared if no device is available; loading new playlists if playing the first time",
-                "de": "neuer State 'PlaybackInfo.repeat' mit möglichen Werten: off, context, track; neuer State 'PlaybackInfo.shuffle' mit möglichen Werten: true, false; States für das abspielende Gerät werden ebenfalls in 5s-Intervallen aktualisiert; States in 'PlaybackInfo' werden jetzt auch aktualisiert, wenn kein Gerät aktiv ist; States in 'PlaybackInfo' werden jetzt gelöscht, wenn kein Gerät verfügbar ist; neue Playlisten werden beim ersten Abspielen nachgeladen",
-                "ru": "новое состояние 'PlaybackInfo.repeat' с возможными значениями: off, context, track; новое состояние 'PlaybackInfo.shuffle' с возможными значениями: true, false; состояния для игрового устройства также будут обновляться через 5 секунд; состояния в 'PlaybackInfo' теперь обновляются также, если никакое устройство не активно; состояния в 'PlaybackInfo' теперь очищаются, если устройство недоступно; загрузка новых плейлистов, если вы играете в первый раз",
-                "pt": "novo estado 'PlaybackInfo.repeat' com valores possíveis: off, context, track; novo estado 'PlaybackInfo.shuffle' com valores possíveis: true, false; os estados para o dispositivo de reprodução também serão atualizados em intervalos de 5 s; estados em 'PlaybackInfo' agora são atualizados também se nenhum dispositivo estiver ativo; os estados em 'PlaybackInfo' estão agora desmarcados se nenhum dispositivo estiver disponível; carregando novas listas de reprodução se estiver reproduzindo a primeira vez",
-                "fr": "nouvel état 'PlaybackInfo.repeat' avec des valeurs possibles: off, context, track; nouvel état 'PlaybackInfo.shuffle' avec les valeurs possibles: true, false; les états de l'appareil de jeu seront également mis à jour par intervalles de 5 secondes; les états dans 'PlaybackInfo' sont maintenant mis à jour également si aucun périphérique n'est actif; les états dans 'PlaybackInfo' sont maintenant effacés si aucun périphérique n'est disponible; chargement de nouvelles playlists si vous jouez la première fois",
-                "nl": "nieuwe status 'PlaybackInfo.repeat' met mogelijke waarden: uit, context, track; nieuwe status 'PlaybackInfo.shuffle' met mogelijke waarden: true, false; toestanden voor het afspeelapparaat worden ook bijgewerkt in intervallen van 5 seconden; staten in 'PlaybackInfo' worden nu ook bijgewerkt als er geen apparaat actief is; staten in 'PlaybackInfo' worden nu gewist als er geen apparaat beschikbaar is; nieuwe afspeellijsten laden als deze de eerste keer worden afgespeeld"
+                "en": "new state 'PlaybackInfo.repeat' with possible values: off, context, track\nnew state 'PlaybackInfo.shuffle' with possible values: true, false\nstates for the playing device will also updated in 5s intervals\nstates in 'PlaybackInfo' are now updated also if no device is active playing\nstates in 'PlaybackInfo' are now cleared if no device is available\nloading new playlists if playing the first time",
+                "de": "neuer State 'PlaybackInfo.repeat' mit möglichen Werten: off, context, track\nneuer State 'PlaybackInfo.shuffle' mit möglichen Werten: true, false\nStates für das abspielende Gerät werden ebenfalls in 5s-Intervallen aktualisiert\nStates in 'PlaybackInfo' werden jetzt auch aktualisiert, wenn kein Gerät aktiv ist\nStates in 'PlaybackInfo' werden jetzt gelöscht, wenn kein Gerät verfügbar ist\nneue Playlisten werden beim ersten Abspielen nachgeladen",
+                "ru": "новое состояние 'PlaybackInfo.repeat' с возможными значениями: off, context, track\nновое состояние 'PlaybackInfo.shuffle' с возможными значениями: true, false\nсостояния для игрового устройства также будут обновляться через 5 секунд\nсостояния в 'PlaybackInfo' теперь обновляются также, если никакое устройство не активно\nсостояния в 'PlaybackInfo' теперь очищаются, если устройство недоступно\nзагрузка новых плейлистов, если вы играете в первый раз",
+                "pt": "novo estado 'PlaybackInfo.repeat' com valores possíveis: off, context, track\nnovo estado 'PlaybackInfo.shuffle' com valores possíveis: true, false\nos estados para o dispositivo de reprodução também serão atualizados em intervalos de 5 s\nestados em 'PlaybackInfo' agora são atualizados também se nenhum dispositivo estiver ativo\nos estados em 'PlaybackInfo' estão agora desmarcados se nenhum dispositivo estiver disponível\ncarregando novas listas de reprodução se estiver reproduzindo a primeira vez",
+                "fr": "nouvel état 'PlaybackInfo.repeat' avec des valeurs possibles: off, context, track\nnouvel état 'PlaybackInfo.shuffle' avec les valeurs possibles: true, false\nles états de l'appareil de jeu seront également mis à jour par intervalles de 5 secondes\nles états dans 'PlaybackInfo' sont maintenant mis à jour également si aucun périphérique n'est actif\nles états dans 'PlaybackInfo' sont maintenant effacés si aucun périphérique n'est disponible\nchargement de nouvelles playlists si vous jouez la première fois",
+                "nl": "nieuwe status 'PlaybackInfo.repeat' met mogelijke waarden: uit, context, track\nnieuwe status 'PlaybackInfo.shuffle' met mogelijke waarden: true, false\ntoestanden voor het afspeelapparaat worden ook bijgewerkt in intervallen van 5 seconden\nstaten in 'PlaybackInfo' worden nu ook bijgewerkt als er geen apparaat actief is\nstaten in 'PlaybackInfo' worden nu gewist als er geen apparaat beschikbaar is\nnieuwe afspeellijsten laden als deze de eerste keer worden afgespeeld"
             },
             "0.0.8": {
-                "en": "new option to delete no longer existing devices and playlists; load complete playlists",
-                "de": "Neue Option zum Löschen nicht mehr vorhandener Devices und Playlisten; Playlisten werden nun komplett geladen",
-                "ru": "новая опция для удаления уже существующих устройств и плейлистов; Плейлисты теперь полностью загружены",
-                "pt": "nova opção para excluir mais dispositivos e listas de reprodução existentes; As listas de reprodução estão agora completamente carregadas",
-                "fr": "nouvelle option pour supprimer les appareils et les listes de lecture existants; Les listes de lecture sont maintenant complètement chargées",
-                "nl": "nieuwe optie om niet langer bestaande apparaten en afspeellijsten te verwijderen; Afspeellijsten zijn nu volledig geladen"
+                "en": "new option to delete no longer existing devices and playlists\nload complete playlists",
+                "de": "Neue Option zum Löschen nicht mehr vorhandener Devices und Playlisten\nPlaylisten werden nun komplett geladen",
+                "ru": "новая опция для удаления уже существующих устройств и плейлистов\nПлейлисты теперь полностью загружены",
+                "pt": "nova opção para excluir mais dispositivos e listas de reprodução existentes\nAs listas de reprodução estão agora completamente carregadas",
+                "fr": "nouvelle option pour supprimer les appareils et les listes de lecture existants\nLes listes de lecture sont maintenant complètement chargées",
+                "nl": "nieuwe optie om niet langer bestaande apparaten en afspeellijsten te verwijderen\nAfspeellijsten zijn nu volledig geladen"
             },
         	"0.0.7": {
                 "en": "fix: auto refresh token",
@@ -124,12 +132,12 @@
                 "nl": "Opgelost: Adapter crash wanneer geen speler open is"
             },
         	"0.0.4": {
-                "en": "check configuration; fix: adapter configuration in admin2; fix: restart after authorization need",
-                "de": "Konfiguration überprüfen; Behoben: Adapter Konfiguration in admin2; Behoben: Neustart nach Autorisation nicht mehr nötig",
-                "ru": "Проверьте конфигурацию; Исправлено: Конфигурация адаптера в admin2; Исправлено: Перезапуск после авторизации больше не нужен",
-                "pt": "Verifique a configuração; Corrigido: configuração do adaptador em admin2; Corrigido: reiniciar após a autorização, não é mais necessário",
-                "fr": "Vérifier la configuration Corrigé: Configuration de l'adaptateur dans admin2; Correction: Redémarrage après l'autorisation n'est plus nécessaire",
-                "nl": "Controleer de configuratie; Opgelost: adapterconfiguratie in admin2; Opgelost: opnieuw opstarten na autorisatie niet meer nodig"
+                "en": "check configuration\nfix: adapter configuration in admin2\nfix: restart after authorization need",
+                "de": "Konfiguration überprüfen\nBehoben: Adapter Konfiguration in admin2\nBehoben: Neustart nach Autorisation nicht mehr nötig",
+                "ru": "Проверьте конфигурацию\nИсправлено: Конфигурация адаптера в admin2\nИсправлено: Перезапуск после авторизации больше не нужен",
+                "pt": "Verifique a configuração\nCorrigido: configuração do adaptador em admin2\nCorrigido: reiniciar após a autorização, não é mais necessário",
+                "fr": "Vérifier la configuration Corrigé: Configuration de l'adaptateur dans admin2\nCorrection: Redémarrage après l'autorisation n'est plus nécessaire",
+                "nl": "Controleer de configuratie\nOpgelost: adapterconfiguratie in admin2; Opgelost: opnieuw opstarten na autorisatie niet meer nodig"
             },
             "0.0.3": {
                 "en": "improved manual",
@@ -211,6 +219,7 @@
         "client_secret": "",
         "delete_devices": false,
         "delete_playlists": false,
+        "keep_shuffle_state": false,
         "status_interval": 5,
         "device_interval": 5,
         "playlist_interval": 15
@@ -278,6 +287,126 @@
             "type": "channel",
             "common": {
                 "name": "Authorization functionality"
+            },
+            "native": {}
+        },
+        {
+            "_id": "playlists.playlistList",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "Available playlist saved in common part. Change this value to a userId-playlistId to start this playlist.",
+                "type": "string",
+                "read": true,
+                "write": true
+            },
+            "native": {}
+        },
+        {
+            "_id": "playlists.playlistListIds",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playlists.playlistListString",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of playlists as string, patter: name;name;name;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playlists.yourPlaylistListIds",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of your playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "playlists.yourPlaylistListString",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of your playlists as string, patter: name;name;name;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.deviceList",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "All devices saved in common part. Change this value to a device id to start playing on this.",
+                "type": "string",
+                "read": true,
+                "write": true
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.deviceListIds",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of all device ids as string, pattern: id;id;id;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.deviceListString",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of all devices as string, patter: name;name;name;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.availableDeviceListIds",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of available device ids as string, pattern: id;id;id;...",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "devices.availableDeviceListString",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "contains list of available devices as string, patter: name;name;name;...",
+                "type": "string",
+                "read": true,
+                "write": false
             },
             "native": {}
         },
