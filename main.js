@@ -426,7 +426,7 @@ function setOrDefault(obj, name, state, defaultVal) {
 }
 
 function shrinkStateName(v) {
-    var n = v.replace(/[\s."'*,?[\];:]+/g, '');
+    var n = v.replace(/[\s."`'*,\\?<>[\];:]+/g, '');
     if (isEmpty(n)) {
         n = 'onlySpecialCharacters';
     }
