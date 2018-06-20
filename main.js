@@ -725,19 +725,16 @@ function createPlaybackInfo(data) {
                             native: {}
                         })
                     ]).then(function() {
-                        return getState('playlists.' +
-                                prefix +
-                                '.trackListIds')
-                            .catch(
-                                function() {
-                                    return createPlaylists({
-                                        items: [
-                                            parseJson
-                                        ]
-                                    }).then(function() {
-                                        return refreshPlaylistList();
-                                    });
-                                })
+                        return getState('playlists.' + prefix + '.trackListIds').catch(
+                            function() {
+                                return createPlaylists({
+                                    items: [
+                                        parseJson
+                                    ]
+                                });
+                            }).then(function() {
+                            return refreshPlaylistList();
+                        });
                     }).then(function() {
                         return Promise.all([
                             copyState('playlists.' +
