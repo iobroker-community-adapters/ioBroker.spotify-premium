@@ -1,8 +1,16 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.3.0",
+        "version": "0.3.1",
         "news": {
+        	"0.3.1": {
+                "en": "Fix: state 'playlists.playlistList' doesn't refresh after the playlist changed via app",
+                "de": "Behoben: state 'playlists.playlistList' wird nicht aktualisiert wenn die Playlist via App geändert wurde",
+                "ru": "Исправление: состояние 'playlists.playlistList' не обновляется после изменения плейлиста с помощью приложения",
+                "pt": "Correção: o estado 'playlists.playlistList' não é atualizado depois que a playlist foi alterada por meio do aplicativo",
+                "fr": "Correction: l'état 'playlists.playlistList' ne s'actualise pas après la modification de la playlist via l'application",
+                "nl": "Fix: status 'playlists.playlistList' wordt niet vernieuwd nadat de afspeellijst via de app is gewijzigd"
+            },
         	"0.3.0": {
                 "en": "Change playlist and device state names from name to id\nNew states for device selection: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNew states for playlist selection: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdd option to avoid shuffle state reset on some devices after starting a playlist",
                 "de": "Playlist und Geräte Statenamen von Name in Id geändert\nNeue States zur Geräteauswahl: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNeue States zur Playlistauswahl: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOption hinzufügt, um das Zurücksetzen von Shuffle auf einigen Geräten zu verhinden, beim starten einer Playlist",

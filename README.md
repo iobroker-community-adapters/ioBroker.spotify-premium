@@ -89,6 +89,9 @@ Click for widget source.
 
 ## Changelog
 
+### 0.3.1 (2018.06.20)
+* (twonky) Fix: state playlists.playlistList doesn't refresh after the playlist changed via app
+
 ### 0.3.0 (2018.05.31)
 * (twonky) Change playlist and device state names from name to id
 * (twonky) New states for device selection: `devices.deviceList`, `devices.deviceListIds`, `devices.deviceListString`, `devices.availableDeviceListIds`, `devices.availableDeviceListString`
