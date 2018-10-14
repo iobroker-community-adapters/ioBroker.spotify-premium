@@ -584,7 +584,7 @@ function createPlaybackInfo(data) {
         setState('player.progressMs', progress, true),
         setState('player.progressPercentage', progressPercentage, true)
     ]).then(function() {
-        if (deviceId) {
+        if (deviceName) {
             deviceData.lastActiveDeviceId = deviceId;
             return getStates('devices.*').then(function(states) {
                 var keys = Object.keys(states);
@@ -593,7 +593,13 @@ function createPlaybackInfo(data) {
                         return;
                     }
                     key = removeNameSpace(key);
-                    if (key !== 'devices.' + shrinkStateName(deviceId) + '.isActive') {
+                    var name = '';
+                    if(deviceId != null) {
+                    	name = shrinkStateName(deviceId);
+                    } else {
+                    	name = shrinkStateName(deviceName);
+                    }
+                    if (key !== 'devices.' + name + '.isActive') {
                         return setState(key, false, true);
                     }
                 };
@@ -946,7 +952,7 @@ function deleteUsersPlaylist() {
 
 function createPlaylists(parseJson, autoContinue) {
     if (isEmpty(parseJson) || isEmpty(parseJson.items)) {
-        adapter.log.warn('no playlist content');
+        adapter.log.debug('no playlist content');
         return Promise.reject('no playlist content');
     }
     var fn = function(item) {
@@ -1105,7 +1111,7 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
     };
     var regParam = owner + '/playlists/' + id + '/tracks';
     var query = {
-        fields: 'items.track.name,items.track.id,items.track.artists.name,total,offset',
+        fields: 'items.track.name,items.track.id,items.track.artists.name,total,offset,items.track.duration_ms',
         limit: 100,
         offset: offset
     };
@@ -1116,6 +1122,7 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                 var no = i.toString();
                 var artist = getArtistNamesOrDefault(item, 'track.artists');
                 var trackName = loadOrDefault(item, 'track.name', '');
+                var trackDuration = loadOrDefault(item, 'track.duration_ms', '');
                 var trackId = loadOrDefault(item, 'track.id', '');
                 if (isEmpty(trackId)) {
                     adapter.log.debug(
@@ -1139,7 +1146,8 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                 var a = {
                     id: trackId,
                     title: trackName,
-                    artist: artist
+                    artist: artist,
+                    duration: trackDuration
                 };
                 playlistObject.songs.push(a);
                 i++;
@@ -1217,17 +1225,23 @@ function getIconByType(type) {
 
 function createDevices(data) {
     if (isEmpty(data) || isEmpty(data.devices)) {
-        adapter.log.warn('no device content')
+        adapter.log.debug('no device content')
         return Promise.reject('no device content');
     }
     var fn = function(device) {
         var deviceId = loadOrDefault(device, 'id', '');
-        if (isEmpty(deviceId)) {
-            adapter.log.warn('empty device id')
-            return Promise.reject('empty device id');
-        }
         var deviceName = loadOrDefault(device, 'name', '');
-        var prefix = 'devices.' + shrinkStateName(deviceId);
+        if (isEmpty(deviceName)) {
+        	adapter.log.warn('empty device name')
+        	return Promise.reject('empty device name');
+        }
+        var name = '';
+        if(deviceId != null) {
+        	name = shrinkStateName(deviceId);
+        } else {
+        	name = shrinkStateName(deviceName);
+        }
+        var prefix = 'devices.' + name;
         return Promise.all([
             setObjectNotExists(prefix, {
                 type: 'device',
