@@ -433,6 +433,20 @@ function shrinkStateName(v) {
     return n;
 }
 
+function getArtistArrayOrDefault(data, name) {
+    var ret = [];
+    for (var i = 0; i < 100; i++) {
+        var artistName = loadOrDefault(data, name + '[' + i + '].name', '');
+        var artistId = loadOrDefault(data, name + '[' + i + '].id', '');
+        if (!isEmpty(artistName) && !isEmpty(artistId)) {
+            ret.push({id: artistId, name: artistName});
+        } else {
+            break;
+        }
+    }
+    return ret;
+}
+
 function getArtistNamesOrDefault(data, name) {
     var ret = '';
     for (var i = 0; i < 100; i++) {
@@ -509,7 +523,7 @@ function copyObjectStates(src, dst) {
 
 function createPlaybackInfo(data) {
     if (isEmpty(data)) {
-        adapter.log.warn('no playback content');
+        adapter.log.debug('no playback content');
         return Promise.reject('no playback content');
     }
     var deviceId = loadOrDefault(data, 'device.id', '');
@@ -1047,7 +1061,7 @@ function createPlaylists(parseJson, autoContinue) {
                         'string'),
                     createOrDefault(playlistObject, 'songs', prefix +
                         '.trackListArray', '',
-                        'contains list of tracks as array object, pattern: [{id: "id", title: "title", artist: "artist"}, {id: "id", title: "title", artist: "artist"},...]',
+                        'contains list of tracks as array object, pattern:\n[{id: "id",\ntitle: "title",\nartistName: "artistName1, artistName2",\nartistArray: [{id: "artistId", name: "artistName"}, {id: "artistId", name: "artistName"}, ...],\nalbum: {id: "albumId", name: "albumName"},\nduration: 253844,\naddedAt: 15395478261235,\naddedBy: "userId",\ndiscNumber: 1,\nepisode: false,\nexplicit: false,\npopularity: 56\n}, ...]',
                         'object')
                 ]);
             });
@@ -1111,7 +1125,7 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
     };
     var regParam = owner + '/playlists/' + id + '/tracks';
     var query = {
-        fields: 'items.track.name,items.track.id,items.track.artists.name,total,offset,items.track.duration_ms',
+        fields: 'total,offset,items(added_at,added_by.id,track(name,id,artists(name,id),duration_ms,album(name,id),disc_number,episode,explicit,popularity))',
         limit: 100,
         offset: offset
     };
@@ -1121,15 +1135,24 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
             data.items.forEach(function(item) {
                 var no = i.toString();
                 var artist = getArtistNamesOrDefault(item, 'track.artists');
+                var artistArray = getArtistArrayOrDefault(item, 'track.artists');
                 var trackName = loadOrDefault(item, 'track.name', '');
                 var trackDuration = loadOrDefault(item, 'track.duration_ms', '');
                 var trackId = loadOrDefault(item, 'track.id', '');
                 if (isEmpty(trackId)) {
-                    adapter.log.debug(
-                        'There was a playlist track ignored because of missing id; playlist: ' +
-                        id + '; track name: ' + trackName);
-                    return;
+                	adapter.log.debug(
+                			'There was a playlist track ignored because of missing id; playlist: ' +
+                			id + '; track name: ' + trackName);
+                	return;
                 }
+                var addedAt = loadOrDefault(item, 'added_at', '');
+                var addedBy = loadOrDefault(item, 'added_by.id', '');
+                var trackAlbumId = loadOrDefault(item, 'track.album.id', '');
+                var trackAlbumName = loadOrDefault(item, 'track.album.name', '');
+                var trackDiscNumber = loadOrDefault(item, 'track.disc_number', 1);
+                var trackEpisode = loadOrDefault(item, 'track.episode', false);
+                var trackExplicit = loadOrDefault(item, 'track.explicit', false);
+                var trackPopularity = loadOrDefault(item, 'track.popularity', 0);
                 if (playlistObject.songs.length > 0) {
                     playlistObject.stateString += ';';
                     playlistObject.listString += ';';
@@ -1146,8 +1169,16 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                 var a = {
                     id: trackId,
                     title: trackName,
-                    artist: artist,
-                    duration: trackDuration
+                    artistName: artist,
+                    artistArray: artistArray,
+                    album: {id: trackAlbumId, name: trackAlbumName},
+                    duration: trackDuration,
+                    addedAt: addedAt,
+                    addedBy: addedBy,
+                    discNumber: trackDiscNumber,
+                    episode: trackEpisode,
+                    explicit: trackExplicit,
+                    popularity: trackPopularity
                 };
                 playlistObject.songs.push(a);
                 i++;
