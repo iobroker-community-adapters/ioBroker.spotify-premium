@@ -1,8 +1,16 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.3.1",
+        "version": "0.4.0",
         "news": {
+        	"0.4.0": {
+                "en": "",
+                "de": "",
+                "ru": "",
+                "pt": "",
+                "fr": "",
+                "nl": ""
+            },
         	"0.3.1": {
                 "en": "Fix: state 'playlists.playlistList' doesn't refresh after the playlist changed via app",
                 "de": "Behoben: state 'playlists.playlistList' wird nicht aktualisiert wenn die Playlist via App geändert wurde",
@@ -267,26 +275,10 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo",
-            "type": "channel",
-            "common": {
-                "name": "Read only information of playback"
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.playlist",
-            "type": "channel",
-            "common": {
-                "name": "Read only information of current playlist"
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.device",
+            "_id": "player.device",
             "type": "device",
             "common": {
-                "name": "Read only information of current active device"
+                "name": "Commands to control playback related to the current active device"
             },
             "native": {}
         },
@@ -552,7 +544,7 @@
             "type": "state",
             "common": {
                 "role": "value",
-                "name": "set track no of playlist to play this track",
+                "name": "set track no of playlist to play this track; 0-based, put 0 for the first track",
                 "type": "number",
                 "read": true,
                 "write": true
@@ -768,19 +760,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.trackId",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "track id",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.artistName",
+            "_id": "player.artistName",
             "type": "state",
             "common": {
                 "role": "value",
@@ -792,7 +772,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.artistImageUrl",
+            "_id": "player.artistImageUrl",
             "type": "state",
             "common": {
                 "role": "value",
@@ -804,7 +784,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.type",
+            "_id": "player.type",
             "type": "state",
             "common": {
                 "role": "value",
@@ -817,7 +797,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.contextDescription",
+            "_id": "player.contextDescription",
             "type": "state",
             "common": {
                 "role": "value",
@@ -829,7 +809,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.contextImageUrl",
+            "_id": "player.contextImageUrl",
             "type": "state",
             "common": {
                 "role": "value",
@@ -841,7 +821,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.album",
+            "_id": "player.album",
             "type": "state",
             "common": {
                 "role": "value",
@@ -853,43 +833,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.timestamp",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "timestamp",
-                "type": "number",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.progressMs",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "progress in ms",
-                "type": "number",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.progressPercentage",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "progress in %",
-                "type": "number",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.progress",
+            "_id": "player.progress",
             "type": "state",
             "common": {
                 "role": "value",
@@ -901,7 +845,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.isPlaying",
+            "_id": "player.isPlaying",
             "type": "state",
             "common": {
                 "role": "value",
@@ -913,7 +857,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.albumImageUrl",
+            "_id": "player.albumImageUrl",
             "type": "state",
             "common": {
                 "role": "value",
@@ -925,7 +869,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.trackName",
+            "_id": "player.trackName",
             "type": "state",
             "common": {
                 "role": "value",
@@ -937,7 +881,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.durationMs",
+            "_id": "player.durationMs",
             "type": "state",
             "common": {
                 "role": "value",
@@ -949,7 +893,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.duration",
+            "_id": "player.duration",
             "type": "state",
             "common": {
                 "role": "value",
@@ -961,19 +905,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.id",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "playlist id",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.playlist.name",
+            "_id": "player.playlist.name",
             "type": "state",
             "common": {
                 "role": "value",
@@ -985,19 +917,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.owner",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "playlist owner",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.playlist.tracksTotal",
+            "_id": "player.playlist.tracksTotal",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1009,7 +929,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.imageUrl",
+            "_id": "player.playlist.imageUrl",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1021,7 +941,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.trackList",
+            "_id": "player.playlist.trackList",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1033,7 +953,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.trackListNumber",
+            "_id": "player.playlist.trackListNumber",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1045,7 +965,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.trackListString",
+            "_id": "player.playlist.trackListString",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1057,7 +977,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.trackListStates",
+            "_id": "player.playlist.trackListStates",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1069,7 +989,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.trackListIdMap",
+            "_id": "player.playlist.trackListIdMap",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1081,7 +1001,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.trackListIds",
+            "_id": "player.playlist.trackListIds",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1093,7 +1013,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.trackListArray",
+            "_id": "player.playlist.trackListArray",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1105,46 +1025,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.playlist.trackNo",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "position of current playing track",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.shuffle",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "shuffle",
-                "type": "boolean",
-                "read": true,
-                "write": false,
-                "icon": "icons/shuffle_off.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.repeat",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "repeat mode",
-                "type": "string",
-                "read": true,
-                "write": false,
-                "states": "{\"off\": \"no repeat\",\"context\": \"context, e.g. playlist\",\"track\": \"one track\"}",
-                "icon": "icons/repeat_off.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "playbackInfo.device.id",
+            "_id": "player.device.id",
             "type": "state",
             "common": {
                 "role": "id",
@@ -1156,7 +1037,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.device.isActive",
+            "_id": "player.device.isActive",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1168,7 +1049,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.device.isAvailable",
+            "_id": "player.device.isAvailable",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1180,7 +1061,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.device.isRestricted",
+            "_id": "player.device.isRestricted",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1192,7 +1073,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.device.name",
+            "_id": "player.device.name",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1204,7 +1085,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.device.type",
+            "_id": "player.device.type",
             "type": "state",
             "common": {
                 "role": "value",
@@ -1217,7 +1098,7 @@
             "native": {}
         },
         {
-            "_id": "playbackInfo.device.volume",
+            "_id": "player.device.volume",
             "type": "state",
             "common": {
                 "role": "value",
