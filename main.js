@@ -1132,7 +1132,7 @@ function createPlaylists(parseJson, autoContinue) {
                         'string'),
                     createOrDefault(playlistObject, 'songs', prefix +
                         '.trackListArray', '',
-                        'contains list of tracks as array object, pattern:\n[{id: "id",\ntitle: "title",\nartistName: "artistName1, artistName2",\nartistArray: [{id: "artistId", name: "artistName"}, {id: "artistId", name: "artistName"}, ...],\nalbum: {id: "albumId", name: "albumName"},\nduration: 253844,\naddedAt: 15395478261235,\naddedBy: "userId",\ndiscNumber: 1,\nepisode: false,\nexplicit: false,\npopularity: 56\n}, ...]',
+                        'contains list of tracks as array object, pattern:\n[{id: "id",\ntitle: "title",\nartistName: "artistName1, artistName2",\nartistArray: [{id: "artistId", name: "artistName"}, {id: "artistId", name: "artistName"}, ...],\nalbum: {id: "albumId", name: "albumName"},\ndurationMs: 253844,\nduration: 4:13,\naddedAt: 15395478261235,\naddedBy: "userId",\ndiscNumber: 1,\nepisode: false,\nexplicit: false,\npopularity: 56\n}, ...]',
                         'object')
                 ]);
             });
@@ -1243,7 +1243,8 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                     artistName: artist,
                     artistArray: artistArray,
                     album: {id: trackAlbumId, name: trackAlbumName},
-                    duration: trackDuration,
+                    durationMs: trackDuration,
+                    duration: convertToDigiClock(trackDuration),
                     addedAt: addedAt,
                     addedBy: addedBy,
                     discNumber: trackDiscNumber,
