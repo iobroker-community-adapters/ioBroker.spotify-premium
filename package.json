@@ -28,6 +28,7 @@
     "url": "https://github.com/twonky4/ioBroker.spotify-premium"
   },
   "dependencies": {
+    "@iobroker/adapter-core": "^1.0.1",
     "request": "2.83.0",
     "querystring": "0.2.0",
     "promise": "8.0.1"

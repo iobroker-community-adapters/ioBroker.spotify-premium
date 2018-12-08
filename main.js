@@ -2,10 +2,10 @@
 // jshint strict:false
 /*jslint node: true */
 'use strict';
-var utils = require(__dirname + '/lib/utils');
+const utils = require('@iobroker/adapter-core');
+const adapter = utils.adapter('spotify-premium');
 var querystring = require('querystring');
 var Promise = require('promise');
-var adapter = new utils.Adapter('spotify-premium');
 var request = Promise.denodeify(require('request'));
 var artistImageUrlCache = {};
 var playlistCache = {};
