@@ -439,7 +439,7 @@ function createPlaybackInfo(data) {
         cache.set('player.progress', {val: convertToDigiClock(progress), ack: true}),
         cache.set('player.shuffle', {val: (shuffle ? 'on' : 'off'), ack: true}),
         setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
-        setOrDefault(data, 'device.volume_percent', 'player.volume', 100),
+        setOrDefault(data, 'device.volume_percent', 'player.device.volume', 100),
     ]).then(function() {
         if (deviceName) {
             deviceData.lastActiveDeviceId = deviceId;
@@ -471,6 +471,8 @@ function createPlaybackInfo(data) {
                         type: deviceType,
                         volume_percent: deviceVolume
                     }]
+                }).then(function() {
+                	return refreshDeviceList();
                 });
             });
         } else {
@@ -560,6 +562,7 @@ function createPlaybackInfo(data) {
                             total: trackCount
                         }
                     };
+
                     return Promise.all([
                     	cache.set('player.playlist.owner', {val: ownerId, ack: true}),
                     	cache.set('player.playlist.tracksTotal', {val: trackCount, ack: true}),
@@ -983,35 +986,53 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
 }
 
 function reloadDevices(data) {
-    if (application.deleteDevices) {
-        return deleteDevices().then(function() {
-            return createDevices(data);
-        });
-    } else {
-        return disableDevices().then(function() {
-            return createDevices(data);
-        });
-    }
+	return createDevices(data).then(function (addedList) {
+		let p;
+		if (application.deleteDevices) {
+			p = deleteDevices(addedList);
+	    } else {
+	    	p = disableDevices(addedList);
+	    }
+		return p.then(function() {
+			return refreshDeviceList();
+		})
+	})
 }
 
-function disableDevices() {
+function disableDevices(addedList) {
 	let states = cache.get('devices.*');
 	let keys = Object.keys(states);
 	let fn = function(key) {
         key = removeNameSpace(key);
-        if (key.endsWith('.isAvailable')) {
+        let found = false;
+        for(let i = 0; i < addedList.length; i++) {
+        	if(key.startsWith(addedList[i])) {
+        		found = true;
+        		break;
+        	}
+        }
+        if (!found && key.endsWith('.isAvailable')) {
             return cache.set(key, {val: false, ack: true});
         }
     };
     return Promise.all(keys.map(fn));
 }
 
-function deleteDevices() {
+function deleteDevices(addedList) {
 	let states = cache.get('devices.*');
     let keys = Object.keys(states);
     let fn = function(key) {
         key = removeNameSpace(key);
-        if (key != 'devices.deviceList' &&
+        let found = false;
+        for(let i = 0; i < addedList.length; i++) {
+        	if(key.startsWith(addedList[i])) {
+        		found = true;
+        		break;
+        	}
+        }
+
+        if (!found &&
+        	key != 'devices.deviceList' &&
             key != 'devices.deviceListIds' &&
             key != 'devices.deviceListString' &&
             key != 'devices.availableDeviceListIds' &&
@@ -1041,6 +1062,7 @@ function createDevices(data) {
         adapter.log.debug('no device content')
         return Promise.reject('no device content');
     }
+    let addedList = [];
     let fn = function(device) {
     	let deviceId = loadOrDefault(device, 'id', '');
     	let deviceName = loadOrDefault(device, 'name', '');
@@ -1055,6 +1077,26 @@ function createDevices(data) {
         	name = shrinkStateName(deviceName);
         }
         let prefix = 'devices.' + name;
+        addedList.push(prefix);
+
+        let isRestricted = loadOrDefault(device, 'is_restricted', false);
+        let useForPlayback;
+        if(!isRestricted) {
+        	useForPlayback = cache.set(prefix + '.useForPlayback', {val: false, ack: true}, {
+        		type: 'state',
+        		common: {
+        			name: 'press to use device for playback (only for non restricted devices)',
+        			type: 'boolean',
+        			role: 'button',
+        			read: false,
+        			write: true,
+        			icon: 'icons/play.png'
+        		},
+        		native: {}
+        	});
+        } else {
+        	useForPlayback = cache.delObject(prefix + '.useForPlayback');
+        }
         return Promise.all([
         	cache.set(prefix, null, {
                 type: 'device',
@@ -1065,43 +1107,30 @@ function createDevices(data) {
                 native: {}
             }),
             createOrDefault(device, 'id', prefix + '.id', '', 'device id', 'string'),
-            createOrDefault(device, 'is_active', prefix + '.isActive', false,
-                'current active device', 'boolean'),
-            createOrDefault(device, 'is_restricted', prefix + '.isRestricted', false,
-                'restricted', 'boolean'),
+            createOrDefault(device, 'is_active', prefix + '.isActive', false, 'current active device', 'boolean'),
+            createOrDefault(device, 'is_restricted', prefix + '.isRestricted', false, 'it is not possible to control restricted devices with the adapter', 'boolean'),
             createOrDefault(device, 'name', prefix + '.name', '', 'device name', 'string'),
             createOrDefault(device, 'type', prefix + '.type', 'Speaker', 'device type', 'string',
                 "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"
             ),
             createOrDefault(device, 'volume_percent', prefix + '.volume', '', 'volume in percent',
                 'number'),
-            cache.set(prefix + '.useForPlayback', {val: false, ack: true}, {
-                type: 'state',
-                common: {
-                    name: 'press to use device for playback',
-                    type: 'boolean',
-                    role: 'button',
-                    read: false,
-                    write: true,
-                    icon: 'icons/play.png'
-                },
-                native: {}
-            }),
             cache.set(prefix + '.isAvailable', {val: true, ack: true}, {
-                type: 'state',
-                common: {
-                    name: 'can used for playing',
-                    type: 'boolean',
-                    role: 'value',
-                    read: true,
-                    write: false
-                },
-                native: {}
-            })
+            	type: 'state',
+            	common: {
+            		name: 'can used for playing',
+            		type: 'boolean',
+            		role: 'value',
+            		read: true,
+            		write: false
+            	},
+            	native: {}
+            }),
+            useForPlayback
         ]);
     };
     return Promise.all(data.devices.map(fn)).then(function() {
-        return refreshDeviceList();
+        return addedList;
     });
 }
 
@@ -1154,16 +1183,12 @@ function refreshPlaylistList() {
             cache.set('playlists.yourPlaylistListString',
                 {val: yourString})
         ]).then(function() {
-        	let state = cache.get('player.playlist.id');
-        	let id = state.val;
+        	let id = cache.get('player.playlist.id').val;
             if (id) {
-                return cache.get('player.playlist.owner').then(
-                    function(state) {
-                        let owner = state.val;
-                        if (owner) {
-                            return cache.set('playlists.playlistList', {val: owner + '-' + id});
-                        }
-                    });
+            	let owner = cache.get('player.playlist.owner').val;
+                if (owner) {
+                    return cache.set('playlists.playlistList', {val: owner + '-' + id});
+                }
             }
         });
     });
@@ -1836,7 +1861,7 @@ cache.on('player.repeat', listenOnRepeat, true);
 cache.on('player.repeatTrack', listenOnRepeatTrack);
 cache.on('player.repeatContext', listenOnRepeatContext);
 cache.on('player.repeatOff', listenOnRepeatOff);
-cache.on('player.volume', listenOnVolume, true);
+cache.on('player.device.volume', listenOnVolume, true);
 cache.on('player.progressMs', listenOnProgressMs, true);
 cache.on('player.progressPercentage', listenOnProgressPercentage, true);
 cache.on('player.shuffle', listenOnShuffle, 'on');

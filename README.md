@@ -87,10 +87,11 @@ Click for widget source.
 
 ### 0.4.0 (2018.12.03)
 * (twonky) `playbackInfo` and `player` merged together to `player`
+* (twonky) `player.volume` moved to `player.device.volume`
 * (twonky) The `duration` format of `player.playlist.trackListArray` and `playlists.[playListName].trackListArray` was changed from milliseconds to time (MM:SS) and a new one was created for this `durationMs`.
 * (twonky) The `album` of `player.playlist.trackListArray` and `playlists.[playListName].trackListArray` was changed to `artistName` and `artistArray`.
 * (twonky) Several data was added to `player.playlist.trackListArray` and `playlists.[playListName].trackListArray`: `album`, `addedAt`, `addedBy`, `discNumber`, `episode`, `explicit` and `popularity`
-* (twonky) performance optimization (states are only set on change)
+* (twonky) performance optimization (states/objects are only set on change)
 
 ### 0.3.1 (2018.06.20)
 * (twonky) Fix: state playlists.playlistList doesn't refresh after the playlist changed via app
