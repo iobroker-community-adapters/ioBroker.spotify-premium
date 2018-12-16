@@ -102,22 +102,26 @@ function start() {
             return sendRequest('/v1/me', 'GET', '')
                 .then(function(data) {
                     return setUserInformation(data).then(function() {
-                        return cache.set('authorization.authorized', {val: true, ack: true})
-                            .then(function() {
-                                return listenOnGetPlaybackInfo().catch(function() {});
-                            })
-                            .then(function() {
-                                return reloadUsersPlaylist().catch(function() {});
-                            })
-                            .then(function() {
-                                return listenOnGetDevices().catch(function() {});
-                            });
+                        return Promise.all([
+                        	cache.set('authorization.authorized', {val: true, ack: true}),
+                        	cache.set('info.connection', {val: true, ack: true})
+                        ]).then(function() {
+                            return listenOnGetPlaybackInfo().catch(function() {});
+                        }).then(function() {
+                            return reloadUsersPlaylist().catch(function() {});
+                        }).then(function() {
+                            return listenOnGetDevices().catch(function() {});
+                        });
                     })
                 });
         })
         .catch(function(err) {
             adapter.log.warn(err);
-            return cache.set('authorization.authorized', {val: false, ack: true});
+            
+            return Promise.all([
+            	cache.set('authorization.authorized', {val: false, ack: true}),
+            	cache.set('info.connection', {val: false, ack: true})
+            ]);
         });
 }
 
@@ -193,10 +197,15 @@ function sendRequest(endpoint, method, sendBody) {
                     // Unauthorized
                     if (parsedBody.error.message == 'The access token expired') {
                         adapter.log.debug('access token expired!');
-                        ret = cache.set('authorization.authorized', {val: false, ack: true})
-                            .then(function() {
+                        ret = Promise.all([
+                        	cache.set('authorization.authorized', {val: false, ack: true}),
+                        	cache.set('info.connection', {val: false, ack: true})
+                        ]).then(function() {
                                 return refreshToken().then(function() {
-                                    return cache.set('authorization.authorized', {val: true, ack: true}).then(
+                                    return Promise.all([
+                                    	cache.set('authorization.authorized', {val: true, ack: true}),
+                                    	cache.set('info.connection', {val: true, ack: true})
+                                    ]).then(
                                         function() {
                                             return sendRequest(endpoint, method, sendBody)
                                                 .then(function(data) {
@@ -224,8 +233,10 @@ function sendRequest(endpoint, method, sendBody) {
                             });
                     } else {
                         // if other error with code 401
-                        ret = cache.set('authorization.authorized', {val: false, ack: true})
-                            .then(function() {
+                        ret = Promise.all([
+                        	cache.set('authorization.authorized', {val: false, ack: true}),
+                        	cache.set('info.connection', {val: false, ack: true})
+                        ]).then(function() {
                                 adapter.log.error(parsedBody.error.message);
                                 return Promise.reject(response.statusCode);
                             });
@@ -1329,7 +1340,8 @@ function getToken() {
                 return Promise.all([
                 	cache.set('authorization.authorizationUrl', {val: '', ack: true}),
                 	cache.set('authorization.authorizationReturnUri', {val: '', ack: true}),
-                	cache.set('authorization.authorized', {val: true, ack: true})
+                	cache.set('authorization.authorized', {val: true, ack: true}),
+                	cache.set('info.connection', {val: true, ack: true})
                 ]).then(function() {
                     application.token = tokenObj.accessToken;
                     application.refreshToken = tokenObj.refreshToken;
@@ -1607,7 +1619,8 @@ function listenOnGetAuthorization() {
     return Promise.all([
     	cache.set('authorization.state', {val: state, ack: true}),
     	cache.set('authorization.authorizationUrl', {val: options.url, ack: true}),
-    	cache.set('authorization.authorized', {val: false, ack: true})
+    	cache.set('authorization.authorized', {val: false, ack: true}),
+    	cache.set('info.connection', {val: false, ack: true})
     ]);
 }
 
@@ -1918,7 +1931,8 @@ adapter.on('unload', function(callback) {
     	cache.set('player.playlist.id', {val: '', ack: true}),
     	cache.set('player.playlist.trackNo', {val: '', ack: true}),
     	cache.set('player.playlist.owner', {val: '', ack: true}),
-    	cache.set('authorization.authorized', {val: false, ack: true})
+    	cache.set('authorization.authorized', {val: false, ack: true}),
+    	cache.set('info.connection', {val: false, ack: true})
     ]).then(function() {
         if ('undefined' !== typeof application.statusPollingHandle) {
             clearTimeout(application.statusPollingHandle);

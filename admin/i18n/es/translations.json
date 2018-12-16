@@ -5,7 +5,7 @@
   "deleteDevices": "Eliminar dispositivos que ya no existen",
   "deletePlaylists": "Eliminar listas de reproducción ya no existentes",
   "keepShuffleState": "En algunos dispositivos, la reproducción aleatoria siempre se desactivará si se inicia una lista de reproducción. Con esta opción, se utiliza una solución alternativa para evitar este comportamiento.",
-  "statusInterval": "Intervalo de actualización para información de estado. (en segundos, recomendado 5, 0 = deshabilitado)",
+  "statusInterval": "Intervalo de actualización para información de estado. (en segundos, recomendado 10, 0 = deshabilitado). Solo es necesario si controla Spotify en dispositivos aparte del adaptador.",
   "deviceInterval": "Intervalo de actualización para la información del dispositivo. (en minutos, recomendado 5, 0 = deshabilitado)",
   "playlistInterval": "Intervalo de actualización para la información de la lista de reproducción. (en minutos, recomendado 15, 0 = deshabilitado)",
   "manual1": "Regístrese también https://developer.spotify.com",
