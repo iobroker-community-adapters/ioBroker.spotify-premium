@@ -858,7 +858,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
                             name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track. First track is 0',
                             type: 'number',
                             role: 'value',
-                            states: playlistObject.stateString,
+                            states: loadOrDefault(playlistObject, 'stateString', ''),
                             read: true,
                             write: true
                         },
@@ -892,9 +892,21 @@ function createPlaylists(parseJson, autoContinue, addedList) {
             });
         });
     };
-    return Promise.all(parseJson.items.map(fn)).then(function() {
+
+    let p = Promise.resolve();
+    for(let i = 0; i < parseJson.items.length; i++) {
+    	p = p.then(function() {
+    		return new Promise(function(resolve) {
+                setTimeout(resolve, 1000);
+            }).then(function () {
+            	return fn(parseJson.items[i]);
+            })
+    	});
+    }
+    
+    return p.then(function() {
         if (autoContinue && parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
-            return getUsersPlaylist(parseJson.offset + parseJson.limit, addedList);
+        	return getUsersPlaylist(parseJson.offset + parseJson.limit, addedList);
         } else {
         	return addedList;
         }
@@ -1015,7 +1027,11 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                 i++;
             });
             if (offset + 100 < data.total) {
-                return getPlaylistTracks(owner, id, offset + 100, playlistObject);
+                return new Promise(function(resolve) {
+                    setTimeout(resolve, 1000);
+                }).then(function () {
+                	return getPlaylistTracks(owner, id, offset + 100, playlistObject);
+                });
             } else {
                 return Promise.resolve(playlistObject);
             }
