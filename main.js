@@ -632,8 +632,7 @@ function createPlaybackInfo(data) {
                                 'no ids in trackListIds'
                             );
                         }
-                        let stateName = ids.split(
-                            ';');
+                        let stateName = ids.split(';');
                         let stateArr = [];
                         for (let i = 0; i < stateName.length; i++) {
                         	let ele = stateName[i].split(':');
@@ -641,7 +640,7 @@ function createPlaybackInfo(data) {
                         }
                         if (stateArr[songId] !== '' && (stateArr[songId] !== null)) {
                             return Promise.all([
-                            	cache.set(
+                                cache.set(
                                     'playlists.' + prefix + '.trackList',
                                     {val: stateArr[
                                         songId
@@ -727,25 +726,30 @@ function setUserInformation(data) {
 }
 
 function reloadUsersPlaylist() {
-	let r;
-    if (application.deletePlaylists) {
-        r = deleteUsersPlaylist().then(function() {
-            return getUsersPlaylist(0);
-        });
-    } else {
-        r = getUsersPlaylist(0);
-    }
-    return r.then(function() {
-        return refreshPlaylistList();
-    });
+	return getUsersPlaylist(0).then(function (addedList) {
+	    if (application.deletePlaylists) {
+	        return deleteUsersPlaylist(addedList);
+	    }
+	}).then(function() {
+		return refreshPlaylistList();
+	});
 }
 
-function deleteUsersPlaylist() {
+function deleteUsersPlaylist(addedList) {
 	let states = cache.get('playlists.*');
     let keys = Object.keys(states);
     let fn = function(key) {
         key = removeNameSpace(key);
-        if (key != 'playlists.playlistList' &&
+        let found = false;
+        for(let i = 0; i < addedList.length; i++) {
+        	if(key.startsWith(addedList[i])) {
+        		found = true;
+        		break;
+        	}
+        }
+
+        if (!found &&
+        	key != 'playlists.playlistList' &&
             key != 'playlists.playlistListIds' &&
             key != 'playlists.playlistListString' &&
             key != 'playlists.yourPlaylistListIds' &&
@@ -760,7 +764,7 @@ function deleteUsersPlaylist() {
     return Promise.all(keys.map(fn));
 }
 
-function createPlaylists(parseJson, autoContinue) {
+function createPlaylists(parseJson, autoContinue, addedList) {
     if (isEmpty(parseJson) || isEmpty(parseJson.items)) {
         adapter.log.debug('no playlist content');
         return Promise.reject('no playlist content');
@@ -788,7 +792,10 @@ function createPlaylists(parseJson, autoContinue) {
                 total: trackCount
             }
         };
+
         let prefix = 'playlists.' + shrinkStateName(ownerId + '-' + playlistId);
+        addedList.push(prefix);
+
         return Promise.all([
         	cache.set(prefix, null, {
                 type: 'channel',
@@ -815,10 +822,26 @@ function createPlaylists(parseJson, autoContinue) {
             createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs', 'number'),
             createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url', 'string')
         ]).then(function() {
-            return getPlaylistTracks(ownerId, playlistId, 0).then(function(
-                playlistObject) {
+            return getPlaylistTracks(ownerId, playlistId, 0).then(function(playlistObject) {
+            	let trackListValue = '';
+            	let currentPlaylistId = cache.get('player.playlist.id').val;
+            	let currentPlaylistOwnerId = cache.get('player.playlist.owner').val;
+            	let songId = cache.get('player.trackId').val;
+
+            	if(ownerId + '-' + playlistId == currentPlaylistOwnerId + '-' + currentPlaylistId) {
+	                let stateName = playlistObject.trackIds.split(';');
+	                let stateArr = [];
+	                for (let i = 0; i < stateName.length; i++) {
+	                	let ele = stateName[i].split(':');
+	                    stateArr[ele[1]] = ele[0];
+	                }
+	                if (stateArr[songId] !== '' && (stateArr[songId] !== null)) {
+	                	trackListValue = stateArr[songId];
+	                }
+            	}
+
                 return Promise.all([
-                	cache.set(prefix + '.trackList', {val: '', ack: true}, {
+                	cache.set(prefix + '.trackList', {val: trackListValue, ack: true}, {
                         type: 'state',
                         common: {
                             name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track. First track is 0',
@@ -860,12 +883,17 @@ function createPlaylists(parseJson, autoContinue) {
     };
     return Promise.all(parseJson.items.map(fn)).then(function() {
         if (autoContinue && parseJson.items.length !== 0 && (parseJson['next'] !== null)) {
-            return getUsersPlaylist(parseJson.offset + parseJson.limit);
+            return getUsersPlaylist(parseJson.offset + parseJson.limit, addedList);
+        } else {
+        	return addedList;
         }
     });
 }
 
-function getUsersPlaylist(offset) {
+function getUsersPlaylist(offset, addedList) {
+	if (addedList === undefined) {
+		addedList = [];
+	}
     if (!isEmpty(application.userId)) {
     	let query = {
             limit: 30,
@@ -874,7 +902,7 @@ function getUsersPlaylist(offset) {
         return sendRequest('/v1/users/' + application.userId + '/playlists?' +
             querystring.stringify(query), 'GET', '').then(
             function(parsedJson) {
-                return createPlaylists(parsedJson, true);
+                return createPlaylists(parsedJson, true, addedList);
             }
         ).catch(function(err) {
             adapter.log.error('playlist error ' + err);
