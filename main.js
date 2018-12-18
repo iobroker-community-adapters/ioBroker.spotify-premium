@@ -103,8 +103,8 @@ function start() {
                 .then(function(data) {
                     return setUserInformation(data).then(function() {
                         return Promise.all([
-                        	cache.set('authorization.authorized', {val: true, ack: true}),
-                        	cache.set('info.connection', {val: true, ack: true})
+                        	cache.set('authorization.authorized', true),
+                        	cache.set('info.connection', true)
                         ]).then(function() {
                             return listenOnGetPlaybackInfo().catch(function() {});
                         }).then(function() {
@@ -119,8 +119,8 @@ function start() {
             adapter.log.warn(err);
             
             return Promise.all([
-            	cache.set('authorization.authorized', {val: false, ack: true}),
-            	cache.set('info.connection', {val: false, ack: true})
+            	cache.set('authorization.authorized', false),
+            	cache.set('info.connection', false)
             ]);
         });
 }
@@ -198,13 +198,13 @@ function sendRequest(endpoint, method, sendBody) {
                     if (parsedBody.error.message == 'The access token expired') {
                         adapter.log.debug('access token expired!');
                         ret = Promise.all([
-                        	cache.set('authorization.authorized', {val: false, ack: true}),
-                        	cache.set('info.connection', {val: false, ack: true})
+                        	cache.set('authorization.authorized', false),
+                        	cache.set('info.connection', false)
                         ]).then(function() {
                                 return refreshToken().then(function() {
                                     return Promise.all([
-                                    	cache.set('authorization.authorized', {val: true, ack: true}),
-                                    	cache.set('info.connection', {val: true, ack: true})
+                                    	cache.set('authorization.authorized', true),
+                                    	cache.set('info.connection', true)
                                     ]).then(
                                         function() {
                                             return sendRequest(endpoint, method, sendBody)
@@ -234,8 +234,8 @@ function sendRequest(endpoint, method, sendBody) {
                     } else {
                         // if other error with code 401
                         ret = Promise.all([
-                        	cache.set('authorization.authorized', {val: false, ack: true}),
-                        	cache.set('info.connection', {val: false, ack: true})
+                        	cache.set('authorization.authorized', false),
+                        	cache.set('info.connection', false)
                         ]).then(function() {
                                 adapter.log.error(parsedBody.error.message);
                                 return Promise.reject(response.statusCode);
@@ -298,12 +298,12 @@ function createOrDefault(obj, name, state, defaultVal, description, type, states
     if (!isEmpty(states)) {
         object.states = states;
     }
-    return cache.set(state, {val: t, ack: true}, object);
+    return cache.set(state, t, object);
 }
 
 function setOrDefault(obj, name, state, defaultVal) {
 	let t = loadOrDefault(obj, name, defaultVal);
-    return cache.set(state, {val: t, ack: true});
+    return cache.set(state, t);
 }
 
 function shrinkStateName(v) {
@@ -375,7 +375,7 @@ function setObjectStatesIfChanged(id, states) {
 }
 
 function copyState(src, dst) {
-    return cache.set(dst, {val: cache.get(src).val});
+    return cache.set(dst, cache.get(src).val);
 }
 
 function copyObjectStates(src, dst) {
@@ -421,13 +421,13 @@ function createPlaybackInfo(data) {
     }
     let shuffle = loadOrDefault(data, 'shuffle_state', false);
     Promise.all([
-    	cache.set('player.device.id', {val: deviceId, ack: true}),
-    	cache.set('player.device.isActive', {val: isDeviceActive, ack: true}),
-    	cache.set('player.device.isRestricted', {val: isDeviceRestricted, ack: true}),
-    	cache.set('player.device.name', {val: deviceName, ack: true}),
-    	cache.set('player.device.type', {val: deviceType, ack: true}),
-    	cache.set('player.device.volume', {val: deviceVolume, ack: true}),
-    	cache.set('player.device.isAvailable', {val: true, ack: true}),
+    	cache.set('player.device.id', deviceId),
+    	cache.set('player.device.isActive', isDeviceActive),
+    	cache.set('player.device.isRestricted', isDeviceRestricted),
+    	cache.set('player.device.name', deviceName),
+    	cache.set('player.device.type', deviceType),
+    	cache.set('player.device.volume', deviceVolume),
+    	cache.set('player.device.isAvailable', true),
     	cache.set('player.device', null, {
             type: 'device',
             common: {
@@ -436,19 +436,19 @@ function createPlaybackInfo(data) {
             },
             native: {}
         }),
-        cache.set('player.isPlaying', {val: isPlaying, ack: true}),
+        cache.set('player.isPlaying', isPlaying),
         setOrDefault(data, 'item.id', 'player.trackId', ''),
-        cache.set('player.artistName', {val: artist, ack: true}),
-        cache.set('player.album', {val: album, ack: true}),
-        cache.set('player.albumImageUrl', {val: albumUrl, ack: true}),
+        cache.set('player.artistName', artist),
+        cache.set('player.album', album),
+        cache.set('player.albumImageUrl', albumUrl),
         setOrDefault(data, 'item.name', 'player.trackName', ''),
-        cache.set('player.durationMs', {val: duration, ack: true}),
-        cache.set('player.duration', {val: convertToDigiClock(duration), ack: true}),
-        cache.set('player.type', {val: type, ack: true}),
-        cache.set('player.progressMs', {val: progress, ack: true}),
-        cache.set('player.progressPercentage', {val: progressPercentage, ack: true}),
-        cache.set('player.progress', {val: convertToDigiClock(progress), ack: true}),
-        cache.set('player.shuffle', {val: (shuffle ? 'on' : 'off'), ack: true}),
+        cache.set('player.durationMs', duration),
+        cache.set('player.duration', convertToDigiClock(duration)),
+        cache.set('player.type', type),
+        cache.set('player.progressMs', progress),
+        cache.set('player.progressPercentage', progressPercentage),
+        cache.set('player.progress', convertToDigiClock(progress)),
+        cache.set('player.shuffle', (shuffle ? 'on' : 'off')),
         setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
         setOrDefault(data, 'device.volume_percent', 'player.device.volume', 100),
     ]).then(function() {
@@ -469,7 +469,7 @@ function createPlaybackInfo(data) {
                 	name = shrinkStateName(deviceName);
                 }
                 if (key !== 'devices.' + name + '.isActive') {
-                    return cache.set(key, {val: false, ack: true});
+                    return cache.set(key, false);
                 }
             };
             return Promise.all(keys.map(fn)).then(function() {
@@ -494,7 +494,7 @@ function createPlaybackInfo(data) {
                     return;
                 }
                 key = removeNameSpace(key);
-                return cache.set(key, {val: false, ack: true});
+                return cache.set(key, false);
             };
             return Promise.all(keys.map(fn));
         }
@@ -537,7 +537,7 @@ function createPlaybackInfo(data) {
             if (type == 'artist') {
                 contextImage = set;
             }
-            return cache.set('player.artistImageUrl', {val: set, ack: true});
+            return cache.set('player.artistImageUrl', set);
         });
     }).then(function() {
     	let uri = loadOrDefault(data, 'context.uri', '');
@@ -550,7 +550,7 @@ function createPlaybackInfo(data) {
         	let query = {
                 fields: 'name,id,owner.id,tracks.total,images',
             };
-            return cache.set('player.playlist.id', {val: playlistId, ack: true}).then(function() {
+            return cache.set('player.playlist.id', playlistId).then(function() {
             	let refreshPlaylist = function(parseJson) {
             		let playlistName = loadOrDefault(parseJson, 'name', '');
                     contextDescription = 'Playlist: ' + playlistName;
@@ -575,10 +575,10 @@ function createPlaybackInfo(data) {
                     };
 
                     return Promise.all([
-                    	cache.set('player.playlist.owner', {val: ownerId, ack: true}),
-                    	cache.set('player.playlist.tracksTotal', {val: trackCount, ack: true}),
-                        cache.set('player.playlist.imageUrl', {val: playlistImage, ack: true}),
-                        cache.set('player.playlist.name', {val: playlistName, ack: true}),
+                    	cache.set('player.playlist.owner', ownerId),
+                    	cache.set('player.playlist.tracksTotal', trackCount),
+                        cache.set('player.playlist.imageUrl', playlistImage),
+                        cache.set('player.playlist.name', playlistName),
                         cache.set('player.playlist', null, {
                             type: 'channel',
                             common: {
@@ -613,7 +613,7 @@ function createPlaybackInfo(data) {
                                 '.trackListStates',
                                 'player.playlist.trackListStates'
                             ),
-                            cache.set('player.playlist.trackNo', {val: parseInt(cache.get('playlists.' + prefix + '.trackList').val, 10) + 1, ack: true}),
+                            cache.set('player.playlist.trackNo', parseInt(cache.get('playlists.' + prefix + '.trackList').val, 10) + 1),
                             copyObjectStates(
                                 'playlists.' +
                                 prefix +
@@ -653,9 +653,9 @@ function createPlaybackInfo(data) {
                         if (stateArr[songId] !== '' && (stateArr[songId] !== null)) {
                         	let no = stateArr[songId];
                             return Promise.all([
-                                cache.set('playlists.' + prefix + '.trackList', {val: no, ack: true}),
-                                cache.set('player.playlist.trackList', {val: no, ack: true}),
-                                cache.set('player.playlist.trackNo', {val: parseInt(no, 10) + 1, ack: true})
+                                cache.set('playlists.' + prefix + '.trackList', no),
+                                cache.set('player.playlist.trackList', no),
+                                cache.set('player.playlist.trackNo', parseInt(no, 10) + 1)
                             ]);
                         }
 	                });
@@ -672,19 +672,19 @@ function createPlaybackInfo(data) {
         } else {
             adapter.log.debug('context type: ' + type);
             return Promise.all([
-            	cache.set('player.playlist.id', {val: '', ack: true}),
-            	cache.set('player.playlist.name', {val: '', ack: true}),
-            	cache.set('player.playlist.owner', {val: '', ack: true}),
-            	cache.set('player.playlist.tracksTotal', {val: '', ack: true}),
-            	cache.set('player.playlist.imageUrl', {val: '', ack: true}),
-            	cache.set('player.playlist.trackList', {val: '', ack: true}),
-            	cache.set('player.playlist.trackListNumber', {val: '', ack: true}),
-            	cache.set('player.playlist.trackListString', {val: '', ack: true}),
-            	cache.set('player.playlist.trackListStates', {val: '', ack: true}),
-            	cache.set('player.playlist.trackListIdMap', {val: '', ack: true}),
-            	cache.set('player.playlist.trackListIds', {val: '', ack: true}),
-            	cache.set('player.playlist.trackListArray', {val: '', ack: true}),
-            	cache.set('player.playlist.trackNo', {val: '', ack: true}),
+            	cache.set('player.playlist.id', ''),
+            	cache.set('player.playlist.name', ''),
+            	cache.set('player.playlist.owner', ''),
+            	cache.set('player.playlist.tracksTotal', ''),
+            	cache.set('player.playlist.imageUrl', ''),
+            	cache.set('player.playlist.trackList', ''),
+            	cache.set('player.playlist.trackListNumber', ''),
+            	cache.set('player.playlist.trackListString', ''),
+            	cache.set('player.playlist.trackListStates', ''),
+            	cache.set('player.playlist.trackListIdMap', ''),
+            	cache.set('player.playlist.trackListIds', ''),
+            	cache.set('player.playlist.trackListArray', ''),
+            	cache.set('player.playlist.trackNo', ''),
             	cache.set('player.playlist', null, {
                     type: 'channel',
                     common: {
@@ -696,8 +696,8 @@ function createPlaybackInfo(data) {
         }
     }).then(function() {
         return Promise.all([
-        	cache.set('player.contextImageUrl', {val: contextImage, ack: true}),
-        	cache.set('player.contextDescription', {val: contextDescription, ack: true})
+        	cache.set('player.contextImageUrl', contextImage),
+        	cache.set('player.contextDescription', contextDescription)
         ]);
     });
 }
@@ -720,7 +720,7 @@ function convertToDigiClock(ms) {
 
 function setUserInformation(data) {
     application.userId = data.id;
-    return cache.set('authorization.userId', {val: data.id, ack: true});
+    return cache.set('authorization.userId', data.id);
 }
 
 function reloadUsersPlaylist() {
@@ -802,7 +802,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
                 },
                 native: {}
             }),
-            cache.set(prefix + '.playThisList', {val: false, ack: true}, {
+            cache.set(prefix + '.playThisList', false, {
                 type: 'state',
                 common: {
                     name: 'press to play this playlist',
@@ -839,7 +839,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
             	}
 
                 return Promise.all([
-                	cache.set(prefix + '.trackList', {val: trackListValue, ack: true}, {
+                	cache.set(prefix + '.trackList', trackListValue, {
                         type: 'state',
                         common: {
                             name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track. First track is 0',
@@ -1054,7 +1054,7 @@ function disableDevices(addedList) {
         	}
         }
         if (!found && key.endsWith('.isAvailable')) {
-            return cache.set(key, {val: false, ack: true});
+            return cache.set(key, false);
         }
     };
     return Promise.all(keys.map(fn));
@@ -1124,7 +1124,7 @@ function createDevices(data) {
         let isRestricted = loadOrDefault(device, 'is_restricted', false);
         let useForPlayback;
         if(!isRestricted) {
-        	useForPlayback = cache.set(prefix + '.useForPlayback', {val: false, ack: true}, {
+        	useForPlayback = cache.set(prefix + '.useForPlayback', false, {
         		type: 'state',
         		common: {
         			name: 'press to use device for playback (only for non restricted devices)',
@@ -1157,7 +1157,7 @@ function createDevices(data) {
             ),
             createOrDefault(device, 'volume_percent', prefix + '.volume', '', 'volume in percent',
                 'number'),
-            cache.set(prefix + '.isAvailable', {val: true, ack: true}, {
+            cache.set(prefix + '.isAvailable', true, {
             	type: 'state',
             	common: {
             		name: 'can used for playing',
@@ -1219,17 +1219,16 @@ function refreshPlaylistList() {
         }
         return Promise.all([
             setObjectStatesIfChanged('playlists.playlistList', stateList),
-            cache.set('playlists.playlistListIds', {val: listIds}),
-            cache.set('playlists.playlistListString', {val: listString}),
-            cache.set('playlists.yourPlaylistListIds', {val: yourIds}),
-            cache.set('playlists.yourPlaylistListString',
-                {val: yourString})
+            cache.set('playlists.playlistListIds', listIds),
+            cache.set('playlists.playlistListString', listString),
+            cache.set('playlists.yourPlaylistListIds', yourIds),
+            cache.set('playlists.yourPlaylistListString', yourString)
         ]).then(function() {
         	let id = cache.get('player.playlist.id').val;
             if (id) {
             	let owner = cache.get('player.playlist.owner').val;
                 if (owner) {
-                    return cache.set('playlists.playlistList', {val: owner + '-' + id});
+                    return cache.set('playlists.playlistList', owner + '-' + id);
                 }
             }
         });
@@ -1281,10 +1280,10 @@ function refreshDeviceList() {
 
         return Promise.all([
             setObjectStatesIfChanged('devices.deviceList', stateList),
-            cache.set('devices.deviceListIds', {val: listIds}),
-            cache.set('devices.deviceListString', {val: listString}),
-            cache.set('devices.availableDeviceListIds', {val: availableIds}),
-            cache.set('devices.availableDeviceListString', {val: availableString}),
+            cache.set('devices.deviceListIds', listIds),
+            cache.set('devices.deviceListString', listString),
+            cache.set('devices.availableDeviceListIds', availableIds),
+            cache.set('devices.availableDeviceListString', availableString),
         ]).then(function() {
         	let states = cache.get('devices.*');
         	let keys = Object.keys(states);
@@ -1296,7 +1295,7 @@ function refreshDeviceList() {
                 if (val) {
                     key = removeNameSpace(key);
                     let id = key.substring(8, key.length - 9);
-                    return cache.set('devices.deviceList', {val: id});
+                    return cache.set('devices.deviceList', id);
                 }
             };
             return Promise.all(keys.map(fn));
@@ -1341,10 +1340,10 @@ function getToken() {
             }
             saveToken(parsedBody).then(function(tokenObj) {
                 return Promise.all([
-                	cache.set('authorization.authorizationUrl', {val: '', ack: true}),
-                	cache.set('authorization.authorizationReturnUri', {val: '', ack: true}),
-                	cache.set('authorization.authorized', {val: true, ack: true}),
-                	cache.set('info.connection', {val: true, ack: true})
+                	cache.set('authorization.authorizationUrl', ''),
+                	cache.set('authorization.authorizationReturnUri', ''),
+                	cache.set('authorization.authorized', true),
+                	cache.set('info.connection', true)
                 ]).then(function() {
                     application.token = tokenObj.accessToken;
                     application.refreshToken = tokenObj.refreshToken;
@@ -1415,7 +1414,7 @@ function saveToken(data) {
             clientId: application.clientId,
             clientSecret: application.clientSecret
         };
-        return cache.set('authorization.token', {val: token, ack: true}).then(function() {
+        return cache.set('authorization.token', token).then(function() {
             return token;
         });
     } else {
@@ -1431,9 +1430,9 @@ function increaseTime(durationMs, progressMs, startDate, count) {
     let tDurationMs = cache.get('player.durationMs').val;
     let percentage = Math.floor(progressMs / tDurationMs * 100);
     return Promise.all([
-    	cache.set('player.progress', {val: convertToDigiClock(progressMs), ack: true}),
-    	cache.set('player.progressMs', {val: progressMs, ack: true}),
-    	cache.set('player.progressPercentage', {val: percentage, ack: true})
+    	cache.set('player.progress', convertToDigiClock(progressMs)),
+    	cache.set('player.progressMs', progressMs),
+    	cache.set('player.progressPercentage', percentage)
     ]).then(function() {
         if (count > 0) {
             if (progressMs + 1000 > durationMs) {
@@ -1598,8 +1597,7 @@ function listenOnAuthorizationReturnUri(obj) {
             'invalid session. you need to open the actual authorization.authorizationUrl'
         );
         return cache.set('Authorization.Authorization_Return_URI',
-        	{val: 'invalid session. You need to open the actual Authorization.Authorization_URL again',
-            ack: true});
+        	'invalid session. You need to open the actual Authorization.Authorization_URL again');
     }
 }
 
@@ -1620,10 +1618,10 @@ function listenOnGetAuthorization() {
         followAllRedirects: true,
     };
     return Promise.all([
-    	cache.set('authorization.state', {val: state, ack: true}),
-    	cache.set('authorization.authorizationUrl', {val: options.url, ack: true}),
-    	cache.set('authorization.authorized', {val: false, ack: true}),
-    	cache.set('info.connection', {val: false, ack: true})
+    	cache.set('authorization.state', state),
+    	cache.set('authorization.authorizationUrl', options.url),
+    	cache.set('authorization.authorized', false),
+    	cache.set('info.connection', false)
     ]);
 }
 
@@ -1782,9 +1780,9 @@ function listenOnProgressMs(obj) {
         if (duration > 0 && duration <= progress) {
         	let progressPercentage = Math.floor(progress / duration * 100);
             return Promise.all([
-            	cache.set('player.progressMs', {val: progress, ack: true}),
-            	cache.set('player.progress', {val: convertToDigiClock(progress), ack: true}),
-                cache.set('player.progressPercentage', {val: progressPercentage, ack: true})
+            	cache.set('player.progressMs', progress),
+            	cache.set('player.progress', convertToDigiClock(progress)),
+                cache.set('player.progressPercentage', progressPercentage)
             ]);
         }
     }).catch(function(err) {
@@ -1805,9 +1803,9 @@ function listenOnProgressPercentage(obj) {
         let progress = Math.floor(progressPercentage / 100 * duration);
         sendRequest('/v1/me/player/seek?position_ms=' + progress, 'PUT', '').then(function() {
             return Promise.all([
-            	cache.set('player.progressMs', {val: progress, ack: true}),
-            	cache.set('player.progress', {val: convertToDigiClock(progress), ack: true}),
-                cache.set('player.progressPercentage', {val: progressPercentage, ack: true})
+            	cache.set('player.progressMs', progress),
+            	cache.set('player.progress', convertToDigiClock(progress)),
+                cache.set('player.progressPercentage', progressPercentage)
             ]);
         }).catch(function(err) {
             adapter.log.error('could not execute command: ' + err);
@@ -1897,19 +1895,19 @@ function clearCache() {
 function listenOnHtmlPlaylists() {
 	let obj = cache.get('playlists.playlistList');
 	if(obj === null || !obj.val) {
-		cache.set('html.playlists', {val: '', ack: true});
+		cache.set('html.playlists', '');
 		return;
 	}
 	let current = obj.val;
 	obj = cache.get('playlists.playlistListIds');
 	if(obj === null || !obj.val) {
-		cache.set('html.playlists', {val: '', ack: true});
+		cache.set('html.playlists', '');
 		return;
 	}
 	let ids = obj.val.split(';');
 	obj = cache.get('playlists.playlistListString');
 	if(obj === null || !obj.val) {
-		cache.set('html.playlists', {val: '', ack: true});
+		cache.set('html.playlists', '');
 		return;
 	}
 	let strings = obj.val.split(';');
@@ -1940,19 +1938,19 @@ function listenOnHtmlPlaylists() {
 
 	html += '</table>';
 
-	cache.set('html.playlists', {val: html, ack: true});
+	cache.set('html.playlists', html);
 }
 
 function listenOnHtmlTracklist() {
 	let obj = cache.get('player.playlist.trackList');
 	if(obj === null || !obj.val) {
-		cache.set('html.tracks', {val: '', ack: true});
+		cache.set('html.tracks', '');
 		return;
 	}
 	let current = obj.val;
 	obj = cache.get('player.playlist.trackListArray');
 	if(obj === null || !obj.val) {
-		cache.set('html.tracks', {val: '', ack: true});
+		cache.set('html.tracks', '');
 		return;
 	}
 	let source = obj.val;
@@ -2018,25 +2016,25 @@ function listenOnHtmlTracklist() {
 
 	html += '</table>';
 
-	cache.set('html.tracks', {val: html, ack: true});
+	cache.set('html.tracks', html);
 }
 
 function listenOnHtmlDevices() {
 	let obj = cache.get('devices.deviceList');
 	if(obj === null || !obj.val) {
-		cache.set('html.devices', {val: '', ack: true});
+		cache.set('html.devices', '');
 		return;
 	}
 	let current = obj.val;
 	obj = cache.get('devices.deviceListIds');
 	if(obj === null || !obj.val) {
-		cache.set('html.devices', {val: '', ack: true});
+		cache.set('html.devices', '');
 		return;
 	}
 	let ids = obj.val.split(';');
 	obj = cache.get('devices.availableDeviceListString');
 	if(obj === null || !obj.val) {
-		cache.set('html.devices', {val: '', ack: true});
+		cache.set('html.devices', '');
 		return;
 	}
 	let strings = obj.val.split(';');
@@ -2060,7 +2058,7 @@ function listenOnHtmlDevices() {
 
 	html += '</table>';
 
-	cache.set('html.devices', {val: html, ack: true});
+	cache.set('html.devices', html);
 }
 
 cache.on('authorization.authorizationReturnUri', listenOnAuthorizationReturnUri, true);
@@ -2104,15 +2102,15 @@ adapter.on('objectChange', cache.setExternalObj);
 adapter.on('stateChange', cache.setExternal);
 adapter.on('unload', function(callback) {
     Promise.all([
-    	cache.set('authorization.authorizationUrl', {val: '', ack: true}),
-    	cache.set('authorization.authorizationReturnUri', {val: '', ack: true}),
-    	cache.set('authorization.userId', {val: '', ack: true}),
-    	cache.set('player.trackId', {val: '', ack: true}),
-    	cache.set('player.playlist.id', {val: '', ack: true}),
-    	cache.set('player.playlist.trackNo', {val: '', ack: true}),
-    	cache.set('player.playlist.owner', {val: '', ack: true}),
-    	cache.set('authorization.authorized', {val: false, ack: true}),
-    	cache.set('info.connection', {val: false, ack: true})
+    	cache.set('authorization.authorizationUrl', ''),
+    	cache.set('authorization.authorizationReturnUri', ''),
+    	cache.set('authorization.userId', ''),
+    	cache.set('player.trackId', ''),
+    	cache.set('player.playlist.id', ''),
+    	cache.set('player.playlist.trackNo', ''),
+    	cache.set('player.playlist.owner', ''),
+    	cache.set('authorization.authorized', false),
+    	cache.set('info.connection', false)
     ]).then(function() {
         if ('undefined' !== typeof application.statusPollingHandle) {
             clearTimeout(application.statusPollingHandle);
