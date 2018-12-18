@@ -613,6 +613,7 @@ function createPlaybackInfo(data) {
                                 '.trackListStates',
                                 'player.playlist.trackListStates'
                             ),
+                            cache.set('player.playlist.trackNo', {val: parseInt(cache.get('playlists.' + prefix + '.trackList').val, 10) + 1, ack: true}),
                             copyObjectStates(
                                 'playlists.' +
                                 prefix +
@@ -650,25 +651,11 @@ function createPlaybackInfo(data) {
                             stateArr[ele[1]] = ele[0];
                         }
                         if (stateArr[songId] !== '' && (stateArr[songId] !== null)) {
+                        	let no = stateArr[songId];
                             return Promise.all([
-                                cache.set(
-                                    'playlists.' + prefix + '.trackList',
-                                    {val: stateArr[
-                                        songId
-                                    ],
-                                    ack: true}),
-                                cache.set(
-                                    'player.playlist.trackList',
-                                    {val: stateArr[
-                                        songId
-                                    ],
-                                    ack: true}),
-                                cache.set(
-                                    'player.playlist.trackNo',
-                                    {val: stateArr[
-                                        songId
-                                    ],
-                                    ack: true})
+                                cache.set('playlists.' + prefix + '.trackList', {val: no, ack: true}),
+                                cache.set('player.playlist.trackList', {val: no, ack: true}),
+                                cache.set('player.playlist.trackNo', {val: no + 1, ack: true})
                             ]);
                         }
 	                });
@@ -1883,7 +1870,10 @@ function listenOnPlaylistOwner(obj) {
 function listenOnPlaylistTrackNo(obj) {
     let owner = cache.get('player.playlist.owner').val;
     let id = cache.get('player.playlist.id').val;
-    return startPlaylist(id, owner, obj.state.val, true);
+    if (obj.state.val == 0) {
+    	obj.state.val = 1;
+    }
+    return startPlaylist(id, owner, obj.state.val - 1, true);
 }
 
 function listenOnGetPlaybackInfo() {
@@ -1900,6 +1890,130 @@ function clearCache() {
     artistImageUrlCache = {};
     playlistCache = {};
     application.cacheClearHandle = setTimeout(clearCache, 1000 * 60 * 60 * 24);
+}
+
+function listenOnHtmlPlaylists() {
+	let current = cache.get('playlists.playlistList').val;
+	let ids = cache.get('playlists.playlistListIds').val.split(';');
+	let strings = cache.get('playlists.playlistListString').val.split(';');
+	let html = '<table class="spotifyPlaylistsTable">';
+
+	for (let i = 0; i < ids.length; i++) {
+		let style = '';
+		let cssClassRow = '';
+		let cssClassTitle = '';
+		let cssClassIcon = '';
+		if(current == ids[i]) {
+			style = ' style="color: #1db954; font-weight: bold"';
+			cssClassRow = ' spotifyPlaylistsRowActive';
+			cssClassTitle = ' spotifyPlaylistsColTitleActive';
+			cssClassIcon = ' spotifyPlaylistsColIconActive';
+		}
+		html += '<tr class="spotifyPlaylistsRow' + cssClassRow + '" onclick="vis.setValue(\'' + adapter.namespace + '.playlists.playlistList\', \'' + ids[i] +'\')">';
+		html += '<td' + style + ' class="spotifyPlaylistsCol spotifyPlaylistsColTitle' + cssClassTitle + '">';
+		html += strings[i];
+		html += '</td>';
+		html += '<td class="spotifyPlaylistsCol spotifyPlaylistsColIcon' + cssClassIcon + '">';
+		if(current == ids[i]) {
+			html += '<img style="width: 16px; height: 16px" class="spotifyPlaylistsColIconActive" src="/spotify-premium.admin/icons/active_song_speaker_green.png" />';
+		}
+		html += '</td>';
+		html += '</tr>';
+	}
+
+	html += '</table>';
+
+	cache.set('html.playlists', {val: html, ack: true});
+}
+
+function listenOnHtmlTracklist() {
+	let current = cache.get('player.playlist.trackList').val;
+	let source = cache.get('player.playlist.trackListArray').val;
+	let html = '<table class="spotifyTracksTable">';
+
+	for (let i = 0; i < source.length; i++) {
+		let styleTitle = '';
+		let styleDuration = '';
+		let cssClassRow = '';
+		let cssClassColTitle = '';
+		let cssClassTitle = '';
+		let cssClassIcon = '';
+		let cssClassArtistAlbum = '';
+		let cssClassArtist = '';
+		let cssClassAlbum = '';
+		let cssClassExplicit = '';
+		let cssClassColDuration = '';
+		if(current == i) {
+			styleTitle = ' style="color: #1db954; font-weight: bold"';
+			styleDuration = ' style="color: #1db954"';
+			cssClassRow = ' spotifyTracksRowActive';
+			cssClassColTitle = ' spotifyTracksColTitleActive';
+			cssClassTitle = ' spotifyTracksTitleActive';
+			cssClassIcon = ' spotifyTracksColIconActive';
+			cssClassArtistAlbum = ' spotifyTracksArtistAlbumActive';
+			cssClassArtist = ' spotifyTracksArtistActive';
+			cssClassAlbum = ' spotifyTracksAlbumActive';
+			cssClassExplicit = ' spotifyTracksExplicitActive';
+			cssClassColDuration = ' spotifyTracksColDurationActive';
+		}
+
+		html += '<tr class="spotifyTracksRow' + cssClassRow + '" onclick="vis.setValue(\'' + adapter.namespace + '.player.playlist.trackList\', ' + i + ')">';
+		html += '<td class="spotifyTracksColIcon' + cssClassIcon + '">';
+		if(current == i) {
+			html += '<img class="spotifyTracksIconActive" src="/spotify-premium.admin/icons/active_song_speaker_green.png" />';
+		} else {
+			html += '<img class="spotifyTracksIconInactive" src="/spotify-premium.admin/icons/inactive_song_note_white.png" />';
+		}
+		html += '</td>';
+        html += '<td' + styleTitle + ' class="spotifyTracksColTitle' + cssClassColTitle + '">';
+        html += '<span class="spotifyTracksTitle' + cssClassTitle + '">';
+		html += source[i].title;
+		html += '</span><br />';
+		html += '<span class="spotifyTracksArtistAlbum' + cssClassArtistAlbum + '">';
+		if (source[i].explicit) {
+			html += '<img class="spotifyTracksExplicit' + cssClassExplicit + '" src="/spotify-premium.admin/icons/explicit.png" />';
+		}
+		html += '<span class="spotifyTracksArtist' + cssClassArtist + '">';
+		html += source[i].artistName;
+		html += '</span><span class="spotifyTracksAlbum' + cssClassAlbum + '">';
+		html += source[i].album.name;
+		html += '</span></span></td>';
+		html += '<td' + styleDuration + ' class="spotifyTracksColDuration' + cssClassColDuration + '">';
+		html += source[i].duration;
+		html += '</td>';
+		html += '</tr>';
+	}
+
+	html += '</table>';
+
+	cache.set('html.tracks', {val: html, ack: true});
+}
+
+function listenOnHtmlDevices() {
+	let current = cache.get('devices.deviceList').val;
+	let ids = cache.get('devices.deviceListIds').val.split(';');
+	let strings = cache.get('devices.availableDeviceListString').val.split(';');
+	let html = '<table class="spotifyDevicesTable">';
+
+	for (let i = 0; i < ids.length; i++) {
+		let style = '';
+		let cssClassRow = '';
+		let cssClassCol = '';
+		if(current == ids[i]) {
+			style = ' style="color: #1db954; font-weight: bold"';
+			cssClassRow = ' spotifyDevicesRowActive';
+			cssClassCol = ' spotifyDevicesColActive';
+		}
+		html += '<tr class="spotifyDevicesRow' + cssClassRow + '" onclick="vis.setValue(\'' + adapter.namespace + '.devices.deviceList\', \'' + ids[i] +'\')">';
+		html += '<td' + style + ' class="spotifyDevicesColActive' + cssClassCol + '">';
+		html += strings[i];
+		html += '</td>';
+		html += '</tr>';
+	}
+
+	html += '</table>';
+
+	cache.set('html.devices', {val: html, ack: true});
 }
 
 cache.on('authorization.authorizationReturnUri', listenOnAuthorizationReturnUri, true);
@@ -1931,6 +2045,9 @@ cache.on('player.playlist.trackNo', listenOnPlaylistTrackNo, true);
 cache.on('getPlaylists', reloadUsersPlaylist);
 cache.on('getPlaybackInfo', listenOnGetPlaybackInfo);
 cache.on('getDevices', listenOnGetDevices);
+cache.on(['playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString'], listenOnHtmlPlaylists);
+cache.on(['player.playlist.trackList', 'player.playlist.trackListArray'], listenOnHtmlTracklist);
+cache.on(['devices.deviceList', 'devices.deviceListIds', 'devices.availableDeviceListString'], listenOnHtmlDevices);
 adapter.on('ready', function() {
 	cache.init().then(function() {		
 		main();

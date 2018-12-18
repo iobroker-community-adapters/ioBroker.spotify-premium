@@ -1,6 +1,6 @@
 {
   "name": "iobroker.spotify-premium",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "description": "ioBroker spotify-premium Adapter",
   "author": {
     "name": "twonky4",
@@ -28,7 +28,7 @@
     "url": "https://github.com/twonky4/ioBroker.spotify-premium"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^1.0.1",
+    "@iobroker/adapter-core": "1.0.1",
     "request": "2.83.0",
     "querystring": "0.2.0",
     "promise": "8.0.1"

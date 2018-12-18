@@ -1,9 +1,9 @@
 {
     "common": {
         "name": "spotify-premium",
-        "version": "0.4.0",
+        "version": "1.0.0",
         "news": {
-            "0.4.0": {
+            "1.0.0": {
                 "en": "",
                 "de": "",
                 "ru": "",
@@ -280,6 +280,14 @@
             "native": {}
         },
         {
+            "_id": "html",
+            "type": "channel",
+            "common": {
+                "name": "prepared HTML tables"
+            },
+            "native": {}
+        },
+        {
             "_id": "player.playlist",
             "type": "channel",
             "common": {
@@ -424,6 +432,42 @@
             "native": {}
         },
         {
+            "_id": "html.devices",
+            "type": "state",
+            "common": {
+                "role": "html",
+                "name": "devices HTML table",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "html.playlists",
+            "type": "state",
+            "common": {
+                "role": "html",
+                "name": "playlist HTML table",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "html.tracks",
+            "type": "state",
+            "common": {
+                "role": "html",
+                "name": "tracklist HTML table",
+                "type": "string",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
             "_id": "player.play",
             "type": "state",
             "common": {
@@ -557,7 +601,7 @@
             "type": "state",
             "common": {
                 "role": "value",
-                "name": "set track no of playlist to play this track; 0-based, put 0 for the first track",
+                "name": "set track no of playlist to play this track",
                 "type": "number",
                 "read": true,
                 "write": true
