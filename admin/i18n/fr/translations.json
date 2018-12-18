@@ -5,7 +5,7 @@
   "deleteDevices": "Supprimer les appareils qui n'existent plus",
   "deletePlaylists": "Supprimer les listes de lecture existantes",
   "keepShuffleState": "Sur certains appareils, la lecture aléatoire est toujours désactivée si une liste de lecture est lancée. Avec cette option, une solution de contournement est utilisée pour éviter ce comportement.",
-  "statusInterval": "Intervalle d'actualisation pour les informations d'état. (en secondes, recommandé 5, 0 = désactivé)",
+  "statusInterval": "Intervalle d'actualisation pour les informations d'état. (en secondes, recommandé 10, 0 = désactivé). Requis uniquement si vous contrôlez Spotify sur des appareils autres que l'adaptateur.",
   "deviceInterval": "Intervalle d'actualisation pour les informations sur le périphérique. (en minutes, recommandé 5, 0 = désactivé)",
   "playlistInterval": "Intervalle d'actualisation pour les informations de playlist. (en minutes, recommandé 15, 0 = désactivé)",
   "manual1": "Inscrivez-vous aussi https://developer.spotify.com",

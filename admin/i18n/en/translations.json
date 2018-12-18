@@ -5,7 +5,7 @@
   "deleteDevices": "Delete devices that no longer exist",
   "deletePlaylists": "Delete no longer existing playlists",
   "keepShuffleState": "On some devices the shuffle will always disabled if a playlist is started. With this option a workaround is used to avoid this behavior.",
-  "statusInterval": "Refresh interval for status information. (in seconds, recommended 5, 0 = disabled)",
+  "statusInterval": "Refresh interval for status information. (in seconds, recommended 10, 0 = disabled). Only required if you control Spotify on devices apart from the adapter.",
   "deviceInterval": "Refresh interval for device information. (in minutes, recommended 5, 0 = disabled)",
   "playlistInterval": "Refresh interval for playlist information. (in minutes, recommended 15, 0 = disabled)",
   "manual1": "Sign in on https://developer.spotify.com",

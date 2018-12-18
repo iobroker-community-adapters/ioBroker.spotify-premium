@@ -1,0 +1,22 @@
+{
+  "on save adapter restarts with new config immediately": "na karcie save natychmiast uruchamia się z nową konfiguracją",
+  "clientId": "Client ID",
+  "clientSecret": "Client Secret",
+  "deleteDevices": "Usuń urządzenia, które już nie istnieją",
+  "deletePlaylists": "Usuń nieistniejące już playlisty",
+  "keepShuffleState": "W przypadku niektórych urządzeń odtwarzanie losowe będzie zawsze wyłączone po uruchomieniu playlisty. Ta opcja umożliwia obejście tego zachowania.",
+  "statusInterval": "Interwał odświeżania dla informacji o stanie. (w sekundach zalecany 10, 0 = wyłączony). Wymagany tylko wtedy, gdy kontrolujesz Spotify na urządzeniach z wyjątkiem adaptera.",
+  "deviceInterval": "Interwał odświeżania informacji o urządzeniu. (w minutach, zalecane 5, 0 = wyłączone)",
+  "playlistInterval": "Interwał odświeżania informacji o liście odtwarzania. (w minutach, zalecane 15, 0 = wyłączone)",
+  "manual1": "Zaloguj się na https://developer.spotify.com",
+  "manual2": "Utwórz aplikację, otrzymasz identyfikator klienta i klucz klienta",
+  "manual3": "ustaw przekierowania URI na http://localhost w ustawieniach aplikacji w utworzonej aplikacji spotify",
+  "manual4": "umieść Cliend ID i Secret klienta w polach poniżej",
+  "manual5": "uruchom instancję",
+  "manual6": "przejdź do zakładki obiektów i naciśnij przycisk getAuthorization na 'spotify-premium.X.authorization'",
+  "manual7": "skopiuj wyświetlony adres URL z 'spotify-premium.X.authorization.authorizationUrl' do swojej przeglądarki i nazwij go",
+  "manual8": "Być może musisz się zalogować, aby spotify i zezwolić na dostęp",
+  "manual9": "przeglądarka przekieruje do nieprawidłowego adresu URL. Jeśli wystąpi błąd 'invalid redirect uri', sprawdź krok 3",
+  "manual10": "skopiuj ten adres URL i umieść go w 'spotify-premium.X.authorization.authorizationReturnUri'",
+  "manual11": "wartość 'spotify-premium.X.authorization.authorized' zmienia się na true, jeśli wszystko przebiegło pomyślnie"
+}

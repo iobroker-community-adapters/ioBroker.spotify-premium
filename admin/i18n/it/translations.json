@@ -5,7 +5,7 @@
   "deleteDevices": "Elimina i dispositivi che non esistono più",
   "deletePlaylists": "Elimina playlist non più esistenti",
   "keepShuffleState": "Su alcuni dispositivi lo shuffle sarà sempre disabilitato se viene avviata una playlist. Con questa opzione viene utilizzata una soluzione alternativa per evitare questo comportamento.",
-  "statusInterval": "Intervallo di aggiornamento per informazioni sullo stato. (in secondi, consigliato 5, 0 = disabilitato)",
+  "statusInterval": "Intervallo di aggiornamento per informazioni sullo stato. (in secondi, consigliato 10, 0 = disabilitato). Richiesto solo se controlli Spotify su dispositivi diversi dall'adattatore.",
   "deviceInterval": "Aggiorna intervallo per le informazioni sul dispositivo. (in minuti, consigliato 5, 0 = disabilitato)",
   "playlistInterval": "Intervallo di aggiornamento per informazioni sulla playlist. (in minuti, consigliato 15, 0 = disabilitato)",
   "manual1": "Iscriviti anche a https://developer.spotify.com",

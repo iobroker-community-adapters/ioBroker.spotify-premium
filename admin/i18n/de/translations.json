@@ -5,7 +5,7 @@
   "deleteDevices": "Nicht mehr vorhandene Geräte löschen",
   "deletePlaylists": "Nicht mehr vorhandene Playlisten löschen",
   "keepShuffleState": "Bei einigen Geräten wird Shuffle immer deaktiviert, wenn eine neue Playliste gestartet wird. Mit diese Option wird versucht dieses Verhalten zu umgehen.",
-  "statusInterval": "Aktualisierungsintervall für Statusinformationen. (in Sekunden; empfohlen 5; 0 = deaktiviert)",
+  "statusInterval": "Aktualisierungsintervall für Statusinformationen. (in Sekunden; empfohlen 10; 0 = deaktiviert). Nur erforderlich, wenn Sie Spotify auf anderen Geräten als dem Adapter steuern.",
   "deviceInterval": "Aktualisierungsintervall für Geräteinformationen. (in Minuten; empfohlen 5; 0 = deaktiviert)",
   "playlistInterval": "Aktualisierungsintervall für Playlisteninformationen. (in Minuten; empfohlen 15; 0 = deaktiviert)",
   "manual1": "Registriere dich unter https://developer.spotify.com",
