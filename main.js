@@ -655,7 +655,7 @@ function createPlaybackInfo(data) {
                             return Promise.all([
                                 cache.set('playlists.' + prefix + '.trackList', {val: no, ack: true}),
                                 cache.set('player.playlist.trackList', {val: no, ack: true}),
-                                cache.set('player.playlist.trackNo', {val: no + 1, ack: true})
+                                cache.set('player.playlist.trackNo', {val: parseInt(no, 10) + 1, ack: true})
                             ]);
                         }
 	                });
@@ -1870,10 +1870,12 @@ function listenOnPlaylistOwner(obj) {
 function listenOnPlaylistTrackNo(obj) {
     let owner = cache.get('player.playlist.owner').val;
     let id = cache.get('player.playlist.id').val;
-    if (obj.state.val == 0) {
-    	obj.state.val = 1;
+    let o = obj.state.val;
+    o = parseInt(o, 10);
+    if (o == 0) {
+    	o = 1;
     }
-    return startPlaylist(id, owner, obj.state.val - 1, true);
+    return startPlaylist(id, owner, o - 1, true);
 }
 
 function listenOnGetPlaybackInfo() {
