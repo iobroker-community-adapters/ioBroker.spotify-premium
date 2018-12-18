@@ -17,7 +17,7 @@ Connection to [Spotify Premium API](https://www.spotify.com/).
 ## Documentation
 See also the [Spotify Developer API Documentation](https://developer.spotify.com/).
 ### Setup / Authorization
-1. Sign in on https://developer.spotify.com
+1. Sign in on https://developer.spotify.com/dashboard/
 2. Create an application, you get a Client ID and a Client Secret
 3. set the redirect URIs to `http://localhost` in your app settings at your created spotify application
 4. put the Cliend ID and Client Secret in the fields down below

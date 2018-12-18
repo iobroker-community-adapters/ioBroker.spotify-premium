@@ -8,7 +8,7 @@
   "statusInterval": "Intervallo di aggiornamento per informazioni sullo stato. (in secondi, consigliato 10, 0 = disabilitato). Richiesto solo se controlli Spotify su dispositivi diversi dall'adattatore.",
   "deviceInterval": "Aggiorna intervallo per le informazioni sul dispositivo. (in minuti, consigliato 5, 0 = disabilitato)",
   "playlistInterval": "Intervallo di aggiornamento per informazioni sulla playlist. (in minuti, consigliato 15, 0 = disabilitato)",
-  "manual1": "Iscriviti anche a https://developer.spotify.com",
+  "manual1": "Iscriviti anche a https://developer.spotify.com/dashboard/",
   "manual2": "Crea un'applicazione, ottieni un Client ID e un Client Secret",
   "manual3": "nelle impostazioni dell'app dell'applicazione, immettere \"http://localhost\" su Redirect URIs",
   "manual4": "inserisci il tuo Cliend ID e Client Secret qui",

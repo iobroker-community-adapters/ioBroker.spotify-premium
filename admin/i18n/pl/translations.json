@@ -8,7 +8,7 @@
   "statusInterval": "Interwał odświeżania dla informacji o stanie. (w sekundach zalecany 10, 0 = wyłączony). Wymagany tylko wtedy, gdy kontrolujesz Spotify na urządzeniach z wyjątkiem adaptera.",
   "deviceInterval": "Interwał odświeżania informacji o urządzeniu. (w minutach, zalecane 5, 0 = wyłączone)",
   "playlistInterval": "Interwał odświeżania informacji o liście odtwarzania. (w minutach, zalecane 15, 0 = wyłączone)",
-  "manual1": "Zaloguj się na https://developer.spotify.com",
+  "manual1": "Zaloguj się na https://developer.spotify.com/dashboard/",
   "manual2": "Utwórz aplikację, otrzymasz identyfikator klienta i klucz klienta",
   "manual3": "ustaw przekierowania URI na http://localhost w ustawieniach aplikacji w utworzonej aplikacji spotify",
   "manual4": "umieść Cliend ID i Secret klienta w polach poniżej",

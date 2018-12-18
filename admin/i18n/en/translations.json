@@ -8,7 +8,7 @@
   "statusInterval": "Refresh interval for status information. (in seconds, recommended 10, 0 = disabled). Only required if you control Spotify on devices apart from the adapter.",
   "deviceInterval": "Refresh interval for device information. (in minutes, recommended 5, 0 = disabled)",
   "playlistInterval": "Refresh interval for playlist information. (in minutes, recommended 15, 0 = disabled)",
-  "manual1": "Sign in on https://developer.spotify.com",
+  "manual1": "Sign in on https://developer.spotify.com/dashboard/",
   "manual2": "Create an application, you get a Client ID and a Client Secret",
   "manual3": "set the redirect URIs to 'http://localhost' in your app settings at your created spotify application",
   "manual4": "put the Cliend ID and Client Secret in the fields down below",
