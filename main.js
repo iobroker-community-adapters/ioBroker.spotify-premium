@@ -1968,6 +1968,7 @@ function listenOnHtmlTracklist() {
 		let cssClassAlbum = '';
 		let cssClassExplicit = '';
 		let cssClassColDuration = '';
+		let cssClassSpace = '';
 		if(current == i) {
 			styleTitle = ' style="color: #1db954; font-weight: bold"';
 			styleDuration = ' style="color: #1db954"';
@@ -1980,6 +1981,8 @@ function listenOnHtmlTracklist() {
 			cssClassAlbum = ' spotifyTracksAlbumActive';
 			cssClassExplicit = ' spotifyTracksExplicitActive';
 			cssClassColDuration = ' spotifyTracksColDurationActive';
+			cssClassSpace = ' spotifyTracksSpaceActive';
+			
 		}
 
 		html += '<tr class="spotifyTracksRow' + cssClassRow + '" onclick="vis.setValue(\'' + adapter.namespace + '.player.playlist.trackList\', ' + i + ')">';
@@ -2000,7 +2003,9 @@ function listenOnHtmlTracklist() {
 		}
 		html += '<span class="spotifyTracksArtist' + cssClassArtist + '">';
 		html += source[i].artistName;
-		html += '</span><span class="spotifyTracksAlbum' + cssClassAlbum + '">';
+		html += '</span>';
+		html += '<span class="spotifyTracksSpace' + cssClassSpace + '">&nbsp;&bull;&nbsp;</span>';
+		html += '<span class="spotifyTracksAlbum' + cssClassAlbum + '">';
 		html += source[i].album.name;
 		html += '</span></span></td>';
 		html += '<td' + styleDuration + ' class="spotifyTracksColDuration' + cssClassColDuration + '">';
