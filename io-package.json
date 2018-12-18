@@ -476,7 +476,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/play.png"
+                "icon": "icons/play_black.png"
             },
             "native": {}
         },
@@ -489,7 +489,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/pause.png"
+                "icon": "icons/pause_black.png"
             },
             "native": {}
         },
@@ -502,7 +502,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/skip_next.png"
+                "icon": "icons/skip_next_black.png"
             },
             "native": {}
         },
@@ -515,7 +515,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/skip_previous.png"
+                "icon": "icons/skip_prev_black.png"
             },
             "native": {}
         },
@@ -528,7 +528,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/repeat_one.png"
+                "icon": "icons/repeat_one_black.png"
             },
             "native": {}
         },
@@ -554,7 +554,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/repeat_off.png"
+                "icon": "icons/repeat_off_black.png"
             },
             "native": {}
         },
@@ -568,7 +568,7 @@
                 "read": true,
                 "write": true,
                 "states": "{\"off\": \"no repeat\",\"context\": \"context, e.g. playlist\",\"track\": \"one track\"}",
-                "icon": "icons/repeat_off.png"
+                "icon": "icons/repeat_off_black.png"
             },
             "native": {}
         },
@@ -665,7 +665,7 @@
                 "type": "string",
                 "read": true,
                 "write": true,
-                "icon": "icons/shuffle_off.png",
+                "icon": "icons/shuffle_off_black.png",
                 "states": "{\"on\": \"On\",\"off\": \"Off\"}"
             },
             "native": {}
@@ -679,7 +679,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/shuffle_off.png"
+                "icon": "icons/shuffle_off_black.png"
             },
             "native": {}
         },

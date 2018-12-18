@@ -810,7 +810,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
                     role: 'button',
                     read: false,
                     write: true,
-                    icon: 'icons/play.png'
+                    icon: 'icons/play_black.png'
                 },
                 native: {}
             }),
@@ -1091,12 +1091,12 @@ function deleteDevices(addedList) {
 
 function getIconByType(type) {
     if (type == 'Computer') {
-        return 'icons/computer.png';
+        return 'icons/computer_black.png';
     } else if (type == 'Smartphone') {
-        return 'icons/smartphone.png';
+        return 'icons/smartphone_black.png';
     }
     // Speaker
-    return 'icons/speaker.png';
+    return 'icons/speaker_black.png';
 }
 
 function createDevices(data) {
@@ -1132,7 +1132,7 @@ function createDevices(data) {
         			role: 'button',
         			read: false,
         			write: true,
-        			icon: 'icons/play.png'
+        			icon: 'icons/play_black.png'
         		},
         		native: {}
         	});
@@ -1969,6 +1969,7 @@ function listenOnHtmlTracklist() {
 		let cssClassExplicit = '';
 		let cssClassColDuration = '';
 		let cssClassSpace = '';
+		let cssClassLinebreak = '';
 		if(current == i) {
 			styleTitle = ' style="color: #1db954; font-weight: bold"';
 			styleDuration = ' style="color: #1db954"';
@@ -1982,7 +1983,7 @@ function listenOnHtmlTracklist() {
 			cssClassExplicit = ' spotifyTracksExplicitActive';
 			cssClassColDuration = ' spotifyTracksColDurationActive';
 			cssClassSpace = ' spotifyTracksSpaceActive';
-			
+			cssClassLinebreak = ' spotifyTracksLinebreakActive';			
 		}
 
 		html += '<tr class="spotifyTracksRow' + cssClassRow + '" onclick="vis.setValue(\'' + adapter.namespace + '.player.playlist.trackList\', ' + i + ')">';
@@ -1996,7 +1997,8 @@ function listenOnHtmlTracklist() {
         html += '<td' + styleTitle + ' class="spotifyTracksColTitle' + cssClassColTitle + '">';
         html += '<span class="spotifyTracksTitle' + cssClassTitle + '">';
 		html += source[i].title;
-		html += '</span><br />';
+		html += '</span>';
+		html += '<span class="spotifyTracksLinebreak' + cssClassLinebreak + '"><br /></span>';
 		html += '<span class="spotifyTracksArtistAlbum' + cssClassArtistAlbum + '">';
 		if (source[i].explicit) {
 			html += '<img style="width: 54px; height: 16px" class="spotifyTracksExplicit' + cssClassExplicit + '" src="/spotify-premium.admin/icons/explicit.png" />';
