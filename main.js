@@ -1893,9 +1893,24 @@ function clearCache() {
 }
 
 function listenOnHtmlPlaylists() {
-	let current = cache.get('playlists.playlistList').val;
-	let ids = cache.get('playlists.playlistListIds').val.split(';');
-	let strings = cache.get('playlists.playlistListString').val.split(';');
+	let obj = cache.get('playlists.playlistList');
+	if(obj === null || !obj.val) {
+		cache.set('html.playlists', {val: '', ack: true});
+		return;
+	}
+	let current = obj.val;
+	obj = cache.get('playlists.playlistListIds');
+	if(obj === null || !obj.val) {
+		cache.set('html.playlists', {val: '', ack: true});
+		return;
+	}
+	let ids = obj.val.split(';');
+	obj = cache.get('playlists.playlistListString');
+	if(obj === null || !obj.val) {
+		cache.set('html.playlists', {val: '', ack: true});
+		return;
+	}
+	let strings = obj.val.split(';');
 	let html = '<table class="spotifyPlaylistsTable">';
 
 	for (let i = 0; i < ids.length; i++) {
@@ -1927,8 +1942,18 @@ function listenOnHtmlPlaylists() {
 }
 
 function listenOnHtmlTracklist() {
-	let current = cache.get('player.playlist.trackList').val;
-	let source = cache.get('player.playlist.trackListArray').val;
+	let obj = cache.get('player.playlist.trackList');
+	if(obj === null || !obj.val) {
+		cache.set('html.tracks', {val: '', ack: true});
+		return;
+	}
+	let current = obj.val;
+	obj = cache.get('player.playlist.trackListArray');
+	if(obj === null || !obj.val) {
+		cache.set('html.tracks', {val: '', ack: true});
+		return;
+	}
+	let source = obj.val;
 	let html = '<table class="spotifyTracksTable">';
 
 	for (let i = 0; i < source.length; i++) {
@@ -1990,9 +2015,24 @@ function listenOnHtmlTracklist() {
 }
 
 function listenOnHtmlDevices() {
-	let current = cache.get('devices.deviceList').val;
-	let ids = cache.get('devices.deviceListIds').val.split(';');
-	let strings = cache.get('devices.availableDeviceListString').val.split(';');
+	let obj = cache.get('devices.deviceList');
+	if(obj === null || !obj.val) {
+		cache.set('html.devices', {val: '', ack: true});
+		return;
+	}
+	let current = obj.val;
+	obj = cache.get('devices.deviceListIds');
+	if(obj === null || !obj.val) {
+		cache.set('html.devices', {val: '', ack: true});
+		return;
+	}
+	let ids = obj.val.split(';');
+	obj = cache.get('devices.availableDeviceListString');
+	if(obj === null || !obj.val) {
+		cache.set('html.devices', {val: '', ack: true});
+		return;
+	}
+	let strings = obj.val.split(';');
 	let html = '<table class="spotifyDevicesTable">';
 
 	for (let i = 0; i < ids.length; i++) {
