@@ -85,7 +85,7 @@ Click for widget source.
 
 ## Changelog
 
-### 1.0.0 (2018.12.03)
+### 1.0.0 (2018.12.18)
 * (twonky) `playbackInfo` and `player` merged together to `player`
 * (twonky) `player.volume` moved to `player.device.volume`
 * (twonky) The `duration` format of `player.playlist.trackListArray` and `playlists.[playListName].trackListArray` was changed from milliseconds to time (MM:SS) and a new one was created for this `durationMs`.
