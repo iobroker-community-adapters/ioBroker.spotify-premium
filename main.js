@@ -1960,9 +1960,9 @@ function listenOnHtmlTracklist() {
 		html += '<tr class="spotifyTracksRow' + cssClassRow + '" onclick="vis.setValue(\'' + adapter.namespace + '.player.playlist.trackList\', ' + i + ')">';
 		html += '<td class="spotifyTracksColIcon' + cssClassIcon + '">';
 		if(current == i) {
-			html += '<img class="spotifyTracksIconActive" src="/spotify-premium.admin/icons/active_song_speaker_green.png" />';
+			html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconActive" src="/spotify-premium.admin/icons/active_song_speaker_green.png" />';
 		} else {
-			html += '<img class="spotifyTracksIconInactive" src="/spotify-premium.admin/icons/inactive_song_note_white.png" />';
+			html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconInactive" src="/spotify-premium.admin/icons/inactive_song_note_white.png" />';
 		}
 		html += '</td>';
         html += '<td' + styleTitle + ' class="spotifyTracksColTitle' + cssClassColTitle + '">';
@@ -1971,7 +1971,7 @@ function listenOnHtmlTracklist() {
 		html += '</span><br />';
 		html += '<span class="spotifyTracksArtistAlbum' + cssClassArtistAlbum + '">';
 		if (source[i].explicit) {
-			html += '<img class="spotifyTracksExplicit' + cssClassExplicit + '" src="/spotify-premium.admin/icons/explicit.png" />';
+			html += '<img style="width: 16px; height: 16px" class="spotifyTracksExplicit' + cssClassExplicit + '" src="/spotify-premium.admin/icons/explicit.png" />';
 		}
 		html += '<span class="spotifyTracksArtist' + cssClassArtist + '">';
 		html += source[i].artistName;
