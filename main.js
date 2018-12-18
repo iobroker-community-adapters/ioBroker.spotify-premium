@@ -1971,7 +1971,7 @@ function listenOnHtmlTracklist() {
 		html += '</span><br />';
 		html += '<span class="spotifyTracksArtistAlbum' + cssClassArtistAlbum + '">';
 		if (source[i].explicit) {
-			html += '<img style="width: 16px; height: 16px" class="spotifyTracksExplicit' + cssClassExplicit + '" src="/spotify-premium.admin/icons/explicit.png" />';
+			html += '<img style="width: 54px; height: 16px" class="spotifyTracksExplicit' + cssClassExplicit + '" src="/spotify-premium.admin/icons/explicit.png" />';
 		}
 		html += '<span class="spotifyTracksArtist' + cssClassArtist + '">';
 		html += source[i].artistName;
