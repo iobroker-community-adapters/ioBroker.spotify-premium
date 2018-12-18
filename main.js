@@ -2001,7 +2001,7 @@ function listenOnHtmlTracklist() {
 		html += '<span class="spotifyTracksLinebreak' + cssClassLinebreak + '"><br /></span>';
 		html += '<span class="spotifyTracksArtistAlbum' + cssClassArtistAlbum + '">';
 		if (source[i].explicit) {
-			html += '<img style="width: 54px; height: 16px" class="spotifyTracksExplicit' + cssClassExplicit + '" src="/spotify-premium.admin/icons/explicit.png" />';
+			html += '<img style="width: auto; height: 16px" class="spotifyTracksExplicit' + cssClassExplicit + '" src="/spotify-premium.admin/icons/explicit.png" />';
 		}
 		html += '<span class="spotifyTracksArtist' + cssClassArtist + '">';
 		html += source[i].artistName;
@@ -2043,16 +2043,27 @@ function listenOnHtmlDevices() {
 	let html = '<table class="spotifyDevicesTable">';
 
 	for (let i = 0; i < ids.length; i++) {
+		let type = getIconByType(cache.get('devices.' + ids[i] + '.type').val);
+
 		let style = '';
 		let cssClassRow = '';
-		let cssClassCol = '';
+		let cssClassColName = '';
+		let cssClassColIcon = '';
 		if(current == ids[i]) {
 			style = ' style="color: #1db954; font-weight: bold"';
 			cssClassRow = ' spotifyDevicesRowActive';
-			cssClassCol = ' spotifyDevicesColActive';
+			cssClassColName = ' spotifyDevicesColNameActive';
+			cssClassColIcon = ' spotifyDevicesColIconActive';
 		}
 		html += '<tr class="spotifyDevicesRow' + cssClassRow + '" onclick="vis.setValue(\'' + adapter.namespace + '.devices.deviceList\', \'' + ids[i] +'\')">';
-		html += '<td' + style + ' class="spotifyDevicesColActive' + cssClassCol + '">';
+		html += '<td' + style + ' class="spotifyDevicesColIcon' + cssClassColIcon + '">';
+		if(current == ids[i]) {
+			html += '<img style="width: 16px; height: 16px" class="spotifyDevicesIconActive" src="/spotify-premium.admin/' + type.replace('black', 'green') + '" />';
+		} else {
+			html += '<img style="width: 16px; height: 16px" class="spotifyDevicesIcon" src="/spotify-premium.admin/' + type + '" />';
+		}
+		html += '</td>';
+		html += '<td' + style + ' class="spotifyDevicesColName' + cssClassColName + '">';
 		html += strings[i];
 		html += '</td>';
 		html += '</tr>';
