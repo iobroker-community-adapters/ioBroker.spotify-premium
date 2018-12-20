@@ -85,6 +85,9 @@ Click for widget source.
 
 ## Changelog
 
+### 1.1.0 (in dev)
+* (twonky) add control widgets
+
 ### 1.0.0 (2018.12.18)
 * (twonky) `playbackInfo` and `player` merged together to `player`
 * (twonky) `player.volume` moved to `player.device.volume`
