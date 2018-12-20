@@ -1,0 +1,167 @@
+<!--
+    ioBroker.spotify-premium Widget-Set
+
+    version: "1.0.0"
+
+    Copyright 12.2018 twonky4<twonky4@gmx.de>
+-->
+
+<script type="text/javascript">
+"use strict";
+
+// add translations for edit mode
+if (vis.editMode) {
+	 $.extend(true, systemDictionary, {
+ 		"oidplay": { "en": "Trigger Play Id", "de": "Auslösespiel-ID", "ru": "Идентификатор запуска воспроизведения", "pt": "ID do jogo do acionador", "nl": "Trigger Play-ID", "fr": "Identifiant de lecture du déclencheur", "it": "Attiva l'ID del gioco", "es": "Trigger Play Id", "pl": "Trigger Play Id"},
+ 		"oidpause": {"en": "Trigger Pause Id", "de": "Auslöser-Pause-ID", "ru": "Идентификатор паузы запуска", "pt": "ID de pausa do acionador", "nl": "Trigger-pauze-ID", "fr": "Id de pause de déclenchement", "it": "Trigger Pause Id", "es": "Id. De pausa del disparador", "pl": "Trigger Pause Id"},
+ 		"oidstate": {"en": "Status Id", "de": "Status-ID", "ru": "Идентификатор статуса", "pt": "ID do estado", "nl": "Status-ID", "fr": "ID de statut", "it": "ID stato", "es": "ID de estado", "pl": "ID statusu"},
+ 		"colorplay": {"en": "play icon color", "de": "Farbe Play Icon", "ru": "цвет", "pt": "cor", "nl": "kleur", "fr": "Couleur", "it": "colore", "es": "color", "pl": "kolor"},
+ 		"colorpause": {"en": "pause icon color", "de": "Farbe Pause Icon", "ru": "цвет", "pt": "cor", "nl": "kleur", "fr": "Couleur", "it": "colore", "es": "color", "pl": "kolor"},
+ 		"oidon": { "en": "Trigger Shuffle On Id", "de": "Auslösespiel-ID", "ru": "Идентификатор запуска воспроизведения", "pt": "ID do jogo do acionador", "nl": "Trigger Play-ID", "fr": "Identifiant de lecture du déclencheur", "it": "Attiva l'ID del gioco", "es": "Trigger Play Id", "pl": "Trigger Play Id"},
+ 		"oidoff": {"en": "Trigger Shuffle Off Id", "de": "Auslöser-Pause-ID", "ru": "Идентификатор паузы запуска", "pt": "ID de pausa do acionador", "nl": "Trigger-pauze-ID", "fr": "Id de pause de déclenchement", "it": "Trigger Pause Id", "es": "Id. De pausa del disparador", "pl": "Trigger Pause Id"},
+ 		"coloron": {"en": "shuffle on icon color", "de": "Farbe Shuffle An Icon", "ru": "цвет", "pt": "cor", "nl": "kleur", "fr": "Couleur", "it": "colore", "es": "color", "pl": "kolor"},
+ 		"coloroff": {"en": "shuffle off icon color", "de": "Farbe Shuffle Aus Icon", "ru": "цвет", "pt": "cor", "nl": "kleur", "fr": "Couleur", "it": "colore", "es": "color", "pl": "kolor"}
+	 });
+}
+
+vis.binds.spotify = {
+	 getPlayImage: function (data) {
+	 	var src;
+
+	 	if(vis.states[data.oidstate + '.val']) {    		
+	 		src = 'pause_' + data.colorpause;
+	 	} else {
+	 		src = 'play_' + data.colorplay;
+	 	}
+
+	 	return '/vis/widgets/spotify-premium/img/' + src + '.png';
+	 },
+	 triggerPlayButton: function (el) {
+	     var $this = $(el);
+	     var state = $this.data('oidstate');
+	     var play = $this.data('oidplay');
+	     var pause = $this.data('oidpause');
+	     var colorplay = $this.data('colorplay');
+	     var colorpause = $this.data('colorpause');
+
+	     if (state && play && pause && !vis.editMode) {
+            function onChange(e, newVal) {
+                $this.find('img').prop('src', vis.binds.spotify.getPlayImage({oidstate: state, colorplay: colorplay, colorpause: colorpause}));
+            }
+	    	vis.states.bind(state + '.val', onChange);
+
+			var moved = false;
+	        $this.on('click touchend', function () {			
+	             // Protect against two events
+	             if (vis.detectBounce(this) || moved) return;
+
+	             var val = vis.states[state + '.val'];
+	             if(val) {
+	             	vis.setValue(pause, true);
+	             } else {
+	             	vis.setValue(play, true);                    	
+	             }
+	        }).on('touchmove', function () {
+				moved = true;
+			}).on('touchstart', function () {
+				moved = false;
+			}).data('destroy', function (id, $widget) {
+				$widget.off('click touchend').off('touchmove').off('touchstart');
+	        });
+	     }
+	 },
+	 getShuffleImage: function (data) {
+	 	var src = 'shuffle_';
+
+	 	if(vis.states[data.oidstate + '.val'] == 'on') {    		
+	 		src += data.coloroff;
+	 	} else {
+	 		src += data.coloron;
+	 	}
+
+	 	return '/vis/widgets/spotify-premium/img/' + src + '.png';
+	 },
+	 triggerShuffleButton: function (el) {
+	     var $this = $(el);
+	     var state = $this.data('oidstate');
+	     var on = $this.data('oidon');
+	     var off = $this.data('oidoff');
+	     var coloron = $this.data('coloron');
+	     var coloroff = $this.data('coloroff');
+
+	     if (state && on && off && !vis.editMode) {
+            function onChange(e, newVal) {
+                $this.find('img').prop('src', vis.binds.spotify.getShuffleImage({oidstate: state, coloroff: coloroff, coloron: coloron}));
+            }
+	    	vis.states.bind(state + '.val', onChange);
+
+			var moved = false;
+	        $this.on('click touchend', function () {			
+	             // Protect against two events
+	             if (vis.detectBounce(this) || moved) return;
+
+	             var val = vis.states[state + '.val'];
+	             if(val == 'on') {
+	             	vis.setValue(off, true);
+	             } else {
+	             	vis.setValue(on, true);                    	
+	             }
+	        }).on('touchmove', function () {
+				moved = true;
+			}).on('touchstart', function () {
+				moved = false;
+			}).data('destroy', function (id, $widget) {
+				$widget.off('click touchend').off('touchmove').off('touchstart');
+	        });
+	     }
+	 }
+};
+</script>
+
+<script id="tplSpotifyPlayButton"
+        type="text/ejs"
+        class="vis-tpl"
+  		data-vis-prev='<div id="prev_tplSpotifyPlayButton" style="position: relative; text-align: initial;padding: 4px; height: 40px"><div style="left: 384px; top: 470px;" class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oidplay="" data-oidpause="" data-oidstate="" data-colorplay="" data-colorpause="" style="width:auto; height:32px" src="/vis/widgets/spotify-premium/img/play_black.png" role="button"/> </div> </div>'
+        data-vis-set="spotify-premium"
+        data-vis-type="ctrl"
+        data-vis-name="Play Toggle"
+        data-vis-attrs="oidplay[spotify-premium.0.player.play]/id;oidpause[spotify-premium.0.player.pause]/id;oidstate[spotify-premium.0.player.isPlaying]/id;colorplay[black]/select,black,white,green;colorpause[black]/select,black,white,green">
+    <div
+		class="vis-widget <%== this.data.attr('class') %>"
+		id="<%= this.data.attr('wid') %>"
+		data-oidplay="<%= this.data.attr('oidplay') %>"
+		data-oidpause="<%= this.data.attr('oidpause') %>"
+		data-oidstate="<%= this.data.attr('oidstate') %>"
+		data-colorplay="<%= this.data.attr('colorplay') %>"
+		data-colorpause="<%= this.data.attr('colorpause') %>"
+		<%= (el) -> vis.binds.spotify.triggerPlayButton(el) %>
+	>
+        <div class="vis-widget-body">
+            <img style="width:100%; height:auto" src="<%= vis.binds.spotify.getPlayImage(data) %>" />
+        </div>
+    </div>
+</script>
+
+<script id="tplSpotifyShuffleButton"
+        type="text/ejs"
+        class="vis-tpl"
+  		data-vis-prev='<div id="prev_tplSpotifyShuffleButton" style="position: relative; text-align: initial;padding: 4px; height: 40px"><div style="left: 384px; top: 470px;" class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oidon="" data-oidoff="" data-oidstate="" data-coloron="" data-coloroff="" style="width:auto; height:32px" src="/vis/widgets/spotify-premium/img/shuffle_black.png" role="button"/> </div> </div>'
+        data-vis-set="spotify-premium"
+        data-vis-type="ctrl"
+        data-vis-name="Shuffle Toggle"
+        data-vis-attrs="oidon[spotify-premium.0.player.shuffleOn]/id;oidoff[spotify-premium.0.player.shuffleOff]/id;oidstate[spotify-premium.0.player.shuffle]/id;coloron[green]/select,black,white,green;coloroff[black]/select,black,white,green">
+    <div
+		class="vis-widget <%== this.data.attr('class') %>"
+		id="<%= this.data.attr('wid') %>"
+		data-oidon="<%= this.data.attr('oidon') %>"
+		data-oidoff="<%= this.data.attr('oidoff') %>"
+		data-oidstate="<%= this.data.attr('oidstate') %>"
+		data-coloron="<%= this.data.attr('coloron') %>"
+		data-coloroff="<%= this.data.attr('coloroff') %>"
+		<%= (el) -> vis.binds.spotify.triggerShuffleButton(el) %>
+	>
+        <div class="vis-widget-body">
+            <img style="width:100%; height:auto" src="<%= vis.binds.spotify.getShuffleImage(data) %>" />
+        </div>
+    </div>
+</script>

@@ -668,7 +668,7 @@
                 "type": "string",
                 "read": true,
                 "write": true,
-                "icon": "icons/shuffle_off_black.png",
+                "icon": "icons/shuffle_black.png",
                 "states": "{\"on\": \"On\",\"off\": \"Off\"}"
             },
             "native": {}
@@ -682,7 +682,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/shuffle_off_black.png"
+                "icon": "icons/shuffle_black.png"
             },
             "native": {}
         },
@@ -695,7 +695,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/shuffle_on.png"
+                "icon": "icons/shuffle_green.png"
             },
             "native": {}
         },
