@@ -544,7 +544,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/repeat_all.png"
+                "icon": "icons/repeat_green.png"
             },
             "native": {}
         },
@@ -557,7 +557,7 @@
                 "type": "boolean",
                 "read": false,
                 "write": true,
-                "icon": "icons/repeat_off_black.png"
+                "icon": "icons/repeat_black.png"
             },
             "native": {}
         },
@@ -571,7 +571,7 @@
                 "read": true,
                 "write": true,
                 "states": "{\"off\": \"no repeat\",\"context\": \"context, e.g. playlist\",\"track\": \"one track\"}",
-                "icon": "icons/repeat_off_black.png"
+                "icon": "icons/repeat_black.png"
             },
             "native": {}
         },
