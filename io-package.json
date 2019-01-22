@@ -242,7 +242,8 @@
         ],
         "readme": "https://github.com/twonky4/ioBroker.spotify-premium/blob/master/README.md",
         "loglevel": "info",
-        "type": "multimedia"
+        "type": "multimedia",
+        "compact": true
     },
     "native": {
         "client_id": "",

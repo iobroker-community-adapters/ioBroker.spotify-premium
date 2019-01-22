@@ -86,7 +86,8 @@ Click for widget source.
 ## Changelog
 
 ### 1.1.0 (in dev)
-* (twonky) add control widgets
+* (twonky) added control widgets
+* (twonky) added compact mode
 
 ### 1.0.0 (2018.12.18)
 * (twonky) `playbackInfo` and `player` merged together to `player`

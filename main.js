@@ -2,13 +2,15 @@
 // jshint strict:false
 /*jslint node: true */
 'use strict';
-const adapter = require('@iobroker/adapter-core').adapter('spotify-premium');
-const cache = require(__dirname + '/lib/cache')(adapter);
-const ownUtils = require(__dirname + '/lib/utils')(adapter);
+const utils = require('@iobroker/adapter-core');
+const cache = require(__dirname + '/lib/cache');
+const ownUtils = require(__dirname + '/lib/utils');
+
 const querystring = require('querystring');
 const Promise = require('promise');
 const request = Promise.denodeify(require('request'));
 
+let adapter;
 let isEmpty = ownUtils.isEmpty;
 let removeNameSpace = ownUtils.removeNameSpace;
 
@@ -41,6 +43,56 @@ let deviceData = {
     lastActiveDeviceId: '',
     lastSelectDeviceId: ''
 };
+
+function startAdapter(options) {
+	options = options || {};
+	Object.assign(options, {
+		name: 'spotify-premium',
+		stateChange: function(id, state) {
+			cache.setExternal(id, state);
+		},
+		objectChange: function(id, obj) {
+			cache.setExternalObj(id, obj);
+		},
+		ready: function() {
+			cache.init().then(function() {
+				main();
+			});
+		},
+		unload: function(callback) {
+		    Promise.all([
+		    	cache.set('authorization.authorizationUrl', ''),
+		    	cache.set('authorization.authorizationReturnUri', ''),
+		    	cache.set('authorization.userId', ''),
+		    	cache.set('player.trackId', ''),
+		    	cache.set('player.playlist.id', ''),
+		    	cache.set('player.playlist.trackNo', ''),
+		    	cache.set('player.playlist.owner', ''),
+		    	cache.set('authorization.authorized', false),
+		    	cache.set('info.connection', false)
+		    ]).then(function() {
+		        if ('undefined' !== typeof application.statusPollingHandle) {
+		            clearTimeout(application.statusPollingHandle);
+		            clearTimeout(application.statusInternalTimer);
+		        }
+		        if ('undefined' !== typeof application.devicePollingHandle) {
+		            clearTimeout(application.devicePollingHandle);
+		        }
+		        if ('undefined' !== typeof application.playlistPollingHandle) {
+		            clearTimeout(application.playlistPollingHandle);
+		        }
+		        if ('undefined' !== typeof application.cacheClearHandle) {
+		            clearTimeout(application.cacheClearHandle);
+		        }
+		    }).nodeify(callback);
+		}
+     });
+     adapter = new utils.Adapter(options);
+     cache.setAdapter(adapter);
+     ownUtils.setAdapter(adapter);
+
+     return adapter;
+}
 
 function main() {
     application.clientId = adapter.config.client_id;
@@ -2106,37 +2158,11 @@ cache.on('getDevices', listenOnGetDevices);
 cache.on(['playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString'], listenOnHtmlPlaylists);
 cache.on(['player.playlist.trackList', 'player.playlist.trackListArray'], listenOnHtmlTracklist);
 cache.on(['devices.deviceList', 'devices.deviceListIds', 'devices.availableDeviceListString'], listenOnHtmlDevices);
-adapter.on('ready', function() {
-	cache.init().then(function() {		
-		main();
-	});
-});
-adapter.on('objectChange', cache.setExternalObj);
-adapter.on('stateChange', cache.setExternal);
-adapter.on('unload', function(callback) {
-    Promise.all([
-    	cache.set('authorization.authorizationUrl', ''),
-    	cache.set('authorization.authorizationReturnUri', ''),
-    	cache.set('authorization.userId', ''),
-    	cache.set('player.trackId', ''),
-    	cache.set('player.playlist.id', ''),
-    	cache.set('player.playlist.trackNo', ''),
-    	cache.set('player.playlist.owner', ''),
-    	cache.set('authorization.authorized', false),
-    	cache.set('info.connection', false)
-    ]).then(function() {
-        if ('undefined' !== typeof application.statusPollingHandle) {
-            clearTimeout(application.statusPollingHandle);
-            clearTimeout(application.statusInternalTimer);
-        }
-        if ('undefined' !== typeof application.devicePollingHandle) {
-            clearTimeout(application.devicePollingHandle);
-        }
-        if ('undefined' !== typeof application.playlistPollingHandle) {
-            clearTimeout(application.playlistPollingHandle);
-        }
-        if ('undefined' !== typeof application.cacheClearHandle) {
-            clearTimeout(application.cacheClearHandle);
-        }
-    }).nodeify(callback);
-});
+
+//If started as allInOne/compact mode => return function to create instance
+if (module && module.parent) {
+    module.exports = startAdapter;
+} else {
+    // or start the instance directly
+    startAdapter();
+}
