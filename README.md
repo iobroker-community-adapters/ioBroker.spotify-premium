@@ -1,7 +1,7 @@
 <img src="admin/spotify-premium.png" width="130" alt="Logo">
 
 # ioBroker.spotify-premium
-
+![Number of Installations](http://iobroker.live/badges/spotify-premium-installed.svg) ![Number of Installations](http://iobroker.live/badges/spotify-premium-stable.svg) 
 [![NPM version](https://img.shields.io/npm/v/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
 [![Tests](http://img.shields.io/travis/twonky4/ioBroker.spotify-premium/master.svg)](https://travis-ci.org/twonky4/ioBroker.spotify-premium)
