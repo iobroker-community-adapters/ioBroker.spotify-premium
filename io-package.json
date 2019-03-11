@@ -479,6 +479,19 @@
             "native": {}
         },
         {
+            "_id": "player.playUri",
+            "type": "state",
+            "common": {
+                "role": "value",
+                "name": "Start a new context based on spotify uri. Set a javascript object like: {\"device_id\":\"2fb7dce39e76b94f4a1dc52d896048cac8276952\",\"context_uri\":\"spotify:user:11128263953:playlist:3sP5z9L9w0GHRWQlnZgyQN\",\"offset\":{\"position\":5}} or: {\"uris\":[\"spotify:track:4iV5W9uYEdYUVa79Axb7Rh\",\"spotify:track:1301WleyT98MSxVHPZCA6M\"],\"position_ms\":24050} For more infos look at: https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/",
+                "type": "object",
+                "read": false,
+                "write": true,
+                "icon": "icons/play_black.png"
+            },
+            "native": {}
+        },
+        {
             "_id": "player.pause",
             "type": "state",
             "common": {

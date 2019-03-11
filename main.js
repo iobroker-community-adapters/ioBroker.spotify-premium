@@ -1737,6 +1737,25 @@ function listenOnPlaylistList(obj) {
     }
 }
 
+function listenOnPlayUri(obj) {
+	let query = {
+        device_id: getSelectedDevice(deviceData)
+    };
+
+	let send = obj.state.val;
+	if (!isEmpty(send["device_id"])) {
+		query.device_id = send["device_id"];
+		delete send["device_id"];
+	}
+
+    clearTimeout(application.statusInternalTimer);
+    sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', JSON.stringify(send)).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);
+    }).then(function() {
+        setTimeout(pollStatusApi, 1000);
+    })
+}
+
 function listenOnPlay() {
 	let query = {
         device_id: getSelectedDevice(deviceData)
@@ -2141,6 +2160,7 @@ cache.on(/\.playThisList$/, listenOnPlayThisList);
 cache.on('devices.deviceList', listenOnDeviceList, true);
 cache.on('playlists.playlistList', listenOnPlaylistList, true);
 cache.on('player.play', listenOnPlay);
+cache.on('player.playUri', listenOnPlayUri);
 cache.on('player.pause', listenOnPause);
 cache.on('player.skipPlus', listenOnSkipPlus);
 cache.on('player.skipMinus', listenOnSkipMinus);

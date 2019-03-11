@@ -85,6 +85,7 @@ Click for widget source.
 * (twonky) added control widgets
 * (twonky) added compact mode
 * (Apollon77) Core Files/Testing Update and introduce adapter-core
+* (twonky) added state `player.playUri` to support user defined input
 
 ### 1.0.0 (2018.12.18)
 * (twonky) `playbackInfo` and `player` merged together to `player`
