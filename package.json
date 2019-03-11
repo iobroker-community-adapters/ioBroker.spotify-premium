@@ -28,7 +28,7 @@
     "url": "https://github.com/twonky4/ioBroker.spotify-premium"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "1.0.3",
+    "@iobroker/adapter-core": "^1.0.3",
     "request": "2.88.0",
     "querystring": "0.2.0",
     "promise": "8.0.2"
@@ -36,11 +36,15 @@
   "devDependencies": {
     "gulp": "^3.9.1",
     "mocha": "^4.1.0",
-    "chai": "^4.1.2"
+    "chai": "^4.1.2",
+    "@iobroker/testing": "^1.1.10"
   },
   "main": "main.js",
   "scripts": {
-    "test": "node node_modules/mocha/bin/mocha --exit"
+    "test": "npm run test:package && npm run test:unit",
+    "test:package": "mocha test/package --exit",
+    "test:unit": "mocha test/unit --exit",
+    "test:integration": "mocha test/integration --exit"
   },
   "bugs": {
     "url": "https://github.com/twonky4/ioBroker.spotify-premium/issues"
