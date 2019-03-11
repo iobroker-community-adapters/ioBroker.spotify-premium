@@ -297,7 +297,8 @@
             "_id": "player.device",
             "type": "device",
             "common": {
-                "name": "Commands to control playback related to the current active device"
+                "name": "Commands to control playback related to the current active device",
+                "icon": "icons/speaker_black.png"
             },
             "native": {}
         },

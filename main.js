@@ -1309,6 +1309,7 @@ function refreshDeviceList() {
         });
     };
 
+    let activeDevice = false;
     return Promise.all(keys.map(fn)).then(function() {
     	let stateList = {};
         let listIds = '';
@@ -1352,11 +1353,33 @@ function refreshDeviceList() {
                 if (val) {
                     key = removeNameSpace(key);
                     let id = key.substring(8, key.length - 9);
+                    activeDevice = true;
                     return cache.set('devices.deviceList', id);
                 }
             };
             return Promise.all(keys.map(fn));
         });
+    }).then(function () {
+    	if(!activeDevice) {
+    		return Promise.all([
+    			cache.set('devices.deviceList', ''),
+    			cache.set('player.device.id', ''),
+    			cache.set('player.device.name', ''),
+    			cache.set('player.device.type', ''),
+    			cache.set('player.device.volume', 100),
+    			cache.set('player.device.isActive', false),
+    			cache.set('player.device.isAvailable', false),
+    			cache.set('player.device.isRestricted', false),
+    	    	cache.set('player.device', null, {
+    	            type: 'device',
+    	            common: {
+    	                name: 'Commands to control playback related to the current active device',
+    	                icon: getIconByType('')
+    	            },
+    	            native: {}
+    	        })
+    		]);
+    	}
     });
 }
 
@@ -2099,21 +2122,20 @@ function listenOnHtmlTracklist() {
 
 function listenOnHtmlDevices() {
 	let obj = cache.get('devices.deviceList');
+	let current;
 	if(obj === null || !obj.val) {
-		cache.set('html.devices', '');
-		return;
+		current = '';
+	} else {
+		current = obj.val
 	}
-	let current = obj.val;
 	obj = cache.get('devices.deviceListIds');
 	if(obj === null || !obj.val) {
-		cache.set('html.devices', '');
-		return;
+		return cache.set('html.devices', '');
 	}
 	let ids = obj.val.split(';');
 	obj = cache.get('devices.availableDeviceListString');
 	if(obj === null || !obj.val) {
-		cache.set('html.devices', '');
-		return;
+		return cache.set('html.devices', '');
 	}
 	let strings = obj.val.split(';');
 	let html = '<table class="spotifyDevicesTable">';
