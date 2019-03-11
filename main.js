@@ -1159,8 +1159,7 @@ function getIconByType(type) {
 
 function createDevices(data) {
     if (isEmpty(data) || isEmpty(data.devices)) {
-        adapter.log.debug('no device content')
-        return Promise.reject('no device content');
+    	data = { devices: [] };
     }
     let addedList = [];
     let fn = function(device) {
