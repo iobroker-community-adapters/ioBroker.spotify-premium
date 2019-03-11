@@ -436,14 +436,13 @@ function copyObjectStates(src, dst) {
 
 function createPlaybackInfo(data) {
     if (isEmpty(data)) {
-        adapter.log.debug('no playback content');
-        return Promise.reject('no playback content');
+    	data = {};
     }
     let deviceId = loadOrDefault(data, 'device.id', '');
     let isDeviceActive = loadOrDefault(data, 'device.is_active', false);
     let isDeviceRestricted = loadOrDefault(data, 'device.is_restricted', false);
     let deviceName = loadOrDefault(data, 'device.name', '');
-    let deviceType = loadOrDefault(data, 'device.type', 'Speaker');
+    let deviceType = loadOrDefault(data, 'device.type', '');
     let deviceVolume = loadOrDefault(data, 'device.volume_percent', 100);
     let isPlaying = loadOrDefault(data, 'is_playing', false);
     let duration = loadOrDefault(data, 'item.duration_ms', 0);
@@ -456,8 +455,8 @@ function createPlaybackInfo(data) {
     if (duration > 0) {
         progressPercentage = Math.floor(progress / duration * 100);
     }
-    let contextDescription;
-    let contextImage;
+    let contextDescription = '';
+    let contextImage = '';
     let album = loadOrDefault(data, 'item.album.name', '');
     let albumUrl = loadOrDefault(data, 'item.album.images[0].url', '');
     let artist = getArtistNamesOrDefault(data, 'item.artists');
@@ -479,11 +478,11 @@ function createPlaybackInfo(data) {
     	cache.set('player.device.name', deviceName),
     	cache.set('player.device.type', deviceType),
     	cache.set('player.device.volume', deviceVolume),
-    	cache.set('player.device.isAvailable', true),
+    	cache.set('player.device.isAvailable', !isEmpty(deviceName)),
     	cache.set('player.device', null, {
             type: 'device',
             common: {
-                name: deviceName,
+                name: (isEmpty(deviceName) ? 'Commands to control playback related to the current active device' : deviceName),
                 icon: getIconByType(deviceType)
             },
             native: {}
@@ -634,7 +633,7 @@ function createPlaybackInfo(data) {
                         cache.set('player.playlist', null, {
                             type: 'channel',
                             common: {
-                                name: playlistName
+                                name: (isEmpty(playlistName) ? 'Commands to control playback related to the playlist' : playlistName)
                             },
                             native: {}
                         })
@@ -741,7 +740,7 @@ function createPlaybackInfo(data) {
             	cache.set('player.playlist', null, {
                     type: 'channel',
                     common: {
-                        name: ''
+                        name: 'Commands to control playback related to the playlist'
                     },
                     native: {}
                 })
@@ -1095,7 +1094,7 @@ function reloadDevices(data) {
 	    }
 		return p.then(function() {
 			return refreshDeviceList();
-		})
+		});
 	})
 }
 
@@ -1380,6 +1379,8 @@ function refreshDeviceList() {
     	        })
     		]);
     	}
+    }).then(function() {
+    	return listenOnHtmlDevices();
     });
 }
 
