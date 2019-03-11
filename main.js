@@ -737,6 +737,7 @@ function createPlaybackInfo(data) {
             	cache.set('player.playlist.trackListIds', ''),
             	cache.set('player.playlist.trackListArray', ''),
             	cache.set('player.playlist.trackNo', ''),
+            	cache.set('playlists.playlistList', ''),
             	cache.set('player.playlist', null, {
                     type: 'channel',
                     common: {
@@ -744,7 +745,12 @@ function createPlaybackInfo(data) {
                     },
                     native: {}
                 })
-            ]);
+            ]).then(function () {
+            	return Promise.all([
+            		listenOnHtmlPlaylists(),
+            		listenOnHtmlTracklist()
+            	]);
+            });
         }
     }).then(function() {
         return Promise.all([
@@ -1946,21 +1952,20 @@ function clearCache() {
 
 function listenOnHtmlPlaylists() {
 	let obj = cache.get('playlists.playlistList');
+	let current;
 	if(obj === null || !obj.val) {
-		cache.set('html.playlists', '');
-		return;
+		current = '';
+	} else {
+		current = obj.val;
 	}
-	let current = obj.val;
 	obj = cache.get('playlists.playlistListIds');
 	if(obj === null || !obj.val) {
-		cache.set('html.playlists', '');
-		return;
+		return cache.set('html.playlists', '');
 	}
 	let ids = obj.val.split(';');
 	obj = cache.get('playlists.playlistListString');
 	if(obj === null || !obj.val) {
-		cache.set('html.playlists', '');
-		return;
+		return cache.set('html.playlists', '');
 	}
 	let strings = obj.val.split(';');
 	let html = '<table class="spotifyPlaylistsTable">';
@@ -1990,20 +1995,21 @@ function listenOnHtmlPlaylists() {
 
 	html += '</table>';
 
-	cache.set('html.playlists', html);
+	return cache.set('html.playlists', html);
 }
 
 function listenOnHtmlTracklist() {
 	let obj = cache.get('player.playlist.trackList');
+	let current;
 	if(obj === null || !obj.val) {
-		cache.set('html.tracks', '');
-		return;
+		current = '';
+	} else {
+		current = obj.val;
 	}
-	let current = obj.val;
+
 	obj = cache.get('player.playlist.trackListArray');
 	if(obj === null || !obj.val) {
-		cache.set('html.tracks', '');
-		return;
+		return cache.set('html.tracks', '');
 	}
 	let source = obj.val;
 	let html = '<table class="spotifyTracksTable">';
@@ -2070,7 +2076,7 @@ function listenOnHtmlTracklist() {
 
 	html += '</table>';
 
-	cache.set('html.tracks', html);
+	return cache.set('html.tracks', html);
 }
 
 function listenOnHtmlDevices() {
