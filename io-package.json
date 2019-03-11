@@ -168,52 +168,32 @@
                 "pt": "Verifique a configuração\nCorrigido: configuração do adaptador em admin2\nCorrigido: reiniciar após a autorização, não é mais necessário",
                 "fr": "Vérifier la configuration Corrigé: Configuration de l'adaptateur dans admin2\nCorrection: Redémarrage après l'autorisation n'est plus nécessaire",
                 "nl": "Controleer de configuratie\nOpgelost: adapterconfiguratie in admin2; Opgelost: opnieuw opstarten na autorisatie niet meer nodig"
-            },
-            "0.0.3": {
-                "en": "improved manual",
-                "de": "Anleitung verbessert",
-                "ru": "улучшенное руководство",
-                "pt": "manual melhorado",
-                "fr": "manuel amélioré",
-                "nl": "verbeterde handleiding"
-            },
-            "0.0.2": {
-                "en": "merge script version 0.5.3",
-                "de": "Skript Version 0.5.3 eingearbeitet",
-                "ru": "Сценарий версии 0.5.3 включен",
-                "pt": "Versão de script 0.5.3 incorporada",
-                "fr": "Script version 0.5.3 incorporé",
-                "nl": "Script-versie 0.5.3 opgenomen"
-            },
-            "0.0.1": {
-                "en": "initial adapter",
-                "de": "Initiale Version",
-                "ru": "Первоначальный адаптер",
-                "pt": "Versão inicial",
-                "fr": "Version initiale",
-                "nl": "Eerste release"
             }
         },
-        "title": "Spotify Premium adapter",
+        "title": "Spotify (Premium)",
         "titleLang": {
-            "en": "Spotify Premium adapter",
-            "de": "Spotify Premium adapter",
-            "ru": "Spotify Premium adapter",
-            "pt": "Spotify Premium adapter",
-            "nl": "Spotify Premium adapter",
-            "fr": "Spotify Premium adapter",
-            "it": "Spotify Premium adapter",
-            "es": "Spotify Premium adapter"
+            "en": "Spotify (Premium)",
+            "de": "Spotify (Premium)",
+            "ru": "Spotify (Premium)",
+            "pt": "Spotify (Premium)",
+            "nl": "Spotify (Premium)",
+            "fr": "Spotify (Premium)",
+            "it": "Spotify (Premium)",
+            "es": "Spotify (Premium)",
+            "pl": "Spotify (Premium)",
+            "zh-cn": "Spotify (Premium)"
         },
         "desc": {
-            "en": "Spotify Premium Adapter",
-            "de": "Spotify Premium Adapter",
-            "ru": "Spotify Premium драйвер",
-            "pt": "Spotify Premium adaptador",
-            "fr": "Spotify Premium adaptateur",
-            "nl": "Spotify Premium Adapter",
-            "it": "Adattatore Spotify Premium",
-            "es": "Spotify Premium Adaptador"
+            "en": "control spotify devices",
+            "de": "Spotify-Geräte steuern",
+            "ru": "контрольные устройства",
+            "pt": "controlar dispositivos spotify",
+            "nl": "Spotify-apparaten bedienen",
+            "fr": "contrôler les appareils Spotify",
+            "it": "controllare i dispositivi spotify",
+            "es": "controlar dispositivos spotify",
+            "pl": "kontroluj urządzenia spotify",
+            "zh-cn": "控制spotify设备"
         },
         "authors": [
             "Lucky",
@@ -221,13 +201,15 @@
         ],
         "docs": {
             "en": "docs/en/admin.md",
-            "ru": "docs/ru/admin.md",
             "de": "docs/de/admin.md",
-            "es": "docs/es/admin.md",
-            "it": "docs/it/admin.md",
-            "fr": "docs/fr/admin.md",
+            "ru": "docs/ru/admin.md",
+            "pt": "docs/pt/admin.md",
             "nl": "docs/nl/admin.md",
-            "pt": "docs/pt/admin.md"
+            "fr": "docs/fr/admin.md",
+            "it": "docs/it/admin.md",
+            "es": "docs/es/admin.md",
+            "pl": "docs/pl/admin.md",
+            "zh-cn": "docs/zh-cn/admin.md"
         },
         "license": "MIT",
         "platform": "Javascript/Node.js",

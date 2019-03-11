@@ -88,6 +88,7 @@ Click for widget source.
 ### 1.1.0 (in dev)
 * (twonky) added control widgets
 * (twonky) added compact mode
+* (Apollon77) Core Files/Testing Update and introduce adapter-core
 
 ### 1.0.0 (2018.12.18)
 * (twonky) `playbackInfo` and `player` merged together to `player`
@@ -184,7 +185,7 @@ Click for widget source.
 ## License
 The MIT License (MIT)
 
-Copyright (c) 2018 Alexander Kose <twonky4@gmx.de>
+Copyright (c) 2019 Alexander Kose <twonky4@gmx.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
