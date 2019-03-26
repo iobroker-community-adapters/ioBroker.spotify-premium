@@ -199,18 +199,6 @@
             "Lucky",
             "Alexander Kose"
         ],
-        "docs": {
-            "en": "docs/en/admin.md",
-            "de": "docs/de/admin.md",
-            "ru": "docs/ru/admin.md",
-            "pt": "docs/pt/admin.md",
-            "nl": "docs/nl/admin.md",
-            "fr": "docs/fr/admin.md",
-            "it": "docs/it/admin.md",
-            "es": "docs/es/admin.md",
-            "pl": "docs/pl/admin.md",
-            "zh-cn": "docs/zh-cn/admin.md"
-        },
         "license": "MIT",
         "platform": "Javascript/Node.js",
         "mode": "daemon",
