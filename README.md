@@ -1,6 +1,6 @@
-<img src="admin/spotify-premium.png" width="130" alt="Logo">
-
+![Logo](admin/spotify-premium.png)
 # ioBroker.spotify-premium
+
 ![Number of Installations](http://iobroker.live/badges/spotify-premium-installed.svg) ![Number of Installations](http://iobroker.live/badges/spotify-premium-stable.svg) 
 [![NPM version](https://img.shields.io/npm/v/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
@@ -8,14 +8,13 @@
 
 [![NPM](https://nodei.co/npm/iobroker.spotify-premium.png?downloads=true)](https://nodei.co/npm/iobroker.spotify-premium/)
 
-=================
-
 Adapter to access spotify playback controls. Because of the spotify API a premium account is necessary.
 
 Connection to [Spotify Premium API](https://www.spotify.com/).
 
 ## Documentation
 See also the [Spotify Developer API Documentation](https://developer.spotify.com/).
+
 ### Setup / Authorization
 1. Sign in on https://developer.spotify.com/dashboard/
 2. Create an application, you get a Client ID and a Client Secret
@@ -30,7 +29,7 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 11. the value in `spotify-premium.0.authorization.authorized` turns to true if everything was successful
 
 ### States
-All states are descripted in admin.
+All states are described in admin.
 
 ### VIS usage examples
 Click for widget source.
