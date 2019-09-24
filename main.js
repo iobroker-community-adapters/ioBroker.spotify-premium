@@ -317,10 +317,7 @@ function sendRequest(endpoint, method, sendBody) {
                     ret = Promise.reject(response.statusCode);
             }
             return ret;
-        }).catch(function(err) {
-            adapter.log.error('erron in request: ' + err);
-            return 0;
-        });
+    });
 }
 
 function loadOrDefault(obj, name, defaultVal) {
@@ -1718,6 +1715,7 @@ function listenOnUseForPlayback(obj) {
     deviceData.lastSelectDeviceId = cache.get(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id').val;
     let send = {
         device_ids: [deviceData.lastSelectDeviceId],
+        play: true
     };
     return sendRequest('/v1/me/player', 'PUT', JSON.stringify(send)).then(function() {
         setTimeout(pollStatusApi, 1000, true);
