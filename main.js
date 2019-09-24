@@ -193,7 +193,7 @@ function readTokenStates() {
     }
 }
 
-function sendRequest(endpoint, method, sendBody) {
+function sendRequest(endpoint, method, sendBody, delayAccepted) {
 	let options = {
         url: application.baseUrl + endpoint,
         method: method,
@@ -226,7 +226,11 @@ function sendRequest(endpoint, method, sendBody) {
                 case 202:
                     // Accepted, processing has not been completed.
                     adapter.log.debug('http response: ' + JSON.stringify(response));
-                    ret = Promise.reject(response.statusCode);
+                    if (delayAccepted) {
+                        ret = null;
+                    } else {
+                        ret = Promise.reject(response.statusCode);   
+                    }                    
                     break;
                 case 204:
                     // OK, No Content
@@ -305,7 +309,7 @@ function sendRequest(endpoint, method, sendBody) {
                     ret = new Promise(function(resolve) {
                         setTimeout(resolve, wait * 1000);
                     }).then(function() {
-                        return sendRequest(endpoint, method, sendBody);
+                        return sendRequest(endpoint, method, sendBody, delayAccepted);
                     });
                     break;
                 default:
@@ -317,10 +321,7 @@ function sendRequest(endpoint, method, sendBody) {
                     ret = Promise.reject(response.statusCode);
             }
             return ret;
-        }).catch(function(err) {
-            adapter.log.error('erron in request: ' + err);
-            return 0;
-        });
+    });
 }
 
 function loadOrDefault(obj, name, defaultVal) {
@@ -1649,7 +1650,7 @@ function startPlaylist(playlist, owner, trackNo, keepTrack) {
                 position: trackNo
             }
         };
-        return sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send)).then(function() {
+        return sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), true).then(function() {
             setTimeout(pollStatusApi, 1000, true);
         }).catch(function(err) {
             adapter.log.error('could not start playlist ' + playlist + ' of user ' + owner +
@@ -1718,8 +1719,9 @@ function listenOnUseForPlayback(obj) {
     deviceData.lastSelectDeviceId = cache.get(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id').val;
     let send = {
         device_ids: [deviceData.lastSelectDeviceId],
+        play: true
     };
-    return sendRequest('/v1/me/player', 'PUT', JSON.stringify(send)).then(function() {
+    return sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), true).then(function() {
         setTimeout(pollStatusApi, 1000, true);
     }).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
@@ -1772,7 +1774,7 @@ function listenOnPlayUri(obj) {
 	}
 
     clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', JSON.stringify(send)).catch(function(err) {
+    sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', JSON.stringify(send), true).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     }).then(function() {
         setTimeout(pollStatusApi, 1000);
@@ -1785,7 +1787,7 @@ function listenOnPlay() {
     };
     adapter.log.debug(getSelectedDevice(deviceData))
     clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', '').catch(function(err) {
+    sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', '', true).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     }).then(function() {
         setTimeout(pollStatusApi, 1000);
@@ -1797,8 +1799,8 @@ function listenOnPause() {
         device_id: getSelectedDevice(deviceData)
     };
     clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/pause?' + querystring.stringify(query), 'PUT', '').catch(function(err) {
-        adapter.log.error('could not execute command: ' + err);
+    sendRequest('/v1/me/player/pause?' + querystring.stringify(query), 'PUT', '', true).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);   
     }).then(function() {
         setTimeout(pollStatusApi, 1000);
     })
@@ -1809,8 +1811,8 @@ function listenOnSkipPlus() {
         device_id: getSelectedDevice(deviceData)
     };
     clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/next?' + querystring.stringify(query), 'POST', '').catch(function(err) {
-        adapter.log.error('could not execute command: ' + err);
+    sendRequest('/v1/me/player/next?' + querystring.stringify(query), 'POST', '', true).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);   
     }).then(function() {
         setTimeout(pollStatusApi, 1000);
     });
@@ -1821,8 +1823,8 @@ function listenOnSkipMinus() {
         device_id: getSelectedDevice(deviceData)
     };
     clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/previous?' + querystring.stringify(query), 'POST', '').catch(function(err) {
-        adapter.log.error('could not execute command: ' + err);
+    sendRequest('/v1/me/player/previous?' + querystring.stringify(query), 'POST', '', true).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);   
     }).then(function() {
         setTimeout(pollStatusApi, 1000);
     });
@@ -1831,8 +1833,8 @@ function listenOnSkipMinus() {
 function listenOnRepeat(obj) {
     if (['track', 'context', 'off'].indexOf(obj.state.val) >= 0) {
     	clearTimeout(application.statusInternalTimer);
-        sendRequest('/v1/me/player/repeat?state=' + obj.state.val, 'PUT', '').catch(function(err) {
-            adapter.log.error('could not execute command: ' + err);
+        sendRequest('/v1/me/player/repeat?state=' + obj.state.val, 'PUT', '', true).catch(function(err) {
+            adapter.log.error('could not execute command: ' + err);   
         }).then(function() {
             setTimeout(pollStatusApi, 1000);
         })
@@ -1865,8 +1867,8 @@ function listenOnRepeatOff() {
 
 function listenOnVolume(obj) {
 	clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '').catch(function(err) {
-        adapter.log.error('could not execute command: ' + err);
+    sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '', true).catch(function(err) {
+        adapter.log.error('could not execute command: ' + err);   
     }).then(function() {
         setTimeout(pollStatusApi, 1000);
     });
@@ -1875,7 +1877,7 @@ function listenOnVolume(obj) {
 function listenOnProgressMs(obj) {
 	let progress = obj.state.val;
     clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/seek?position_ms=' + progress, 'PUT', '').then(function() {
+    sendRequest('/v1/me/player/seek?position_ms=' + progress, 'PUT', '', true).then(function() {
     	let duration = cache.get('player.durationMs').val;
         if (duration > 0 && duration <= progress) {
         	let progressPercentage = Math.floor(progress / duration * 100);
@@ -1901,7 +1903,7 @@ function listenOnProgressPercentage(obj) {
     let duration = cache.get('player.durationMs').val;
     if (duration > 0) {
         let progress = Math.floor(progressPercentage / 100 * duration);
-        sendRequest('/v1/me/player/seek?position_ms=' + progress, 'PUT', '').then(function() {
+        sendRequest('/v1/me/player/seek?position_ms=' + progress, 'PUT', '', true).then(function() {
             return Promise.all([
             	cache.set('player.progressMs', progress),
             	cache.set('player.progress', convertToDigiClock(progress)),
@@ -1917,7 +1919,7 @@ function listenOnProgressPercentage(obj) {
 
 function listenOnShuffle(obj) {
 	clearTimeout(application.statusInternalTimer);
-    return sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === 'on' ? 'true' : 'false'), 'PUT', '').catch(function(err) {
+    return sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === 'on' ? 'true' : 'false'), 'PUT', '', true).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     }).then(function() {
         setTimeout(pollStatusApi, 1000);
@@ -1950,7 +1952,7 @@ function listenOnTrackId(obj) {
         }
     };
     clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send)).catch(function(err) {
+    sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), true).catch(function(err) {
         adapter.log.error('could not execute command: ' + err);
     }).then(function() {
         setTimeout(pollStatusApi, 1000);
