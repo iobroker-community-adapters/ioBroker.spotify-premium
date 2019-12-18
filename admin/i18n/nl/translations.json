@@ -8,6 +8,7 @@
   "statusInterval": "Vernieuw interval voor statusinformatie. (in seconden, aanbevolen 10, 0 = uitgeschakeld). Alleen vereist als u Spotify op apparaten anders dan de adapter beheert.",
   "deviceInterval": "Vernieuw interval voor apparaatinformatie. (in minuten, aanbevolen 5, 0 = uitgeschakeld)",
   "playlistInterval": "Vernieuw interval voor afspeellijstinformatie. (in minuten, aanbevolen 15, 0 = uitgeschakeld)",
+  "manual0": "Machtiging",
   "manual1": "Meld u ook aan op https://developer.spotify.com/dashboard/",
   "manual2": "Maak een applicatie, krijg een Client ID en een Client Secret",
   "manual3": "Voer in de app-instellingen van uw toepassing 'http://localhost' in bij Redirect URIs",
@@ -18,5 +19,6 @@
   "manual8": "U moet mogelijk inloggen op Spotify en toegang toestaan.",
   "manual9": "De browser weigert de verbinding en retourneert een URL in de adresbalk. Als de fout 'invalid redirect uri' wordt weergegeven, controleert u of stap 3 is uitgevoerd.",
   "manual10": "Kopieer deze URL opnieuw en plak deze in de status 'spotify-premium.X.authorization.authorizationReturnUri'",
-  "manual11": "alles is correct ingesteld als het waar is in 'spotify-premium.X.authorization.authorized'"
+  "manual11": "alles is correct ingesteld als het waar is in 'spotify-premium.X.authorization.authorized'",
+  "manual12": "Video-instructies"
 }

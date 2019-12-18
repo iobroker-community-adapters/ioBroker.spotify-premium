@@ -8,6 +8,7 @@
   "statusInterval": "Intervalle d'actualisation pour les informations d'état. (en secondes, recommandé 10, 0 = désactivé). Requis uniquement si vous contrôlez Spotify sur des appareils autres que l'adaptateur.",
   "deviceInterval": "Intervalle d'actualisation pour les informations sur le périphérique. (en minutes, recommandé 5, 0 = désactivé)",
   "playlistInterval": "Intervalle d'actualisation pour les informations de playlist. (en minutes, recommandé 15, 0 = désactivé)",
+  "manual0": "Autorisation",
   "manual1": "Inscrivez-vous aussi https://developer.spotify.com/dashboard/",
   "manual2": "Créer une application, obtenir un Client ID et un Client Secret",
   "manual3": "Dans les paramètres de l'application de votre application, entrez 'http://localhost' sur Redirect URIs",
@@ -18,5 +19,6 @@
   "manual8": "Vous devrez peut-être vous connecter à Spotify et autoriser l'accès.",
   "manual9": "Le navigateur rejettera la connexion et retournera une URL dans la barre d'adresse. Si l'erreur 'invalid redirect uri' apparaît, assurez-vous que l'étape 3 a bien été effectuée.",
   "manual10": "Copiez à nouveau cette URL et collez-la dans l'état 'spotify-premium.X.authorization.authorizationReturnUri'",
-  "manual11": "tout est correctement configuré si vrai dans 'spotify-premium.X.authorization.authorized'"
+  "manual11": "tout est correctement configuré si vrai dans 'spotify-premium.X.authorization.authorized'",
+  "manual12": "Didacticiel vidéo"
 }

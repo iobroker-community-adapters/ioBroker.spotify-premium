@@ -39,7 +39,7 @@ vis.binds.spotify = {
 	 		src = 'play_' + data.colorplay;
 	 	}
 
-	 	return '/vis/widgets/spotify-premium/img/' + src + '.png';
+	 	return 'widgets/spotify-premium/img/' + src + '.png';
 	 },
 	 triggerPlayButton: function (el) {
 	     var $this = $(el);
@@ -85,7 +85,7 @@ vis.binds.spotify = {
 	 		src += data.coloroff;
 	 	}
 
-	 	return '/vis/widgets/spotify-premium/img/' + src + '.png';
+	 	return 'widgets/spotify-premium/img/' + src + '.png';
 	 },
 	 triggerShuffleButton: function (el) {
 	     var $this = $(el);
@@ -134,7 +134,7 @@ vis.binds.spotify = {
 	 		src += data.coloroff;
 	 	}
 
-	 	return '/vis/widgets/spotify-premium/img/' + src + '.png';
+	 	return 'widgets/spotify-premium/img/' + src + '.png';
 	 },
 	 triggerRepeatButton: function (el) {
 	     var $this = $(el);
@@ -176,7 +176,7 @@ vis.binds.spotify = {
 	     }
 	 },
 	 getSkipImage: function (data, str) {
-	 	return '/vis/widgets/spotify-premium/img/skip_' + str + '_' + data.colorbox + '.png';
+	 	return 'widgets/spotify-premium/img/skip_' + str + '_' + data.colorbox + '.png';
 	 },
 	 triggerSkipButton: function (el) {
 	     var $this = $(el);
@@ -204,7 +204,7 @@ vis.binds.spotify = {
 <script id="tplSpotifyPlayButton"
         type="text/ejs"
         class="vis-tpl"
-  		data-vis-prev='<div id="prev_tplSpotifyPlayButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oidplay="" data-oidpause="" data-oidstate="" data-colorplay="" data-colorpause="" style="width:auto; height:72px" src="/vis/widgets/spotify-premium/img/play_black.png" role="button"/> </div> </div>'
+  		data-vis-prev='<div id="prev_tplSpotifyPlayButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oidplay="" data-oidpause="" data-oidstate="" data-colorplay="" data-colorpause="" style="width:auto; height:72px" src="widgets/spotify-premium/img/play_black.png" role="button"/> </div> </div>'
         data-vis-set="spotify-premium"
         data-vis-type="ctrl"
         data-vis-name="Play Toggle"
@@ -228,7 +228,7 @@ vis.binds.spotify = {
 <script id="tplSpotifyShuffleButton"
         type="text/ejs"
         class="vis-tpl"
-  		data-vis-prev='<div id="prev_tplSpotifyShuffleButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oidon="" data-oidoff="" data-oidstate="" data-coloron="" data-coloroff="" style="width:auto; height:72px" src="/vis/widgets/spotify-premium/img/shuffle_black.png" role="button"/> </div> </div>'
+  		data-vis-prev='<div id="prev_tplSpotifyShuffleButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oidon="" data-oidoff="" data-oidstate="" data-coloron="" data-coloroff="" style="width:auto; height:72px" src="widgets/spotify-premium/img/shuffle_black.png" role="button"/> </div> </div>'
         data-vis-set="spotify-premium"
         data-vis-type="ctrl"
         data-vis-name="Shuffle Toggle"
@@ -252,7 +252,7 @@ vis.binds.spotify = {
 <script id="tplSpotifyRepeatButton"
         type="text/ejs"
         class="vis-tpl"
-  		data-vis-prev='<div id="prev_tplSpotifyRepeatButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oidall="" data-oidoff="" data-oidone="" data-oidstate="" data-colorall="" data-coloroff="" data-colorone="" data-colorall="" style="width:auto; height:72px" src="/vis/widgets/spotify-premium/img/repeat_black.png" role="button"/> </div> </div>'
+  		data-vis-prev='<div id="prev_tplSpotifyRepeatButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oidall="" data-oidoff="" data-oidone="" data-oidstate="" data-colorall="" data-coloroff="" data-colorone="" data-colorall="" style="width:auto; height:72px" src="widgets/spotify-premium/img/repeat_black.png" role="button"/> </div> </div>'
         data-vis-set="spotify-premium"
         data-vis-type="ctrl"
         data-vis-name="Repeat Toggle"
@@ -278,7 +278,7 @@ vis.binds.spotify = {
 <script id="tplSpotifyPreviousButton"
         type="text/ejs"
         class="vis-tpl"
-  		data-vis-prev='<div id="prev_tplSpotifyPreviousButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oid="" data-colorbox="" style="width:auto; height:72px" src="/vis/widgets/spotify-premium/img/skip_prev_black.png" role="button"/> </div> </div>'
+  		data-vis-prev='<div id="prev_tplSpotifyPreviousButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oid="" data-colorbox="" style="width:auto; height:72px" src="widgets/spotify-premium/img/skip_prev_black.png" role="button"/> </div> </div>'
         data-vis-set="spotify-premium"
         data-vis-type="ctrl"
         data-vis-name="Previous Track Button"
@@ -299,7 +299,7 @@ vis.binds.spotify = {
 <script id="tplSpotifyNextButton"
         type="text/ejs"
         class="vis-tpl"
-  		data-vis-prev='<div id="prev_tplSpotifyNextButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oid="" data-colorbox="" style="width:auto; height:72px" src="/vis/widgets/spotify-premium/img/skip_next_black.png" role="button"/> </div> </div>'
+  		data-vis-prev='<div id="prev_tplSpotifyNextButton" style="position: relative; text-align: initial;padding: 4px; height: 72px"><div class="vis-widget_prev ui-selectee ui-draggable-handle" data-vis-resizable="{"disabled"false "handles":"e"}"> <div class="vis-widget-prev-body"> <img data-oid="" data-colorbox="" style="width:auto; height:72px" src="widgets/spotify-premium/img/skip_next_black.png" role="button"/> </div> </div>'
         data-vis-set="spotify-premium"
         data-vis-type="ctrl"
         data-vis-name="Previous Track Button"

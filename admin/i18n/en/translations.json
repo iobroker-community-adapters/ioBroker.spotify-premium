@@ -8,6 +8,7 @@
   "statusInterval": "Refresh interval for status information. (in seconds, recommended 10, 0 = disabled). Only required if you control Spotify on devices apart from the adapter.",
   "deviceInterval": "Refresh interval for device information. (in minutes, recommended 5, 0 = disabled)",
   "playlistInterval": "Refresh interval for playlist information. (in minutes, recommended 15, 0 = disabled)",
+  "manual0": "Authorization",
   "manual1": "Sign in on https://developer.spotify.com/dashboard/",
   "manual2": "Create an application, you get a Client ID and a Client Secret",
   "manual3": "set the redirect URIs to 'http://localhost' in your app settings at your created spotify application",
@@ -18,5 +19,6 @@
   "manual8": "You maybe need to sign in to spotify and grant access",
   "manual9": "the browser will redirected to an invalid URL. If the error 'invalid redirect uri' occurs please verify step 3",
   "manual10": "copy that url and put it to 'spotify-premium.X.authorization.authorizationReturnUri'",
-  "manual11": "the value in 'spotify-premium.X.authorization.authorized' turns to true if everything was successful"
+  "manual11": "the value in 'spotify-premium.X.authorization.authorized' turns to true if everything was successful",
+  "manual12": "Video Tutorial"
 }
