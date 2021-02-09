@@ -85,13 +85,13 @@
         "icon": "spotify-premium.png",
         "materialize": true,
         "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/twonky4/ioBroker.spotify-premium/master/admin/spotify-premium.png",
+        "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.spotify-premium/master/admin/spotify-premium.png",
         "keywords": [
             "spotify",
             "player",
             "media"
         ],
-        "readme": "https://github.com/twonky4/ioBroker.spotify-premium/blob/master/README.md",
+        "readme": "https://github.com/iobroker-community-adapters/ioBroker.spotify-premium/blob/master/README.md",
         "loglevel": "info",
         "type": "multimedia",
         "compact": true
