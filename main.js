@@ -2192,7 +2192,7 @@ cache.on('player.repeat', listenOnRepeat, true);
 cache.on('player.repeatTrack', listenOnRepeatTrack);
 cache.on('player.repeatContext', listenOnRepeatContext);
 cache.on('player.repeatOff', listenOnRepeatOff);
-cache.on('player.device.volume', listenOnVolume, true);
+cache.on('player.volume', listenOnVolume, true);
 cache.on('player.progressMs', listenOnProgressMs, true);
 cache.on('player.progressPercentage', listenOnProgressPercentage, true);
 cache.on('player.shuffle', listenOnShuffle, 'on');
