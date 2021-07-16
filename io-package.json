@@ -94,7 +94,10 @@
         "readme": "https://github.com/iobroker-community-adapters/ioBroker.spotify-premium/blob/master/README.md",
         "loglevel": "info",
         "type": "multimedia",
-        "compact": true
+        "compact": true,
+        "connectionType": "cloud",
+        "dataSource": "poll",
+        "tier": 3
     },
     "native": {
         "client_id": "",
