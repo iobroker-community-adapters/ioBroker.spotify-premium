@@ -91,6 +91,8 @@ Click for widget source.
 * (Apollon77) Core Files/Testing Update and introduce adapter-core
 * (twonky) added state `player.playUri` to support user defined input
 * (Apollon77) Fix js-controller 3.3 warnings
+* (Xyolyp) Listen on player.volume instead of player.device.volume as the latter is readonly
+* (bellerG) fix player.playUri
 
 ### 1.0.0 (2018.12.18)
 * (twonky) `playbackInfo` and `player` merged together to `player`
