@@ -86,6 +86,9 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+* (bluefox) Improved authorization process
+
 ### 1.1.1 (2021-07-22)
 * (bluefox) removed warnings for js-controller 3.x
 

@@ -83,8 +83,8 @@ function startAdapter(options) {
                     if ('undefined' !== typeof application.cacheClearHandle) {
                         clearTimeout(application.cacheClearHandle);
                     }
-                })
-                .nodeify(callback);
+                    callback();
+                });
         }
     });
 
@@ -210,6 +210,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
     };
     adapter.log.debug(`spotify api call... ${endpoint}; ${options.form}`);
     let callStack = new Error().stack;
+    adapter.setState('authorization.error', '', true);
 
     return request(options)
         .then(response => {
@@ -315,6 +316,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                     adapter.log.debug('status code: ' + response.statusCode);
                     adapter.log.debug('body: ' + body);
                     ret = Promise.reject(response.statusCode);
+                    adapter.setState('authorization.error', body, true);
             }
             return ret;
         });

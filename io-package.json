@@ -614,7 +614,7 @@
                 "role": "value",
                 "name": "state",
                 "type": "string",
-                "read": false,
+                "read": true,
                 "write": false
             },
             "native": {}
@@ -626,7 +626,7 @@
                 "role": "value",
                 "name": "token",
                 "type": "object",
-                "read": false,
+                "read": true,
                 "write": false
             },
             "native": {}
@@ -650,7 +650,7 @@
                 "role": "value",
                 "name": "user id",
                 "type": "string",
-                "read": false,
+                "read": true,
                 "write": false
             },
             "native": {}
@@ -662,7 +662,19 @@
                 "role": "value",
                 "name": "authorized",
                 "type": "boolean",
-                "read": false,
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "authorization.error",
+            "type": "state",
+            "common": {
+                "role": "indicator.error",
+                "name": "Authorization error",
+                "type": "string",
+                "read": true,
                 "write": false
             },
             "native": {}
