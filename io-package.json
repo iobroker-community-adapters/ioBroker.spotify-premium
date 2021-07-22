@@ -3,17 +3,6 @@
         "name": "spotify-premium",
         "version": "1.1.0",
         "news": {
-        	"1.1.0": {
-			  "en": "",
-			  "de": "",
-			  "ru": "",
-			  "pt": "",
-			  "nl": "",
-			  "fr": "",
-			  "it": "",
-			  "es": "",
-			  "pl": ""
-        	},
             "1.0.0": {
 			  "en": "'playbackInfo' and 'player' merged together to 'player'\n'player.volume' moved to 'player.device.volume'\nThe 'duration' format of 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray' was changed from milliseconds to time (MM:SS) and a new one was created for this 'durationMs'.\nThe 'album' of 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray' was changed to 'artistName' and 'artistArray'.\nSeveral data was added to 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' and 'popularity'\nChange 'player.playlist.trackNo' to start with 1 (0-based before)\nPerformance optimization (states/objects are only set on change)\nHtml lists added: 'html.devices', 'html.playlists' and 'html.tracks'\nNew icons",
 			  "de": "'playbackInfo' und 'player' zu 'Player' zusammengefügt\n'player.volume' wurde in 'player.device.volume' verschoben.\nDas 'duration'-Format von 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' wurde von Millisekunden auf Zeit (MM:SS) geändert und für diese 'durationMs' wurde ein neues erstellt.\nDas 'album' von 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' wurde in 'artistName' und 'artistArray' geändert.\nMehrere Daten wurden zu 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' hinzugefügt: 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explizite' und 'popularity'\nÄndern Sie 'player.playlist.trackNo', um mit 1 zu beginnen (zuvor 0)\nLeistungsoptimierung (Zustände / Objekte werden nur bei Änderung gesetzt)\nHTML-Listen hinzugefügt: 'html.devices', 'html.playlists' und 'html.tracks'\nNeue Icons",
@@ -52,16 +41,7 @@
         },
         "title": "Spotify (Premium)",
         "titleLang": {
-            "en": "Spotify (Premium)",
-            "de": "Spotify (Premium)",
-            "ru": "Spotify (Premium)",
-            "pt": "Spotify (Premium)",
-            "nl": "Spotify (Premium)",
-            "fr": "Spotify (Premium)",
-            "it": "Spotify (Premium)",
-            "es": "Spotify (Premium)",
-            "pl": "Spotify (Premium)",
-            "zh-cn": "Spotify (Premium)"
+            "en": "Spotify (Premium)"
         },
         "desc": {
             "en": "control spotify devices",
@@ -886,7 +866,7 @@
             "common": {
                 "role": "value",
                 "name": "Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.",
-                "type": "number",
+                "type": "mixed",
                 "read": true,
                 "write": true
             },
