@@ -86,7 +86,7 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### 1.1.2 (2021-07-22)
+### __WORK IN PROGRESS__
 * (bluefox) Improved authorization process
 
 ### 1.1.1 (2021-07-22)

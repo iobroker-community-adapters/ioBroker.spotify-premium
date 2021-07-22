@@ -819,6 +819,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
         };
 
         let prefix = 'playlists.' + shrinkStateName(ownerId + '-' + playlistId);
+        addedList = addedList || [];
         addedList.push(prefix);
 
         return Promise.all([
@@ -852,7 +853,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
                 let currentPlaylistOwnerId = cache.getValue('player.playlist.owner').val;
                 let songId = cache.getValue('player.trackId').val;
 
-                if (ownerId + '-' + playlistId === currentPlaylistOwnerId + '-' + currentPlaylistId) {
+                if (`${ownerId}-${playlistId}` === `${currentPlaylistOwnerId}-${currentPlaylistId}`) {
                     let stateName = playlistObject.trackIds.split(';');
                     let stateArr = [];
                     for (let i = 0; i < stateName.length; i++) {
@@ -917,16 +918,14 @@ function createPlaylists(parseJson, autoContinue, addedList) {
 }
 
 function getUsersPlaylist(offset, addedList) {
-    if (addedList === undefined) {
-        addedList = [];
-    }
+    addedList = addedList || [];
+
     if (!isEmpty(application.userId)) {
         let query = {
             limit: 30,
             offset: offset
         };
-        return sendRequest('/v1/users/' + application.userId + '/playlists?' +
-            querystring.stringify(query), 'GET', '')
+        return sendRequest(`/v1/users/${application.userId}/playlists?${querystring.stringify(query)}`, 'GET', '')
             .then(parsedJson => createPlaylists(parsedJson, true, addedList))
             .catch(err => adapter.log.error('playlist error ' + err));
     } else {
