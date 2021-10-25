@@ -86,6 +86,9 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+* (jlssmt) quick fix for random errors
+
 ### 1.1.3 (2021-07-22)
 * (bluefox) Improved authorization process
 
