@@ -7,3 +7,7 @@ admin/i18n/flat.txt
 admin/i18n/*/flat.txt
 /tmp/
 package-lock.json
+
+
+# ioBroker dev-server
+.dev-server/
