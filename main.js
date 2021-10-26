@@ -1253,7 +1253,7 @@ function refreshDeviceList() {
         let id = normKey.substring(8, normKey.length - 5);
         a.push({
             id: id,
-            name: states[key].val,
+            name: states[key] ? states[key].val : '',
             available: cache.getValue(`devices.${id}.isAvailable`).val
         });
     };
