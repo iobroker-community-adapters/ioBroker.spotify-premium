@@ -2032,7 +2032,7 @@ function listenOnHtmlTracklist() {
         html += '</span>';
         html += `<span class="spotifyTracksSpace${cssClassSpace}">&nbsp;&bull;&nbsp;</span>`;
         html += `<span class="spotifyTracksAlbum${cssClassAlbum}">`;
-        html += source[i] ? source[i].album ? source[i].album.name : undefined : undefined;
+        html += source[i] ? source[i].album ? source[i].album.name : '' : '';
         html += '</span></span></td>';
         html += `<td${styleDuration} class="spotifyTracksColDuration${cssClassColDuration}">`;
         html += source[i].duration;
