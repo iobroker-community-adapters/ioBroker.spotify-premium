@@ -22,7 +22,8 @@ var languages =  {
     fr: {},
     it: {},
     es: {},
-    pl: {}
+    pl: {},
+    'zh-cn': {}
 };
 
 function lang2data(lang, isFlat) {
@@ -482,4 +483,4 @@ gulp.task('updateReadme', function (done) {
     done();
 });
 
-gulp.task('default', ['updatePackages', 'updateReadme']);
+gulp.task('default', gulp.series('updatePackages', 'updateReadme'));

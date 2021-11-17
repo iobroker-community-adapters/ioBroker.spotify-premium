@@ -86,9 +86,11 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+### __WORK IN PROGRESS__
+* (bluefox) Allowed to set the default shuffle value
+ 
 ### 1.1.4 (2021-11-17)
 * (bluefox) Fix errors
-*
 
 ### 1.1.3 (2021-07-22)
 * (bluefox) Improved authorization process

@@ -55,8 +55,44 @@ function startAdapter(options) {
         name: 'spotify-premium',
         stateChange: (id, state) => cache.setExternal(id, state),
         objectChange: (id, obj) => cache.setExternalObj(id, obj),
-        ready: () => cache.init()
-            .then(() => main()),
+        ready: () => {
+            cache.on('authorization.authorizationReturnUri', listenOnAuthorizationReturnUri, true);
+            cache.on('authorization.getAuthorization', listenOnGetAuthorization);
+            cache.on('authorization.authorized', listenOnAuthorized);
+            cache.on(/\.useForPlayback$/, listenOnUseForPlayback);
+            cache.on(/\.trackList$/, listenOnTrackList, true);
+            cache.on(/\.playThisList$/, listenOnPlayThisList);
+            cache.on('devices.deviceList', listenOnDeviceList, true);
+            cache.on('playlists.playlistList', listenOnPlaylistList, true);
+            cache.on('player.play', listenOnPlay);
+            cache.on('player.playUri', listenOnPlayUri);
+            cache.on('player.pause', listenOnPause);
+            cache.on('player.skipPlus', listenOnSkipPlus);
+            cache.on('player.skipMinus', listenOnSkipMinus);
+            cache.on('player.repeat', listenOnRepeat, true);
+            cache.on('player.repeatTrack', listenOnRepeatTrack);
+            cache.on('player.repeatContext', listenOnRepeatContext);
+            cache.on('player.repeatOff', listenOnRepeatOff);
+            cache.on('player.volume', listenOnVolume, true);
+            cache.on('player.progressMs', listenOnProgressMs, true);
+            cache.on('player.progressPercentage', listenOnProgressPercentage, true);
+            cache.on('player.shuffle', listenOnShuffle, adapter.config.defaultShuffle || 'on');
+            cache.on('player.shuffleOff', listenOnShuffleOff);
+            cache.on('player.shuffleOn', listenOnShuffleOn);
+            cache.on('player.trackId', listenOnTrackId, true);
+            cache.on('player.playlist.id', listenOnPlaylistId, true);
+            cache.on('player.playlist.owner', listenOnPlaylistOwner, true);
+            cache.on('player.playlist.trackNo', listenOnPlaylistTrackNo, true);
+            cache.on('getPlaylists', reloadUsersPlaylist);
+            cache.on('getPlaybackInfo', listenOnGetPlaybackInfo);
+            cache.on('getDevices', listenOnGetDevices);
+            cache.on(['playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString'], listenOnHtmlPlaylists);
+            cache.on(['player.playlist.trackList', 'player.playlist.trackListArray'], listenOnHtmlTracklist);
+            cache.on(['devices.deviceList', 'devices.deviceListIds', 'devices.availableDeviceListString'], listenOnHtmlDevices);
+
+            cache.init()
+                .then(() => main());
+        },
         unload: callback => {
             Promise.all([
                 cache.setValue('authorization.authorizationUrl', ''),
@@ -2106,40 +2142,6 @@ function listenOnHtmlDevices() {
 
     cache.setValue('html.devices', html);
 }
-
-cache.on('authorization.authorizationReturnUri', listenOnAuthorizationReturnUri, true);
-cache.on('authorization.getAuthorization', listenOnGetAuthorization);
-cache.on('authorization.authorized', listenOnAuthorized);
-cache.on(/\.useForPlayback$/, listenOnUseForPlayback);
-cache.on(/\.trackList$/, listenOnTrackList, true);
-cache.on(/\.playThisList$/, listenOnPlayThisList);
-cache.on('devices.deviceList', listenOnDeviceList, true);
-cache.on('playlists.playlistList', listenOnPlaylistList, true);
-cache.on('player.play', listenOnPlay);
-cache.on('player.playUri', listenOnPlayUri);
-cache.on('player.pause', listenOnPause);
-cache.on('player.skipPlus', listenOnSkipPlus);
-cache.on('player.skipMinus', listenOnSkipMinus);
-cache.on('player.repeat', listenOnRepeat, true);
-cache.on('player.repeatTrack', listenOnRepeatTrack);
-cache.on('player.repeatContext', listenOnRepeatContext);
-cache.on('player.repeatOff', listenOnRepeatOff);
-cache.on('player.volume', listenOnVolume, true);
-cache.on('player.progressMs', listenOnProgressMs, true);
-cache.on('player.progressPercentage', listenOnProgressPercentage, true);
-cache.on('player.shuffle', listenOnShuffle, 'on');
-cache.on('player.shuffleOff', listenOnShuffleOff);
-cache.on('player.shuffleOn', listenOnShuffleOn);
-cache.on('player.trackId', listenOnTrackId, true);
-cache.on('player.playlist.id', listenOnPlaylistId, true);
-cache.on('player.playlist.owner', listenOnPlaylistOwner, true);
-cache.on('player.playlist.trackNo', listenOnPlaylistTrackNo, true);
-cache.on('getPlaylists', reloadUsersPlaylist);
-cache.on('getPlaybackInfo', listenOnGetPlaybackInfo);
-cache.on('getDevices', listenOnGetDevices);
-cache.on(['playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString'], listenOnHtmlPlaylists);
-cache.on(['player.playlist.trackList', 'player.playlist.trackListArray'], listenOnHtmlTracklist);
-cache.on(['devices.deviceList', 'devices.deviceListIds', 'devices.availableDeviceListString'], listenOnHtmlDevices);
 
 //If started as allInOne/compact mode => return function to create instance
 if (module && module.parent) {
