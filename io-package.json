@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "news": {
+      "1.1.5": {
+        "en": "Allowed to set the default shuffle value",
+        "de": "Erlaubt, den Standard-Shuffle-Wert festzulegen",
+        "ru": "Разрешено установить значение перемешивания по умолчанию",
+        "pt": "Tem permissão para definir o valor aleatório padrão",
+        "nl": "Toegestaan om de standaard shuffle-waarde in te stellen",
+        "fr": "Autorisé à définir la valeur de lecture aléatoire par défaut",
+        "it": "Autorizzato a impostare il valore di riproduzione casuale predefinito",
+        "es": "Se permite establecer el valor aleatorio predeterminado",
+        "pl": "Umożliwiono ustawienie domyślnej wartości odtwarzania losowego",
+        "zh-cn": "允许设置默认的shuffle值"
+      },
       "1.1.4": {
         "en": "Fix errors\n",
         "de": "Fehler beheben\n",
@@ -69,14 +81,6 @@
         "pt": "Correção: o estado 'playlists.playlistList' não é atualizado depois que a playlist foi alterada por meio do aplicativo",
         "fr": "Correction: l'état 'playlists.playlistList' ne s'actualise pas après la modification de la playlist via l'application",
         "nl": "Fix: status 'playlists.playlistList' wordt niet vernieuwd nadat de afspeellijst via de app is gewijzigd"
-      },
-      "0.3.0": {
-        "en": "Change playlist and device state names from name to id\nNew states for device selection: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNew states for playlist selection: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdd option to avoid shuffle state reset on some devices after starting a playlist",
-        "de": "Playlist und Geräte Statenamen von Name in Id geändert\nNeue States zur Geräteauswahl: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNeue States zur Playlistauswahl: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOption hinzufügt, um das Zurücksetzen von Shuffle auf einigen Geräten zu verhinden, beim starten einer Playlist",
-        "ru": "Изменение имен плейлиста и состояний устройства с имени на id\nНовые состояния для выбора устройства: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nНовые состояния для выбора плейлиста: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nДобавить параметр, чтобы избежать сброса состояния в случайном порядке на некоторых устройствах после запуска списка воспроизведения",
-        "pt": "Alterar nomes de estado de listas de reprodução e dispositivos de nome para id\nNovos estados para a seleção de dispositivos: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNovos estados para seleção de playlists: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdicionar opção para evitar redefinição de estado aleatório em alguns dispositivos depois de iniciar uma lista de reprodução",
-        "fr": "Changer la liste de lecture et les noms d'état de l'appareil du nom à l'identifiant\nNouveaux états pour la sélection de périphérique: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNouveaux états pour la sélection de playlist: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAjouter une option pour éviter la réinitialisation de l'état aléatoire sur certains appareils après le démarrage d'une liste de lecture",
-        "nl": "Wijzig afspeellijst en apparaatstatusnamen van naam in id\nNieuwe toestanden voor apparaatselectie: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.available Device ListIds', 'devices.available Device ListString'\nNieuwe staten voor afspeellijstselectie: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOptie toevoegen om shuffle-status opnieuw in te stellen op sommige apparaten na het starten van een afspeellijst"
       }
     },
     "title": "Spotify (Premium)",
