@@ -1,1081 +1,1085 @@
 {
-    "common": {
-        "name": "spotify-premium",
-        "version": "1.1.3",
-        "news": {
-            "1.1.3": {
-                "en": "Improved authorization process",
-                "de": "Verbesserter Autorisierungsprozess",
-                "ru": "Улучшенный процесс авторизации",
-                "pt": "Processo de autorização aprimorado",
-                "nl": "Verbeterd autorisatieproces",
-                "fr": "Processus d'autorisation amélioré",
-                "it": "Processo di autorizzazione migliorato",
-                "es": "Proceso de autorización mejorado",
-                "pl": "Ulepszony proces autoryzacji",
-                "zh-cn": "改进的授权流程"
-            },
-            "1.1.2": {
-                "en": "Improved authorization process",
-                "de": "Verbesserter Autorisierungsprozess",
-                "ru": "Улучшенный процесс авторизации",
-                "pt": "Processo de autorização aprimorado",
-                "nl": "Verbeterd autorisatieproces",
-                "fr": "Processus d'autorisation amélioré",
-                "it": "Processo di autorizzazione migliorato",
-                "es": "Proceso de autorización mejorado",
-                "pl": "Ulepszony proces autoryzacji",
-                "zh-cn": "改进的授权流程"
-            },
-            "1.1.1": {
-                "en": "removed warnings for js-controller 3.x",
-                "de": "Warnungen für js-controller 3.x entfernt",
-                "ru": "убраны предупреждения для js-controller 3.x",
-                "pt": "avisos removidos para js-controller 3.x",
-                "nl": "verwijderde waarschuwingen voor js-controller 3.x",
-                "fr": "suppression des avertissements pour js-controller 3.x",
-                "it": "avvisi rimossi per js-controller 3.x",
-                "es": "advertencias eliminadas para js-controller 3.x",
-                "pl": "usunięto ostrzeżenia dla js-controller 3.x",
-                "zh-cn": "删除了 js-controller 3.x 的警告"
-            },
-            "1.0.0": {
-                "en": "'playbackInfo' and 'player' merged together to 'player'\n'player.volume' moved to 'player.device.volume'\nThe 'duration' format of 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray' was changed from milliseconds to time (MM:SS) and a new one was created for this 'durationMs'.\nThe 'album' of 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray' was changed to 'artistName' and 'artistArray'.\nSeveral data was added to 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' and 'popularity'\nChange 'player.playlist.trackNo' to start with 1 (0-based before)\nPerformance optimization (states/objects are only set on change)\nHtml lists added: 'html.devices', 'html.playlists' and 'html.tracks'\nNew icons",
-                "de": "'playbackInfo' und 'player' zu 'Player' zusammengefügt\n'player.volume' wurde in 'player.device.volume' verschoben.\nDas 'duration'-Format von 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' wurde von Millisekunden auf Zeit (MM:SS) geändert und für diese 'durationMs' wurde ein neues erstellt.\nDas 'album' von 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' wurde in 'artistName' und 'artistArray' geändert.\nMehrere Daten wurden zu 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' hinzugefügt: 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explizite' und 'popularity'\nÄndern Sie 'player.playlist.trackNo', um mit 1 zu beginnen (zuvor 0)\nLeistungsoptimierung (Zustände / Objekte werden nur bei Änderung gesetzt)\nHTML-Listen hinzugefügt: 'html.devices', 'html.playlists' und 'html.tracks'\nNeue Icons",
-                "ru": "'playbackInfo' и 'player' объединены в 'player'\n'player.volume' перемещен в 'player.device.volume'\nФормат 'duration' для player.playlist.trackListArray и playlists.[playListName].trackListArray был изменен с миллисекунд на время (MM:SS), и для этой длительности был создан новый.\n'Альбом' для 'player.playlist.trackListArray' и 'playlists.[playListName].trackListArray' был изменен на 'artistName' и 'artistArray'.\nВ 'player.playlist.trackListArray' и 'playlists' было добавлено несколько данных. '\nИзмените 'player.playlist.trackNo', чтобы начать с 1 (на основе 0 раньше)\nОптимизация производительности (состояния / объекты устанавливаются только при изменении)\nДобавлены списки HTML: 'html.devices', 'html.playlists' и 'html.tracks'\nНовые иконки",
-                "pt": "'playbackInfo' e 'player' unidos a 'player'\n'player.volume' movido para 'player.device.volume'\nO formato de 'duração' de 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' foi alterado de milissegundos para hora (MM:SS) e um novo foi criado para este 'durationMs'.\nO 'album' de 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' foi alterado para 'artistName' e 'artistArray'.\nVários dados foram adicionados a 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' e 'popularity'\nAlterar 'player.playlist.trackNo' para começar com 1 (baseado em 0 antes)\nOtimização de desempenho (estados / objetos são definidos somente na mudança)\nHtml listas adicionadas: 'html.devices', 'html.playlists' e 'html.tracks'\nNovos ícones",
-                "nl": "'playbackInfo' en 'player' samengevoegd tot 'player'\n'player.volume' verplaatst naar 'player.device.volume'\nDe 'duration' -indeling van 'player.playlist.trackListArray' en 'playlists.[playListName].trackListArray' is gewijzigd van milliseconden naar tijd (MM:SS) en er is een nieuwe gemaakt voor deze 'durationMs'.\nHet 'album' van 'player.playlist.trackListArray' en 'playlists.[playListName].trackListArray' is gewijzigd in 'artistName' en 'artistArray'.\nEr zijn verschillende gegevens toegevoegd aan 'player.playlist.trackListArray' en 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' en 'popularity'\nWijzig 'player.playlist.trackNo' om te beginnen met 1 (op basis van 0 eerder)\nPrestatieoptimalisatie (toestanden / objecten zijn alleen ingesteld op verandering)\nHtml-lijsten toegevoegd: 'html.devices', 'html.playlists' en 'html.tracks'\nNieuwe pictogrammen",
-                "fr": "'playbackInfo' et 'player' fusionnés en 'player'\n'player.volume' déplacé vers 'player.device.volume'\nLe format 'durée' de 'player.playlist.trackListArray' et de 'playlists[playListName].trackListArray' a été modifié de millisecondes à l'heure (MM:SS) et un nouveau format a été créé pour cette 'durationMs'.\nLes 'album' de 'player.playlist.trackListArray' et de 'playlists.[playListName].trackListArray' ont été changés en 'artistName' et 'artistArray'.\nPlusieurs données ont été ajoutées à 'player.playlist.trackListArray' et aux 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' et 'popularity'\nChangez 'player.playlist.trackNo' pour commencer par 1 (basé sur 0 auparavant)\nOptimisation des performances (les états / objets ne sont définis que sur le changement)\nListes HTML ajoutées: 'html.devices', 'html.playlists' et 'html.tracks'\nNouvelles icônes",
-                "it": "'playbackInfo' e 'player' uniti insieme a 'player'\n'player.volume' è stato spostato su 'player.device.volume'\nIl formato 'durata' di 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' è stato modificato da millisecondi a ora (MM:SS) e ne è stato creato uno nuovo per questo 'durationMs'.\nL 'album' di 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' è stato modificato in 'artistName' e 'artistArray'.\nDiversi dati sono stati aggiunti a 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' e 'popularity'\nCambia 'player.playlist.trackNo' per iniziare con 1 (basato su 0 prima)\nOttimizzazione delle prestazioni (stati / oggetti sono impostati solo sulle modifiche)\nElenchi HTML aggiunti: 'html.devices', 'html.playlists' e 'html.tracks'\nNuove icone",
-                "es": "'playbackInfo' y 'player' se fusionaron en 'player'\n'player.volume' movido a 'player.device.volume'\nEl formato de 'duración' de 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray' se cambió de milisegundos a tiempo (MM:SS) y se creó uno nuevo para estos 'durationMs'.\nEl 'album' de 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray' se cambió a 'artistName' y 'artistArray'.\nSe agregaron varios datos a 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' y 'popularity'\nCambie 'player.playlist.trackNo' para comenzar con 1 (basado en 0 antes)\nOptimización del rendimiento (los estados / objetos solo se configuran en el cambio)\nListas de HTML agregadas: 'html.devices', 'html.playlists' y 'html.tracks'\nNuevos iconos",
-                "pl": "'playbackInfo' i 'player' połączone razem w 'player'\n'player.volume' przeniesiono do 'player.device.volume'\nFormat 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray' został zmieniony z milisekund na czas (MM:SS), a nowy został utworzony dla tego 'durationMs'.\n'album' z 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray' został zmieniony na 'artistName' i 'artistArray'.\nDodano kilka danych do 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' i 'popularity'\nZmień 'player.playlist.trackNo', aby zaczynało się od 1 (poprzednio 0)\nOptymalizacja wydajności (stany / obiekty są ustawiane tylko przy zmianie)\nDodano listy html: 'html.devices', 'html.playlists' i 'html.tracks'\nNowe ikony"
-            },
-            "0.3.1": {
-                "en": "Fix: state 'playlists.playlistList' doesn't refresh after the playlist changed via app",
-                "de": "Behoben: state 'playlists.playlistList' wird nicht aktualisiert wenn die Playlist via App geändert wurde",
-                "ru": "Исправление: состояние 'playlists.playlistList' не обновляется после изменения плейлиста с помощью приложения",
-                "pt": "Correção: o estado 'playlists.playlistList' não é atualizado depois que a playlist foi alterada por meio do aplicativo",
-                "fr": "Correction: l'état 'playlists.playlistList' ne s'actualise pas après la modification de la playlist via l'application",
-                "nl": "Fix: status 'playlists.playlistList' wordt niet vernieuwd nadat de afspeellijst via de app is gewijzigd"
-            },
-            "0.3.0": {
-                "en": "Change playlist and device state names from name to id\nNew states for device selection: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNew states for playlist selection: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdd option to avoid shuffle state reset on some devices after starting a playlist",
-                "de": "Playlist und Geräte Statenamen von Name in Id geändert\nNeue States zur Geräteauswahl: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNeue States zur Playlistauswahl: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOption hinzufügt, um das Zurücksetzen von Shuffle auf einigen Geräten zu verhinden, beim starten einer Playlist",
-                "ru": "Изменение имен плейлиста и состояний устройства с имени на id\nНовые состояния для выбора устройства: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nНовые состояния для выбора плейлиста: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nДобавить параметр, чтобы избежать сброса состояния в случайном порядке на некоторых устройствах после запуска списка воспроизведения",
-                "pt": "Alterar nomes de estado de listas de reprodução e dispositivos de nome para id\nNovos estados para a seleção de dispositivos: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNovos estados para seleção de playlists: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdicionar opção para evitar redefinição de estado aleatório em alguns dispositivos depois de iniciar uma lista de reprodução",
-                "fr": "Changer la liste de lecture et les noms d'état de l'appareil du nom à l'identifiant\nNouveaux états pour la sélection de périphérique: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNouveaux états pour la sélection de playlist: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAjouter une option pour éviter la réinitialisation de l'état aléatoire sur certains appareils après le démarrage d'une liste de lecture",
-                "nl": "Wijzig afspeellijst en apparaatstatusnamen van naam in id\nNieuwe toestanden voor apparaatselectie: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.available Device ListIds', 'devices.available Device ListString'\nNieuwe staten voor afspeellijstselectie: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOptie toevoegen om shuffle-status opnieuw in te stellen op sommige apparaten na het starten van een afspeellijst"
-            },
-            "0.2.5": {
-                "en": "Fix: 'playlists.YourPlaylistName.playThisList' starts always with second track",
-                "de": "Behoben: 'playlists.YourPlaylistName.playThisList' startet immer das 2. Lied",
-                "ru": "Исправление: 'playlists.YourPlaylistName.playThisList' всегда начинается со второго трека",
-                "pt": "Correção: 'playlists.YourPlaylistName.playThisList' inicia sempre com a segunda faixa",
-                "fr": "Correction: 'playlists.YourPlaylistName.playThisList' commence toujours avec la deuxième piste",
-                "nl": "Fix: 'playlists.YourPlaylistName.playThisList' begint altijd met tweede nummer"
-            }
-        },
-        "title": "Spotify (Premium)",
-        "titleLang": {
-            "en": "Spotify (Premium)"
-        },
-        "desc": {
-            "en": "control spotify devices",
-            "de": "Spotify-Geräte steuern",
-            "ru": "контрольные устройства",
-            "pt": "controlar dispositivos spotify",
-            "nl": "Spotify-apparaten bedienen",
-            "fr": "contrôler les appareils Spotify",
-            "it": "controllare i dispositivi spotify",
-            "es": "controlar dispositivos spotify",
-            "pl": "kontroluj urządzenia spotify",
-            "zh-cn": "控制spotify设备"
-        },
-        "authors": [
-            "Lucky",
-            "Alexander Kose"
-        ],
-        "license": "MIT",
-        "platform": "Javascript/Node.js",
-        "mode": "daemon",
-        "icon": "spotify-premium.png",
-        "materialize": true,
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.spotify-premium/master/admin/spotify-premium.png",
-        "keywords": [
-            "spotify",
-            "player",
-            "media"
-        ],
-        "readme": "https://github.com/iobroker-community-adapters/ioBroker.spotify-premium/blob/master/README.md",
-        "loglevel": "info",
-        "type": "multimedia",
-        "compact": true,
-        "connectionType": "cloud",
-        "dataSource": "poll",
-        "tier": 3
+  "common": {
+    "name": "spotify-premium",
+    "version": "1.1.4",
+    "news": {
+      "1.1.4": {
+        "en": "Fix errors\n",
+        "de": "Fehler beheben\n",
+        "ru": "Исправить ошибки\n",
+        "pt": "Corrigir erros\n",
+        "nl": "Fouten verbeteren\n",
+        "fr": "Corriger les erreurs\n",
+        "it": "Correggere errori\n",
+        "es": "Corregir errores\n",
+        "pl": "Naprawić błędy\n",
+        "zh-cn": "修正错误\n"
+      },
+      "1.1.3": {
+        "en": "Improved authorization process",
+        "de": "Verbesserter Autorisierungsprozess",
+        "ru": "Улучшенный процесс авторизации",
+        "pt": "Processo de autorização aprimorado",
+        "nl": "Verbeterd autorisatieproces",
+        "fr": "Processus d'autorisation amélioré",
+        "it": "Processo di autorizzazione migliorato",
+        "es": "Proceso de autorización mejorado",
+        "pl": "Ulepszony proces autoryzacji",
+        "zh-cn": "改进的授权流程"
+      },
+      "1.1.2": {
+        "en": "Improved authorization process",
+        "de": "Verbesserter Autorisierungsprozess",
+        "ru": "Улучшенный процесс авторизации",
+        "pt": "Processo de autorização aprimorado",
+        "nl": "Verbeterd autorisatieproces",
+        "fr": "Processus d'autorisation amélioré",
+        "it": "Processo di autorizzazione migliorato",
+        "es": "Proceso de autorización mejorado",
+        "pl": "Ulepszony proces autoryzacji",
+        "zh-cn": "改进的授权流程"
+      },
+      "1.1.1": {
+        "en": "removed warnings for js-controller 3.x",
+        "de": "Warnungen für js-controller 3.x entfernt",
+        "ru": "убраны предупреждения для js-controller 3.x",
+        "pt": "avisos removidos para js-controller 3.x",
+        "nl": "verwijderde waarschuwingen voor js-controller 3.x",
+        "fr": "suppression des avertissements pour js-controller 3.x",
+        "it": "avvisi rimossi per js-controller 3.x",
+        "es": "advertencias eliminadas para js-controller 3.x",
+        "pl": "usunięto ostrzeżenia dla js-controller 3.x",
+        "zh-cn": "删除了 js-controller 3.x 的警告"
+      },
+      "1.0.0": {
+        "en": "'playbackInfo' and 'player' merged together to 'player'\n'player.volume' moved to 'player.device.volume'\nThe 'duration' format of 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray' was changed from milliseconds to time (MM:SS) and a new one was created for this 'durationMs'.\nThe 'album' of 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray' was changed to 'artistName' and 'artistArray'.\nSeveral data was added to 'player.playlist.trackListArray' and 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' and 'popularity'\nChange 'player.playlist.trackNo' to start with 1 (0-based before)\nPerformance optimization (states/objects are only set on change)\nHtml lists added: 'html.devices', 'html.playlists' and 'html.tracks'\nNew icons",
+        "de": "'playbackInfo' und 'player' zu 'Player' zusammengefügt\n'player.volume' wurde in 'player.device.volume' verschoben.\nDas 'duration'-Format von 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' wurde von Millisekunden auf Zeit (MM:SS) geändert und für diese 'durationMs' wurde ein neues erstellt.\nDas 'album' von 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' wurde in 'artistName' und 'artistArray' geändert.\nMehrere Daten wurden zu 'player.playlist.trackListArray' und 'playlists.[playListName].trackListArray' hinzugefügt: 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explizite' und 'popularity'\nÄndern Sie 'player.playlist.trackNo', um mit 1 zu beginnen (zuvor 0)\nLeistungsoptimierung (Zustände / Objekte werden nur bei Änderung gesetzt)\nHTML-Listen hinzugefügt: 'html.devices', 'html.playlists' und 'html.tracks'\nNeue Icons",
+        "ru": "'playbackInfo' и 'player' объединены в 'player'\n'player.volume' перемещен в 'player.device.volume'\nФормат 'duration' для player.playlist.trackListArray и playlists.[playListName].trackListArray был изменен с миллисекунд на время (MM:SS), и для этой длительности был создан новый.\n'Альбом' для 'player.playlist.trackListArray' и 'playlists.[playListName].trackListArray' был изменен на 'artistName' и 'artistArray'.\nВ 'player.playlist.trackListArray' и 'playlists' было добавлено несколько данных. '\nИзмените 'player.playlist.trackNo', чтобы начать с 1 (на основе 0 раньше)\nОптимизация производительности (состояния / объекты устанавливаются только при изменении)\nДобавлены списки HTML: 'html.devices', 'html.playlists' и 'html.tracks'\nНовые иконки",
+        "pt": "'playbackInfo' e 'player' unidos a 'player'\n'player.volume' movido para 'player.device.volume'\nO formato de 'duração' de 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' foi alterado de milissegundos para hora (MM:SS) e um novo foi criado para este 'durationMs'.\nO 'album' de 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' foi alterado para 'artistName' e 'artistArray'.\nVários dados foram adicionados a 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' e 'popularity'\nAlterar 'player.playlist.trackNo' para começar com 1 (baseado em 0 antes)\nOtimização de desempenho (estados / objetos são definidos somente na mudança)\nHtml listas adicionadas: 'html.devices', 'html.playlists' e 'html.tracks'\nNovos ícones",
+        "nl": "'playbackInfo' en 'player' samengevoegd tot 'player'\n'player.volume' verplaatst naar 'player.device.volume'\nDe 'duration' -indeling van 'player.playlist.trackListArray' en 'playlists.[playListName].trackListArray' is gewijzigd van milliseconden naar tijd (MM:SS) en er is een nieuwe gemaakt voor deze 'durationMs'.\nHet 'album' van 'player.playlist.trackListArray' en 'playlists.[playListName].trackListArray' is gewijzigd in 'artistName' en 'artistArray'.\nEr zijn verschillende gegevens toegevoegd aan 'player.playlist.trackListArray' en 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' en 'popularity'\nWijzig 'player.playlist.trackNo' om te beginnen met 1 (op basis van 0 eerder)\nPrestatieoptimalisatie (toestanden / objecten zijn alleen ingesteld op verandering)\nHtml-lijsten toegevoegd: 'html.devices', 'html.playlists' en 'html.tracks'\nNieuwe pictogrammen",
+        "fr": "'playbackInfo' et 'player' fusionnés en 'player'\n'player.volume' déplacé vers 'player.device.volume'\nLe format 'durée' de 'player.playlist.trackListArray' et de 'playlists[playListName].trackListArray' a été modifié de millisecondes à l'heure (MM:SS) et un nouveau format a été créé pour cette 'durationMs'.\nLes 'album' de 'player.playlist.trackListArray' et de 'playlists.[playListName].trackListArray' ont été changés en 'artistName' et 'artistArray'.\nPlusieurs données ont été ajoutées à 'player.playlist.trackListArray' et aux 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' et 'popularity'\nChangez 'player.playlist.trackNo' pour commencer par 1 (basé sur 0 auparavant)\nOptimisation des performances (les états / objets ne sont définis que sur le changement)\nListes HTML ajoutées: 'html.devices', 'html.playlists' et 'html.tracks'\nNouvelles icônes",
+        "it": "'playbackInfo' e 'player' uniti insieme a 'player'\n'player.volume' è stato spostato su 'player.device.volume'\nIl formato 'durata' di 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' è stato modificato da millisecondi a ora (MM:SS) e ne è stato creato uno nuovo per questo 'durationMs'.\nL 'album' di 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' è stato modificato in 'artistName' e 'artistArray'.\nDiversi dati sono stati aggiunti a 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' e 'popularity'\nCambia 'player.playlist.trackNo' per iniziare con 1 (basato su 0 prima)\nOttimizzazione delle prestazioni (stati / oggetti sono impostati solo sulle modifiche)\nElenchi HTML aggiunti: 'html.devices', 'html.playlists' e 'html.tracks'\nNuove icone",
+        "es": "'playbackInfo' y 'player' se fusionaron en 'player'\n'player.volume' movido a 'player.device.volume'\nEl formato de 'duración' de 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray' se cambió de milisegundos a tiempo (MM:SS) y se creó uno nuevo para estos 'durationMs'.\nEl 'album' de 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray' se cambió a 'artistName' y 'artistArray'.\nSe agregaron varios datos a 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' y 'popularity'\nCambie 'player.playlist.trackNo' para comenzar con 1 (basado en 0 antes)\nOptimización del rendimiento (los estados / objetos solo se configuran en el cambio)\nListas de HTML agregadas: 'html.devices', 'html.playlists' y 'html.tracks'\nNuevos iconos",
+        "pl": "'playbackInfo' i 'player' połączone razem w 'player'\n'player.volume' przeniesiono do 'player.device.volume'\nFormat 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray' został zmieniony z milisekund na czas (MM:SS), a nowy został utworzony dla tego 'durationMs'.\n'album' z 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray' został zmieniony na 'artistName' i 'artistArray'.\nDodano kilka danych do 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' i 'popularity'\nZmień 'player.playlist.trackNo', aby zaczynało się od 1 (poprzednio 0)\nOptymalizacja wydajności (stany / obiekty są ustawiane tylko przy zmianie)\nDodano listy html: 'html.devices', 'html.playlists' i 'html.tracks'\nNowe ikony"
+      },
+      "0.3.1": {
+        "en": "Fix: state 'playlists.playlistList' doesn't refresh after the playlist changed via app",
+        "de": "Behoben: state 'playlists.playlistList' wird nicht aktualisiert wenn die Playlist via App geändert wurde",
+        "ru": "Исправление: состояние 'playlists.playlistList' не обновляется после изменения плейлиста с помощью приложения",
+        "pt": "Correção: o estado 'playlists.playlistList' não é atualizado depois que a playlist foi alterada por meio do aplicativo",
+        "fr": "Correction: l'état 'playlists.playlistList' ne s'actualise pas après la modification de la playlist via l'application",
+        "nl": "Fix: status 'playlists.playlistList' wordt niet vernieuwd nadat de afspeellijst via de app is gewijzigd"
+      },
+      "0.3.0": {
+        "en": "Change playlist and device state names from name to id\nNew states for device selection: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNew states for playlist selection: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdd option to avoid shuffle state reset on some devices after starting a playlist",
+        "de": "Playlist und Geräte Statenamen von Name in Id geändert\nNeue States zur Geräteauswahl: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNeue States zur Playlistauswahl: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOption hinzufügt, um das Zurücksetzen von Shuffle auf einigen Geräten zu verhinden, beim starten einer Playlist",
+        "ru": "Изменение имен плейлиста и состояний устройства с имени на id\nНовые состояния для выбора устройства: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nНовые состояния для выбора плейлиста: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nДобавить параметр, чтобы избежать сброса состояния в случайном порядке на некоторых устройствах после запуска списка воспроизведения",
+        "pt": "Alterar nomes de estado de listas de reprodução e dispositivos de nome para id\nNovos estados para a seleção de dispositivos: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNovos estados para seleção de playlists: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAdicionar opção para evitar redefinição de estado aleatório em alguns dispositivos depois de iniciar uma lista de reprodução",
+        "fr": "Changer la liste de lecture et les noms d'état de l'appareil du nom à l'identifiant\nNouveaux états pour la sélection de périphérique: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.availableDeviceListIds', 'devices.availableDeviceListString'\nNouveaux états pour la sélection de playlist: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nAjouter une option pour éviter la réinitialisation de l'état aléatoire sur certains appareils après le démarrage d'une liste de lecture",
+        "nl": "Wijzig afspeellijst en apparaatstatusnamen van naam in id\nNieuwe toestanden voor apparaatselectie: 'devices.deviceList', 'devices.deviceListIds', 'devices.deviceListString', 'devices.available Device ListIds', 'devices.available Device ListString'\nNieuwe staten voor afspeellijstselectie: 'playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString', 'playlists.yourPlaylistListIds', 'playlists.yourPlaylistListString'\nOptie toevoegen om shuffle-status opnieuw in te stellen op sommige apparaten na het starten van een afspeellijst"
+      }
     },
-    "native": {
-        "client_id": "",
-        "client_secret": "",
-        "delete_devices": false,
-        "delete_playlists": false,
-        "keep_shuffle_state": false,
-        "status_interval": 10,
-        "device_interval": 5,
-        "playlist_interval": 15
+    "title": "Spotify (Premium)",
+    "titleLang": {
+      "en": "Spotify (Premium)"
     },
-    "objects": [],
-    "instanceObjects": [
-        {
-            "_id": "info.connection",
-            "type": "state",
-            "common": {
-                "role": "indicator.connected",
-                "name": "If successfully authorized by Spotify",
-                "type": "boolean",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playlists",
-            "type": "channel",
-            "common": {
-                "name": "Playlists"
-            },
-            "native": {}
-        },
-        {
-            "_id": "devices",
-            "type": "channel",
-            "common": {
-                "name": "Devices"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player",
-            "type": "channel",
-            "common": {
-                "name": "Commands to control playback"
-            },
-            "native": {}
-        },
-        {
-            "_id": "html",
-            "type": "channel",
-            "common": {
-                "name": "prepared HTML tables"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist",
-            "type": "channel",
-            "common": {
-                "name": "Commands to control playback related to the playlist"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.device",
-            "type": "device",
-            "common": {
-                "name": "Commands to control playback related to the current active device",
-                "icon": "icons/speaker_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization",
-            "type": "channel",
-            "common": {
-                "name": "Authorization functionality"
-            },
-            "native": {}
-        },
-        {
-            "_id": "playlists.playlistList",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "Available playlist saved in common part. Change this value to a userId-playlistId to start this playlist.",
-                "type": "string",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "playlists.playlistListIds",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playlists.playlistListString",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of playlists as string, patter: name;name;name;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playlists.yourPlaylistListIds",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of your playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "playlists.yourPlaylistListString",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of your playlists as string, patter: name;name;name;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "devices.deviceList",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "All devices saved in common part. Change this value to a device id to start playing on this.",
-                "type": "string",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "devices.deviceListIds",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of all device ids as string, pattern: id;id;id;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "devices.deviceListString",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of all devices as string, patter: name;name;name;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "devices.availableDeviceListIds",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of available device ids as string, pattern: id;id;id;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "devices.availableDeviceListString",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of available devices as string, patter: name;name;name;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "html.devices",
-            "type": "state",
-            "common": {
-                "role": "html",
-                "name": "devices HTML table",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "html.playlists",
-            "type": "state",
-            "common": {
-                "role": "html",
-                "name": "playlist HTML table",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "html.tracks",
-            "type": "state",
-            "common": {
-                "role": "html",
-                "name": "tracklist HTML table",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.play",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "play",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/play_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playUri",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "Start a new context based on spotify uri. Set a javascript object like: {\"device_id\":\"2fb7dce39e76b94f4a1dc52d896048cac8276952\",\"context_uri\":\"spotify:user:11128263953:playlist:3sP5z9L9w0GHRWQlnZgyQN\",\"offset\":{\"position\":5}} or: {\"uris\":[\"spotify:track:4iV5W9uYEdYUVa79Axb7Rh\",\"spotify:track:1301WleyT98MSxVHPZCA6M\"],\"position_ms\":24050} For more infos look at: https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/",
-                "type": "string",
-                "read": false,
-                "write": true,
-                "icon": "icons/play_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.pause",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "pause",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/pause_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.skipPlus",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "next track",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/skip_next_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.skipMinus",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "previous track",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/skip_prev_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.repeatTrack",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "repeat one track",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/repeat_one_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.repeatContext",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "repeat context, e.g. playlist",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/repeat_green.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.repeatOff",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "no repeat",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/repeat_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.repeat",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "repeat mode",
-                "type": "string",
-                "read": true,
-                "write": true,
-                "states": "{\"off\": \"no repeat\",\"context\": \"context, e.g. playlist\",\"track\": \"one track\"}",
-                "icon": "icons/repeat_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.volume",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "volume in percentage",
-                "type": "number",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.trackId",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "set track id to play this track; switch the context to track",
-                "type": "string",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.trackNo",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "set track no of playlist to play this track",
-                "type": "number",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.id",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "set playlist id to play; in combination with player.playlist.owner, if it is empty the authorized user will be used; first set player.playlist.owner, then player.playlist.id",
-                "type": "string",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.owner",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "set playlist owner to start playlist in combination with player.playlist.id; first set player.playlist.owner, then player.playlist.id",
-                "type": "string",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.progressMs",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "seek to position (ms)",
-                "type": "number",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.progressPercentage",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "seek to position (%)",
-                "type": "number",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.shuffle",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "shuffle",
-                "type": "string",
-                "read": true,
-                "write": true,
-                "icon": "icons/shuffle_black.png",
-                "states": "{\"on\": \"On\",\"off\": \"Off\"}"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.shuffleOff",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "disable shuffle",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/shuffle_black.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.shuffleOn",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "enable shuffle",
-                "type": "boolean",
-                "read": false,
-                "write": true,
-                "icon": "icons/shuffle_green.png"
-            },
-            "native": {}
-        },
-        {
-            "_id": "getDevices",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "refresh device list",
-                "type": "boolean",
-                "read": false,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization.getAuthorization",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "get authorization",
-                "type": "boolean",
-                "read": false,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization.authorizationUrl",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "open this url to authorize",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization.state",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "state",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization.token",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "token",
-                "type": "object",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization.authorizationReturnUri",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "paste here the redirect url of the authorization url",
-                "type": "string",
-                "read": false,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization.userId",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "user id",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization.authorized",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "authorized",
-                "type": "boolean",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "authorization.error",
-            "type": "state",
-            "common": {
-                "role": "indicator.error",
-                "name": "Authorization error",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "getPlaylists",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "get playlists owned by authorized user",
-                "type": "boolean",
-                "read": false,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "getPlaybackInfo",
-            "type": "state",
-            "common": {
-                "role": "button",
-                "name": "refresh playback info",
-                "type": "boolean",
-                "read": false,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.artistName",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "artist name; comma separated if multiple artists",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.artistImageUrl",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "artist image url of the first available artist if multiple artists",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.type",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "context type",
-                "type": "string",
-                "read": true,
-                "write": false,
-                "states": "{\"album\": \"Album\",\"artist\": \"Artist\",\"playlist\": \"Playlist\",\"track\": \"Track\"}"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.contextDescription",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "description of the current context",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.contextImageUrl",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "image url of the current context; album, artist or playlist",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.album",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "album",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.progress",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "progress in format 03:50; Mi:SS",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.isPlaying",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "is playing",
-                "type": "boolean",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.albumImageUrl",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "album image url",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.trackName",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "track name",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.durationMs",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "duration ms",
-                "type": "number",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.duration",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "duration in format 03:50; Mi:SS",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.name",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "playlist name",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.tracksTotal",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "number of songs",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.imageUrl",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "playlist image url",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.trackList",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.",
-                "type": "mixed",
-                "read": true,
-                "write": true
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.trackListNumber",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of tracks as string, patter: 0;1;2;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.trackListString",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of tracks as string, patter: title - artist;title - artist;title - artist;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.trackListStates",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.trackListIdMap",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.trackListIds",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of track ids as string, pattern: id;id;id;...",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.playlist.trackListArray",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "contains list of tracks as array object, pattern: [{id: \"id\", title: \"title\", artistName: \"artistName1, artistName2\", artistArray: [{id: \"artistId\", name: \"artistName\"}, {id: \"artistId\", name: \"artistName\"}, ...], album: {id: \"albumId\", name: \"albumName\"}, durationMs: 253844, duration: 4:13, addedAt: 15395478261235, addedBy: \"userId\", discNumber: 1, episode: false, explicit: false, popularity: 56}, ...]",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.device.id",
-            "type": "state",
-            "common": {
-                "role": "id",
-                "name": "device id",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.device.isActive",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "current active device",
-                "type": "boolean",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.device.isAvailable",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "can used for playing",
-                "type": "boolean",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.device.isRestricted",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "it is not possible to control restricted devices with the adapter",
-                "type": "boolean",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.device.name",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "device name",
-                "type": "string",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.device.type",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "device type",
-                "type": "string",
-                "read": true,
-                "write": false,
-                "states": "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"
-            },
-            "native": {}
-        },
-        {
-            "_id": "player.device.volume",
-            "type": "state",
-            "common": {
-                "role": "value",
-                "name": "volume in percentage",
-                "type": "number",
-                "read": true,
-                "write": false
-            },
-            "native": {}
-        }
-    ]
+    "desc": {
+      "en": "control spotify devices",
+      "de": "Spotify-Geräte steuern",
+      "ru": "контрольные устройства",
+      "pt": "controlar dispositivos spotify",
+      "nl": "Spotify-apparaten bedienen",
+      "fr": "contrôler les appareils Spotify",
+      "it": "controllare i dispositivi spotify",
+      "es": "controlar dispositivos spotify",
+      "pl": "kontroluj urządzenia spotify",
+      "zh-cn": "控制spotify设备"
+    },
+    "authors": [
+      "Lucky",
+      "Alexander Kose"
+    ],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "icon": "spotify-premium.png",
+    "materialize": true,
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.spotify-premium/master/admin/spotify-premium.png",
+    "keywords": [
+      "spotify",
+      "player",
+      "media"
+    ],
+    "readme": "https://github.com/iobroker-community-adapters/ioBroker.spotify-premium/blob/master/README.md",
+    "loglevel": "info",
+    "type": "multimedia",
+    "compact": true,
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "tier": 3
+  },
+  "native": {
+    "client_id": "",
+    "client_secret": "",
+    "delete_devices": false,
+    "delete_playlists": false,
+    "keep_shuffle_state": false,
+    "status_interval": 10,
+    "device_interval": 5,
+    "playlist_interval": 15
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "If successfully authorized by Spotify",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "playlists",
+      "type": "channel",
+      "common": {
+        "name": "Playlists"
+      },
+      "native": {}
+    },
+    {
+      "_id": "devices",
+      "type": "channel",
+      "common": {
+        "name": "Devices"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player",
+      "type": "channel",
+      "common": {
+        "name": "Commands to control playback"
+      },
+      "native": {}
+    },
+    {
+      "_id": "html",
+      "type": "channel",
+      "common": {
+        "name": "prepared HTML tables"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist",
+      "type": "channel",
+      "common": {
+        "name": "Commands to control playback related to the playlist"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.device",
+      "type": "device",
+      "common": {
+        "name": "Commands to control playback related to the current active device",
+        "icon": "icons/speaker_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization",
+      "type": "channel",
+      "common": {
+        "name": "Authorization functionality"
+      },
+      "native": {}
+    },
+    {
+      "_id": "playlists.playlistList",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "Available playlist saved in common part. Change this value to a userId-playlistId to start this playlist.",
+        "type": "string",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "playlists.playlistListIds",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "playlists.playlistListString",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of playlists as string, patter: name;name;name;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "playlists.yourPlaylistListIds",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of your playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "playlists.yourPlaylistListString",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of your playlists as string, patter: name;name;name;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "devices.deviceList",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "All devices saved in common part. Change this value to a device id to start playing on this.",
+        "type": "string",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "devices.deviceListIds",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of all device ids as string, pattern: id;id;id;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "devices.deviceListString",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of all devices as string, patter: name;name;name;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "devices.availableDeviceListIds",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of available device ids as string, pattern: id;id;id;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "devices.availableDeviceListString",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of available devices as string, patter: name;name;name;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "html.devices",
+      "type": "state",
+      "common": {
+        "role": "html",
+        "name": "devices HTML table",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "html.playlists",
+      "type": "state",
+      "common": {
+        "role": "html",
+        "name": "playlist HTML table",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "html.tracks",
+      "type": "state",
+      "common": {
+        "role": "html",
+        "name": "tracklist HTML table",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.play",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "play",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/play_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playUri",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "Start a new context based on spotify uri. Set a javascript object like: {\"device_id\":\"2fb7dce39e76b94f4a1dc52d896048cac8276952\",\"context_uri\":\"spotify:user:11128263953:playlist:3sP5z9L9w0GHRWQlnZgyQN\",\"offset\":{\"position\":5}} or: {\"uris\":[\"spotify:track:4iV5W9uYEdYUVa79Axb7Rh\",\"spotify:track:1301WleyT98MSxVHPZCA6M\"],\"position_ms\":24050} For more infos look at: https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/",
+        "type": "string",
+        "read": false,
+        "write": true,
+        "icon": "icons/play_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.pause",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "pause",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/pause_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.skipPlus",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "next track",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/skip_next_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.skipMinus",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "previous track",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/skip_prev_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.repeatTrack",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "repeat one track",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/repeat_one_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.repeatContext",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "repeat context, e.g. playlist",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/repeat_green.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.repeatOff",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "no repeat",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/repeat_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.repeat",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "repeat mode",
+        "type": "string",
+        "read": true,
+        "write": true,
+        "states": "{\"off\": \"no repeat\",\"context\": \"context, e.g. playlist\",\"track\": \"one track\"}",
+        "icon": "icons/repeat_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.volume",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "volume in percentage",
+        "type": "number",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.trackId",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "set track id to play this track; switch the context to track",
+        "type": "string",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.trackNo",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "set track no of playlist to play this track",
+        "type": "number",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.id",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "set playlist id to play; in combination with player.playlist.owner, if it is empty the authorized user will be used; first set player.playlist.owner, then player.playlist.id",
+        "type": "string",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.owner",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "set playlist owner to start playlist in combination with player.playlist.id; first set player.playlist.owner, then player.playlist.id",
+        "type": "string",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.progressMs",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "seek to position (ms)",
+        "type": "number",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.progressPercentage",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "seek to position (%)",
+        "type": "number",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.shuffle",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "shuffle",
+        "type": "string",
+        "read": true,
+        "write": true,
+        "icon": "icons/shuffle_black.png",
+        "states": "{\"on\": \"On\",\"off\": \"Off\"}"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.shuffleOff",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "disable shuffle",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/shuffle_black.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.shuffleOn",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "enable shuffle",
+        "type": "boolean",
+        "read": false,
+        "write": true,
+        "icon": "icons/shuffle_green.png"
+      },
+      "native": {}
+    },
+    {
+      "_id": "getDevices",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "refresh device list",
+        "type": "boolean",
+        "read": false,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization.getAuthorization",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "get authorization",
+        "type": "boolean",
+        "read": false,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization.authorizationUrl",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "open this url to authorize",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization.state",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "state",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization.token",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "token",
+        "type": "object",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization.authorizationReturnUri",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "paste here the redirect url of the authorization url",
+        "type": "string",
+        "read": false,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization.userId",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "user id",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization.authorized",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "authorized",
+        "type": "boolean",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "authorization.error",
+      "type": "state",
+      "common": {
+        "role": "indicator.error",
+        "name": "Authorization error",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "getPlaylists",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "get playlists owned by authorized user",
+        "type": "boolean",
+        "read": false,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "getPlaybackInfo",
+      "type": "state",
+      "common": {
+        "role": "button",
+        "name": "refresh playback info",
+        "type": "boolean",
+        "read": false,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.artistName",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "artist name; comma separated if multiple artists",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.artistImageUrl",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "artist image url of the first available artist if multiple artists",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.type",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "context type",
+        "type": "string",
+        "read": true,
+        "write": false,
+        "states": "{\"album\": \"Album\",\"artist\": \"Artist\",\"playlist\": \"Playlist\",\"track\": \"Track\"}"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.contextDescription",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "description of the current context",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.contextImageUrl",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "image url of the current context; album, artist or playlist",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.album",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "album",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.progress",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "progress in format 03:50; Mi:SS",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.isPlaying",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "is playing",
+        "type": "boolean",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.albumImageUrl",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "album image url",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.trackName",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "track name",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.durationMs",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "duration ms",
+        "type": "number",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.duration",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "duration in format 03:50; Mi:SS",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.name",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "playlist name",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.tracksTotal",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "number of songs",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.imageUrl",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "playlist image url",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.trackList",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.",
+        "type": "mixed",
+        "read": true,
+        "write": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.trackListNumber",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of tracks as string, patter: 0;1;2;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.trackListString",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of tracks as string, patter: title - artist;title - artist;title - artist;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.trackListStates",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.trackListIdMap",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.trackListIds",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of track ids as string, pattern: id;id;id;...",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.playlist.trackListArray",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "contains list of tracks as array object, pattern: [{id: \"id\", title: \"title\", artistName: \"artistName1, artistName2\", artistArray: [{id: \"artistId\", name: \"artistName\"}, {id: \"artistId\", name: \"artistName\"}, ...], album: {id: \"albumId\", name: \"albumName\"}, durationMs: 253844, duration: 4:13, addedAt: 15395478261235, addedBy: \"userId\", discNumber: 1, episode: false, explicit: false, popularity: 56}, ...]",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.device.id",
+      "type": "state",
+      "common": {
+        "role": "id",
+        "name": "device id",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.device.isActive",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "current active device",
+        "type": "boolean",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.device.isAvailable",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "can used for playing",
+        "type": "boolean",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.device.isRestricted",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "it is not possible to control restricted devices with the adapter",
+        "type": "boolean",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.device.name",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "device name",
+        "type": "string",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.device.type",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "device type",
+        "type": "string",
+        "read": true,
+        "write": false,
+        "states": "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"
+      },
+      "native": {}
+    },
+    {
+      "_id": "player.device.volume",
+      "type": "state",
+      "common": {
+        "role": "value",
+        "name": "volume in percentage",
+        "type": "number",
+        "read": true,
+        "write": false
+      },
+      "native": {}
+    }
+  ]
 }
