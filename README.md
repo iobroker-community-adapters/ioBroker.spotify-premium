@@ -86,8 +86,9 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### 1.1.5 (2021-11-17)
+### __WORK IN PROGRESS__
 * (bluefox) Allowed to set the default shuffle value
+* (bluefox) The type of trackNo corrected
 
 ### 1.1.4 (2021-11-17)
 * (bluefox) Fix errors

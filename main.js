@@ -100,7 +100,7 @@ function startAdapter(options) {
                 cache.setValue('authorization.userId', ''),
                 cache.setValue('player.trackId', ''),
                 cache.setValue('player.playlist.id', ''),
-                cache.setValue('player.playlist.trackNo', ''),
+                cache.setValue('player.playlist.trackNo', 0),
                 cache.setValue('player.playlist.owner', ''),
                 cache.setValue('authorization.authorized', false),
                 cache.setValue('info.connection', false)
@@ -747,7 +747,7 @@ function createPlaybackInfo(data) {
                     cache.setValue('player.playlist.trackListIdMap', ''),
                     cache.setValue('player.playlist.trackListIds', ''),
                     cache.setValue('player.playlist.trackListArray', ''),
-                    cache.setValue('player.playlist.trackNo', ''),
+                    cache.setValue('player.playlist.trackNo', 0),
                     cache.setValue('playlists.playlistList', ''),
                     cache.setValue('player.playlist', null, {
                         type: 'channel',
@@ -1627,7 +1627,7 @@ function startPlaylist(playlist, owner, trackNo, keepTrack) {
                 if (state.val) {
                     resetShuffle = true;
                     if (!keepTrack) {
-                        trackNo = Math.floor(Math.random() * Math.floor(cache.getValue('playlists.' + shrinkStateName(owner + '-' + playlist) + '.tracksTotal').val));
+                        trackNo = Math.floor(Math.random() * Math.floor(cache.getValue(`playlists.${shrinkStateName(owner + '-' + playlist)}.tracksTotal`).val));
                     }
                 }
             });
@@ -1647,7 +1647,11 @@ function startPlaylist(playlist, owner, trackNo, keepTrack) {
         })
         .then(() => {
             if (application.keepShuffleState && resetShuffle) {
-                return listenOnShuffleOn();
+                if (adapter.config.defaultShuffle === 'off') {
+                    return listenOnShuffleOff();
+                } else {
+                    return listenOnShuffleOn();
+                }
             }
         });
 }
@@ -1663,9 +1667,7 @@ function listenOnAuthorizationReturnUri(obj) {
         application.code = returnUri.code;
         return getToken();
     } else {
-        adapter.log.error(
-            'invalid session. you need to open the actual authorization.authorizationUrl'
-        );
+        adapter.log.error('invalid session. you need to open the actual authorization.authorizationUrl');
         return cache.setValue('Authorization.Authorization_Return_URI',
             'invalid session. You need to open the actual Authorization.Authorization_URL again');
     }
@@ -1683,8 +1685,7 @@ function listenOnGetAuthorization() {
     };
 
     let options = {
-        url: 'https://accounts.spotify.com/de/authorize/?' +
-            querystring.stringify(query),
+        url: 'https://accounts.spotify.com/de/authorize/?' + querystring.stringify(query),
         method: 'GET',
         followAllRedirects: true,
     };
