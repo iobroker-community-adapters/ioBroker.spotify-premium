@@ -1246,13 +1246,13 @@ function refreshDeviceList() {
     let states = cache.getValue('devices.*');
     let keys = Object.keys(states);
     let fn = function (key) {
-        if (!key.endsWith('.name')) {
+        if (!states[key] || !key.endsWith('.name')) {
             return;
         }
         let normKey = removeNameSpace(key);
         let id = normKey.substring(8, normKey.length - 5);
         a.push({
-            id: id,
+            id,
             name: states[key].val,
             available: cache.getValue(`devices.${id}.isAvailable`).val
         });
@@ -1358,7 +1358,9 @@ function getToken() {
             redirect_uri: application.redirect_uri
         }
     };
+
     let tokenObj;
+
     return request(options)
         .then(response => {
             let body = response.body;
@@ -2032,7 +2034,7 @@ function listenOnHtmlTracklist() {
         html += '</span>';
         html += `<span class="spotifyTracksSpace${cssClassSpace}">&nbsp;&bull;&nbsp;</span>`;
         html += `<span class="spotifyTracksAlbum${cssClassAlbum}">`;
-        html += source[i].album.name;
+        html += source[i].album ? source[i].album.name || '--' : '--';
         html += '</span></span></td>';
         html += `<td${styleDuration} class="spotifyTracksColDuration${cssClassColDuration}">`;
         html += source[i].duration;
