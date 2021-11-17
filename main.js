@@ -1979,6 +1979,14 @@ function listenOnHtmlTracklist() {
     if (obj === null || !obj.val) {
         return cache.setValue('html.tracks', '');
     }
+    if (typeof obj.val === 'string') {
+        try {
+            obj.val = JSON.parse(obj.val);
+        } catch (e) {
+            obj.val = [];
+        }
+    }
+
     let source = obj.val;
     let html = '<table class="spotifyTracksTable">';
 
