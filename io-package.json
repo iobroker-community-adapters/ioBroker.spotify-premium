@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.1.5",
+    "version": "1.1.6",
     "news": {
+      "1.1.6": {
+        "en": "Allowed to set the default shuffle value\nThe type of trackNo corrected",
+        "de": "Erlaubt, den Standard-Shuffle-Wert festzulegen\nDie Art des TracksNein korrigiert",
+        "ru": "Разрешено установить значение перемешивания по умолчанию\nТип трека: Нет исправлено",
+        "pt": "Tem permissão para definir o valor aleatório padrão\nO tipo de faixa Não corrigido",
+        "nl": "Toegestaan om de standaard shuffle-waarde in te stellen\nHet type trackGeen gecorrigeerd",
+        "fr": "Autorisé à définir la valeur de lecture aléatoire par défaut\nLe type de pisteNon corrigé",
+        "it": "Autorizzato a impostare il valore di riproduzione casuale predefinito\nIl tipo di tracciaNo corretto",
+        "es": "Se permite establecer el valor aleatorio predeterminado\nEl tipo de pista No corregido",
+        "pl": "Umożliwiono ustawienie domyślnej wartości odtwarzania losowego\nRodzaj toruNie poprawiono",
+        "zh-cn": "允许设置默认的shuffle值\n轨道类型未更正"
+      },
       "1.1.5": {
         "en": "Allowed to set the default shuffle value",
         "de": "Erlaubt, den Standard-Shuffle-Wert festzulegen",
@@ -73,14 +85,6 @@
         "it": "'playbackInfo' e 'player' uniti insieme a 'player'\n'player.volume' è stato spostato su 'player.device.volume'\nIl formato 'durata' di 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' è stato modificato da millisecondi a ora (MM:SS) e ne è stato creato uno nuovo per questo 'durationMs'.\nL 'album' di 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray' è stato modificato in 'artistName' e 'artistArray'.\nDiversi dati sono stati aggiunti a 'player.playlist.trackListArray' e 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' e 'popularity'\nCambia 'player.playlist.trackNo' per iniziare con 1 (basato su 0 prima)\nOttimizzazione delle prestazioni (stati / oggetti sono impostati solo sulle modifiche)\nElenchi HTML aggiunti: 'html.devices', 'html.playlists' e 'html.tracks'\nNuove icone",
         "es": "'playbackInfo' y 'player' se fusionaron en 'player'\n'player.volume' movido a 'player.device.volume'\nEl formato de 'duración' de 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray' se cambió de milisegundos a tiempo (MM:SS) y se creó uno nuevo para estos 'durationMs'.\nEl 'album' de 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray' se cambió a 'artistName' y 'artistArray'.\nSe agregaron varios datos a 'player.playlist.trackListArray' y 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' y 'popularity'\nCambie 'player.playlist.trackNo' para comenzar con 1 (basado en 0 antes)\nOptimización del rendimiento (los estados / objetos solo se configuran en el cambio)\nListas de HTML agregadas: 'html.devices', 'html.playlists' y 'html.tracks'\nNuevos iconos",
         "pl": "'playbackInfo' i 'player' połączone razem w 'player'\n'player.volume' przeniesiono do 'player.device.volume'\nFormat 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray' został zmieniony z milisekund na czas (MM:SS), a nowy został utworzony dla tego 'durationMs'.\n'album' z 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray' został zmieniony na 'artistName' i 'artistArray'.\nDodano kilka danych do 'player.playlist.trackListArray' i 'playlists.[playListName].trackListArray': 'album', 'addedAt', 'addedBy', 'discNumber', 'episode', 'explicit' i 'popularity'\nZmień 'player.playlist.trackNo', aby zaczynało się od 1 (poprzednio 0)\nOptymalizacja wydajności (stany / obiekty są ustawiane tylko przy zmianie)\nDodano listy html: 'html.devices', 'html.playlists' i 'html.tracks'\nNowe ikony"
-      },
-      "0.3.1": {
-        "en": "Fix: state 'playlists.playlistList' doesn't refresh after the playlist changed via app",
-        "de": "Behoben: state 'playlists.playlistList' wird nicht aktualisiert wenn die Playlist via App geändert wurde",
-        "ru": "Исправление: состояние 'playlists.playlistList' не обновляется после изменения плейлиста с помощью приложения",
-        "pt": "Correção: o estado 'playlists.playlistList' não é atualizado depois que a playlist foi alterada por meio do aplicativo",
-        "fr": "Correction: l'état 'playlists.playlistList' ne s'actualise pas après la modification de la playlist via l'application",
-        "nl": "Fix: status 'playlists.playlistList' wordt niet vernieuwd nadat de afspeellijst via de app is gewijzigd"
       }
     },
     "title": "Spotify (Premium)",
