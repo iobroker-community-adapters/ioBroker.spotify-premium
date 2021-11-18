@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.1.7",
+    "version": "1.1.8",
     "news": {
+      "1.1.8": {
+        "en": "Fixed the shuffle behaviour \nAllowed to set the default shuffle value\nThe type of trackNo corrected",
+        "de": "Das Shuffle-Verhalten wurde behoben\nErlaubt, den Standard-Shuffle-Wert festzulegen\nDie Art des TracksNein korrigiert",
+        "ru": "Исправлено поведение в случайном порядке\nРазрешено установить значение перемешивания по умолчанию\nТип трека: Нет исправлено",
+        "pt": "Corrigido o comportamento aleatório\nTem permissão para definir o valor aleatório padrão\nO tipo de faixa Não corrigido",
+        "nl": "Het shuffle-gedrag opgelost\nToegestaan om de standaard shuffle-waarde in te stellen\nHet type trackGeen gecorrigeerd",
+        "fr": "Correction du comportement de lecture aléatoire\nAutorisé à définir la valeur de lecture aléatoire par défaut\nLe type de pisteNon corrigé",
+        "it": "Risolto il problema di shuffle\nAutorizzato a impostare il valore di riproduzione casuale predefinito\nIl tipo di tracciaNo corretto",
+        "es": "Se corrigió el comportamiento de reproducción aleatoria.\nSe permite establecer el valor aleatorio predeterminado\nEl tipo de pista No corregido",
+        "pl": "Naprawiono zachowanie odtwarzania losowego\nUmożliwiono ustawienie domyślnej wartości odtwarzania losowego\nRodzaj toruNie poprawiono",
+        "zh-cn": "修复了随机播放行为\n允许设置默认的shuffle值\n轨道类型未更正"
+      },
       "1.1.7": {
         "en": "Fixed the shuffle behaviour \nAllowed to set the default shuffle value\nThe type of trackNo corrected",
         "de": "Das Shuffle-Verhalten wurde behoben\nErlaubt, den Standard-Shuffle-Wert festzulegen\nDie Art des TracksNein korrigiert",
@@ -74,18 +86,6 @@
         "es": "Proceso de autorización mejorado",
         "pl": "Ulepszony proces autoryzacji",
         "zh-cn": "改进的授权流程"
-      },
-      "1.1.1": {
-        "en": "removed warnings for js-controller 3.x",
-        "de": "Warnungen für js-controller 3.x entfernt",
-        "ru": "убраны предупреждения для js-controller 3.x",
-        "pt": "avisos removidos para js-controller 3.x",
-        "nl": "verwijderde waarschuwingen voor js-controller 3.x",
-        "fr": "suppression des avertissements pour js-controller 3.x",
-        "it": "avvisi rimossi per js-controller 3.x",
-        "es": "advertencias eliminadas para js-controller 3.x",
-        "pl": "usunięto ostrzeżenia dla js-controller 3.x",
-        "zh-cn": "删除了 js-controller 3.x 的警告"
       }
     },
     "title": "Spotify (Premium)",
