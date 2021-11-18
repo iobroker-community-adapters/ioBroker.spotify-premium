@@ -733,7 +733,7 @@ function createPlaybackInfo(data) {
                         }
                     });
             } else {
-                adapter.log.debug('context type: "' + type + '"');
+                adapter.log.debug(`context type: "${type}"`);
                 return Promise.all([
                     cache.setValue('player.playlist.id', ''),
                     cache.setValue('player.playlist.name', ''),
@@ -806,10 +806,12 @@ function deleteUsersPlaylist(addedList) {
     let fn = function (key) {
         key = removeNameSpace(key);
         let found = false;
-        for (let i = 0; i < addedList.length; i++) {
-            if (key.startsWith(addedList[i])) {
-                found = true;
-                break;
+        if (addedList) {
+            for (let i = 0; i < addedList.length; i++) {
+                if (key.startsWith(addedList[i])) {
+                    found = true;
+                    break;
+                }
             }
         }
 
@@ -1087,10 +1089,12 @@ function disableDevices(addedList) {
     let fn = function (key) {
         key = removeNameSpace(key);
         let found = false;
-        for (let i = 0; i < addedList.length; i++) {
-            if (key.startsWith(addedList[i])) {
-                found = true;
-                break;
+        if (addedList) {
+            for (let i = 0; i < addedList.length; i++) {
+                if (key.startsWith(addedList[i])) {
+                    found = true;
+                    break;
+                }
             }
         }
         if (!found && key.endsWith('.isAvailable')) {
@@ -1106,10 +1110,12 @@ function deleteDevices(addedList) {
     let fn = function (key) {
         key = removeNameSpace(key);
         let found = false;
-        for (let i = 0; i < addedList.length; i++) {
-            if (key.startsWith(addedList[i])) {
-                found = true;
-                break;
+        if (addedList) {
+            for (let i = 0; i < addedList.length; i++) {
+                if (key.startsWith(addedList[i])) {
+                    found = true;
+                    break;
+                }
             }
         }
 
@@ -1220,7 +1226,7 @@ function refreshPlaylistList() {
     let states = cache.getValue('playlists.*');
     let keys = Object.keys(states);
     let fn = function (key) {
-        if (!key.endsWith('.name')) {
+        if (!states[key] || !key.endsWith('.name')) {
             return;
         }
         let normKey = removeNameSpace(key);
