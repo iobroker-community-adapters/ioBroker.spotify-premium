@@ -87,6 +87,7 @@ Click for widget source.
 -->
 ## Changelog
 ### 1.1.6 (2021-11-17)
+* (ohle64) Fixed the shuffle behaviour 
 * (bluefox) Allowed to set the default shuffle value
 * (bluefox) The type of trackNo corrected
 

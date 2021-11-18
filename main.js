@@ -153,7 +153,7 @@ function main() {
         application.deletePlaylists = false;
     }
     if (isEmpty(application.keepShuffleState)) {
-        application.keepShuffleState = true;
+        application.keepShuffleState = false;
     }
     if (isEmpty(application.statusPollingDelaySeconds)) {
         application.statusPollingDelaySeconds = 5;
