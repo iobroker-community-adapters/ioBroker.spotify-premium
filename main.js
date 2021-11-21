@@ -293,6 +293,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                     // Bad Gateway
                     ret = Promise.reject(response.statusCode);
                     break;
+                case 403:
                 case 401:
                     // Unauthorized
                     if (parsedBody.error.message === 'The access token expired') {
@@ -321,6 +322,13 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                                 return Promise.reject(err);
                             });
                     } else {
+                        if (response.statusCode === 403) {
+                            adapter.log.warn('Seems that the token is expired!');
+                            adapter.log.warn('status code: ' + response.statusCode);
+                            adapter.log.warn('body: ' + body);
+                        }
+
+
                         // if other error with code 401
                         ret = Promise.all([
                             cache.setValue('authorization.authorized', false),
@@ -347,9 +355,9 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
 
                 default:
                     adapter.log.warn('http request error not handled, please debug');
+                    adapter.log.debug('status code: ' + response.statusCode);
                     adapter.log.warn(callStack);
                     adapter.log.warn(new Error().stack);
-                    adapter.log.debug('status code: ' + response.statusCode);
                     adapter.log.debug('body: ' + body);
                     ret = Promise.reject(response.statusCode);
                     adapter.setState('authorization.error', body, true);
@@ -520,7 +528,7 @@ function createPlaybackInfo(data) {
         cache.setValue('player.device.isRestricted', isDeviceRestricted),
         cache.setValue('player.device.name', deviceName),
         cache.setValue('player.device.type', deviceType),
-        cache.setValue('player.device.volume', deviceVolume),
+        cache.setValue('player.device.volume', {val: deviceVolume, ack: true}),
         cache.setValue('player.device.isAvailable', !isEmpty(deviceName)),
         cache.setValue('player.device', null, {
             type: 'device',
@@ -669,7 +677,7 @@ function createPlaybackInfo(data) {
 
                             return Promise.all([
                                 cache.setValue('player.playlist.owner', ownerId),
-                                cache.setValue('player.playlist.tracksTotal', trackCount),
+                                cache.setValue('player.playlist.tracksTotal', parseInt(trackCount, 10)),
                                 cache.setValue('player.playlist.imageUrl', playlistImage),
                                 cache.setValue('player.playlist.name', playlistName),
                                 cache.setValue('player.playlist', null, {
@@ -738,7 +746,7 @@ function createPlaybackInfo(data) {
                     cache.setValue('player.playlist.id', ''),
                     cache.setValue('player.playlist.name', ''),
                     cache.setValue('player.playlist.owner', ''),
-                    cache.setValue('player.playlist.tracksTotal', ''),
+                    cache.setValue('player.playlist.tracksTotal', 0),
                     cache.setValue('player.playlist.imageUrl', ''),
                     cache.setValue('player.playlist.trackList', ''),
                     cache.setValue('player.playlist.trackListNumber', ''),
