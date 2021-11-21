@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.1.8",
+    "version": "1.1.9",
     "news": {
+      "1.1.9": {
+        "en": "Tried to catch 403 error",
+        "de": "Versucht, den Fehler 403 abzufangen",
+        "ru": "Пытался отловить ошибку 403",
+        "pt": "Tentei pegar o erro 403",
+        "nl": "Probeerde 403-fout te vangen",
+        "fr": "J'ai essayé d'attraper l'erreur 403",
+        "it": "Ho provato a rilevare l'errore 403",
+        "es": "Intenté detectar el error 403",
+        "pl": "Próbowałem złapać błąd 403",
+        "zh-cn": "试图捕捉 403 错误"
+      },
       "1.1.8": {
         "en": "Fixed the shuffle behaviour \nAllowed to set the default shuffle value\nThe type of trackNo corrected",
         "de": "Das Shuffle-Verhalten wurde behoben\nErlaubt, den Standard-Shuffle-Wert festzulegen\nDie Art des TracksNein korrigiert",
@@ -64,18 +76,6 @@
         "zh-cn": "修正错误\n"
       },
       "1.1.3": {
-        "en": "Improved authorization process",
-        "de": "Verbesserter Autorisierungsprozess",
-        "ru": "Улучшенный процесс авторизации",
-        "pt": "Processo de autorização aprimorado",
-        "nl": "Verbeterd autorisatieproces",
-        "fr": "Processus d'autorisation amélioré",
-        "it": "Processo di autorizzazione migliorato",
-        "es": "Proceso de autorización mejorado",
-        "pl": "Ulepszony proces autoryzacji",
-        "zh-cn": "改进的授权流程"
-      },
-      "1.1.2": {
         "en": "Improved authorization process",
         "de": "Verbesserter Autorisierungsprozess",
         "ru": "Улучшенный процесс авторизации",

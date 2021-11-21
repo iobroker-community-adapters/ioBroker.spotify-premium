@@ -86,7 +86,7 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-### __WORK IN PROGRESS__
+### 1.1.9 (2021-11-21)
 * (bluefox) Tried to catch 403 error
 
 ### 1.1.8 (2021-11-18)
