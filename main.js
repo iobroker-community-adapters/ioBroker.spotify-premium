@@ -1853,10 +1853,13 @@ function listenOnRepeatOff() {
 }
 
 function listenOnVolume(obj) {
-    clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '', true)
-        .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+    let is_play = cache.getValue('player.isPlaying');
+    if (is_play && is_play.val) {
+        clearTimeout(application.statusInternalTimer);
+        sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '', true)
+            .catch(err => adapter.log.error('could not execute command: ' + err))
+            .then(() => setTimeout(pollStatusApi, 1000));
+    }
 }
 
 function listenOnProgressMs(obj) {
