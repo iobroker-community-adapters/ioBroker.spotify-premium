@@ -1012,7 +1012,7 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
     let regParam = `${owner}/playlists/${id}/tracks`;
     let query = {
         fields: 'total,offset,items(added_at,added_by.id,track(name,id,artists(name,id),duration_ms,album(name,id),disc_number,episode,explicit,popularity))',
-        limit: 100,
+        limit: 50,
         offset: offset
     };
     return sendRequest(`/v1/users/${regParam}?${querystring.stringify(query)}`, 'GET', '')
@@ -1020,15 +1020,15 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
             let i = offset;
             data.items.forEach(item => {
                 let no = i.toString();
+                let trackId = loadOrDefault(item, 'track.id', '');
+                if (isEmpty(trackId)) {
+                    return adapter.log.debug(
+                        `There was a playlist track ignored because of missing id; playlist: ${id}; track no: ${no}`);
+                }
                 let artist = getArtistNamesOrDefault(item, 'track.artists');
                 let artistArray = getArtistArrayOrDefault(item, 'track.artists');
                 let trackName = loadOrDefault(item, 'track.name', '');
                 let trackDuration = loadOrDefault(item, 'track.duration_ms', '');
-                let trackId = loadOrDefault(item, 'track.id', '');
-                if (isEmpty(trackId)) {
-                    return adapter.log.debug(
-                        `There was a playlist track ignored because of missing id; playlist: ${id}; track name: ${trackName}`);
-                }
                 let addedAt = loadOrDefault(item, 'added_at', '');
                 let addedBy = loadOrDefault(item, 'added_by.id', '');
                 let trackAlbumId = loadOrDefault(item, 'track.album.id', '');
@@ -1067,14 +1067,15 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                 playlistObject.songs.push(a);
                 i++;
             });
-            if (offset + 100 < data.total) {
+            if (offset + 50 < data.total) {
                 return new Promise(resolve => setTimeout(resolve, 1000))
-                    .then(() => getPlaylistTracks(owner, id, offset + 100, playlistObject));
+                    .then(() => getPlaylistTracks(owner, id, offset + 50, playlistObject));
             } else {
                 return Promise.resolve(playlistObject);
             }
         })
-        .catch(err => adapter.log.warn('error on load tracks: ' + err));
+        //.catch(err => adapter.log.warn('error on load tracks: ' + err));
+        .catch(err => adapter.log.warn('error on load tracks(getPlaylistTracks): ' + err + ' owner: ' + owner + ' id: ' + id));
 }
 
 function reloadDevices(data) {
