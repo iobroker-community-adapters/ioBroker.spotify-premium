@@ -703,7 +703,7 @@ function createPlaybackInfo(data) {
                                     copyState(`playlists.${prefix}.trackListNumber`, 'player.playlist.trackListNumber'),
                                     copyState(`playlists.${prefix}.trackListString`, 'player.playlist.trackListString'),
                                     copyState(`playlists.${prefix}.trackListStates`, 'player.playlist.trackListStates'),
-                                    cache.setValue('player.playlist.trackNo', parseInt(cache.getValue(`playlists.${prefix}.trackList`).val, 10) + 1),
+                                    cache.setValue('player.playlist.trackNo', parseInt(cache.getValue(`playlists.${prefix}.trackList`), 10) + 1),
                                     copyObjectStates(`playlists.${prefix}.trackList`, 'player.playlist.trackList'),
                                     copyState(`playlists.${prefix}.trackListIdMap`, 'player.playlist.trackListIdMap'),
                                     copyState(`playlists.${prefix}.trackListIds`, 'player.playlist.trackListIds'),
