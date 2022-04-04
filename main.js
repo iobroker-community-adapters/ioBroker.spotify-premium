@@ -476,11 +476,25 @@ function setObjectStatesIfChanged(id, states) {
 }
 
 function copyState(src, dst) {
-    return cache.setValue(dst, cache.getValue(src).val);
+    //return cache.setValue(dst, cache.getValue(src).val);
+    let tmp_src = cache.getValue(src);
+    if (tmp_src) {
+        return cache.setValue(dst, tmp_src.val);
+    } else {
+        adapter.log.debug("bei copyState: fehlerhafte Playlists-Daten src");
+        return;
+    }
 }
 
 function copyObjectStates(src, dst) {
-    return setObjectStatesIfChanged(dst, cache.getObj(src).common.states);
+    //return setObjectStatesIfChanged(dst, cache.getObj(src).common.states);
+    let tmp_src = cache.getObj(src);
+    if (tmp_src) {
+        return setObjectStatesIfChanged(dst, tmp_src.common.states);
+    } else {
+        adapter.log.debug("bei copyObjectStates: fehlerhafte Playlists-Daten src");
+        return;
+    }
 }
 
 function createPlaybackInfo(data) {
@@ -1557,7 +1571,8 @@ function pollStatusApi(noReschedule) {
             if (err !== 202) {
                 application.error202shown = false;
             }
-            if (err === 202 || err === 401 || err === 502) {
+            //if (err === 202 || err === 401 || err === 502) {
+              if (err === 202 || err === 401 || err === 500 || err === 502 || err === 503 || err === 504) {
                 if (err === 202) {
                     if (!application.error202shown) {
                         adapter.log.debug(
