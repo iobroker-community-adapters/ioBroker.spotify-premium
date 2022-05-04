@@ -90,7 +90,16 @@
     },
     "title": "Spotify (Premium)",
     "titleLang": {
-      "en": "Spotify (Premium)"
+      "en": "Spotify (Premium)",
+      "de": "Spotify (Premium)",
+      "ru": "Спотифай (Премиум)",
+      "pt": "Spotify (Premium)",
+      "nl": "Spotify (Premium)",
+      "fr": "Spotify (Premium)",
+      "it": "Spotify (Premium)",
+      "es": "Spotify (premium)",
+      "pl": "Spotify (Premium)",
+      "zh-cn": "Spotify（高级）"
     },
     "desc": {
       "en": "control spotify devices",
@@ -126,7 +135,17 @@
     "compact": true,
     "connectionType": "cloud",
     "dataSource": "poll",
-    "tier": 3
+    "tier": 2,
+    "plugins": {
+      "sentry": {
+        "dsn": "https://df92a91a757f4325ab1ff04a0d17d4a4@sentry.iobroker.net/195"
+      }
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=2.0.0"
+      }
+    ]
   },
   "native": {
     "client_id": "",

@@ -489,7 +489,7 @@ function copyState(src, dst) {
 function copyObjectStates(src, dst) {
     //return setObjectStatesIfChanged(dst, cache.getObj(src).common.states);
     let tmp_src = cache.getObj(src);
-    if (tmp_src) {
+    if (tmp_src && tmp_src.common) {
         return setObjectStatesIfChanged(dst, tmp_src.common.states);
     } else {
         adapter.log.debug("bei copyObjectStates: fehlerhafte Playlists-Daten src");
@@ -689,6 +689,8 @@ function createPlaybackInfo(data) {
                                 tracks: {total: trackCount}
                             };
 
+                            const trackList = cache.getValue(`playlists.${prefix}.trackList`);
+
                             return Promise.all([
                                 cache.setValue('player.playlist.owner', ownerId),
                                 cache.setValue('player.playlist.tracksTotal', parseInt(trackCount, 10)),
@@ -703,7 +705,7 @@ function createPlaybackInfo(data) {
                                 })
                             ])
                                 .then(() => {
-                                    if (cache.getValue(`playlists.${prefix}.trackListIds`) == null) {
+                                    if (cache.getValue(`playlists.${prefix}.trackListIds`) === null) {
                                         return createPlaylists({
                                             items: [
                                                 parseJson
@@ -713,16 +715,22 @@ function createPlaybackInfo(data) {
                                         return refreshPlaylistList();
                                     }
                                 })
-                                .then(() => Promise.all([
-                                    copyState(`playlists.${prefix}.trackListNumber`, 'player.playlist.trackListNumber'),
-                                    copyState(`playlists.${prefix}.trackListString`, 'player.playlist.trackListString'),
-                                    copyState(`playlists.${prefix}.trackListStates`, 'player.playlist.trackListStates'),
-                                    cache.setValue('player.playlist.trackNo', parseInt(cache.getValue(`playlists.${prefix}.trackList`).val, 10) + 1),
-                                    copyObjectStates(`playlists.${prefix}.trackList`, 'player.playlist.trackList'),
-                                    copyState(`playlists.${prefix}.trackListIdMap`, 'player.playlist.trackListIdMap'),
-                                    copyState(`playlists.${prefix}.trackListIds`, 'player.playlist.trackListIds'),
-                                    copyState(`playlists.${prefix}.trackListArray`, 'player.playlist.trackListArray')
-                                ]))
+                                .then(() => {
+                                    const promises = [
+                                        copyState(`playlists.${prefix}.trackListNumber`, 'player.playlist.trackListNumber'),
+                                        copyState(`playlists.${prefix}.trackListString`, 'player.playlist.trackListString'),
+                                        copyState(`playlists.${prefix}.trackListStates`, 'player.playlist.trackListStates'),
+                                        copyObjectStates(`playlists.${prefix}.trackList`, 'player.playlist.trackList'),
+                                        copyState(`playlists.${prefix}.trackListIdMap`, 'player.playlist.trackListIdMap'),
+                                        copyState(`playlists.${prefix}.trackListIds`, 'player.playlist.trackListIds'),
+                                        copyState(`playlists.${prefix}.trackListArray`, 'player.playlist.trackListArray')
+                                    ];
+                                    if (trackList) {
+                                        promises.push(cache.setValue('player.playlist.trackNo', parseInt(trackList.val, 10) + 1
+                                        ));
+                                    }
+                                    return Promise.all(promises);
+                                })
                                 .then(() => {
                                     let state = cache.getValue(`playlists.${prefix}.trackListIds`);
                                     let ids = loadOrDefault(state, 'val', '');
@@ -925,6 +933,14 @@ function createPlaylists(parseJson, autoContinue, addedList) {
                     }
                 }
 
+                const stateObj = {}
+                const states = loadOrDefault(playlistObject, 'stateString', '').split(';');
+                states.forEach(state => {
+                    let el = state.split(':');
+                    if (el && el.length === 2) {
+                        stateObj[el[0]] = el[1];
+                    }
+                });
                 return Promise.all([
                     cache.setValue(prefix + '.trackList', trackListValue, {
                         type: 'state',
@@ -932,7 +948,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
                             name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track. First track is 0',
                             type: 'mixed',
                             role: 'value',
-                            states: loadOrDefault(playlistObject, 'stateString', ''),
+                            states: stateObj,
                             read: true,
                             write: true
                         },
@@ -1025,7 +1041,6 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
     };
     let regParam = `${owner}/playlists/${id}/tracks`;
     let query = {
-        fields: 'total,offset,items(added_at,added_by.id,track(name,id,artists(name,id),duration_ms,album(name,id),disc_number,episode,explicit,popularity))',
         limit: 50,
         offset: offset
     };
@@ -1043,8 +1058,8 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                 let artistArray = getArtistArrayOrDefault(item, 'track.artists');
                 let trackName = loadOrDefault(item, 'track.name', '');
                 let trackDuration = loadOrDefault(item, 'track.duration_ms', '');
-                let addedAt = loadOrDefault(item, 'added_at', '');
-                let addedBy = loadOrDefault(item, 'added_by.id', '');
+                let addedAt = loadOrDefault(item, 'addedAt', '');
+                let addedBy = loadOrDefault(item, 'addedBy', '');
                 let trackAlbumId = loadOrDefault(item, 'track.album.id', '');
                 let trackAlbumName = loadOrDefault(item, 'track.album.name', '');
                 let trackDiscNumber = loadOrDefault(item, 'track.disc_number', 1);
@@ -1254,10 +1269,11 @@ function refreshPlaylistList() {
         }
         let normKey = removeNameSpace(key);
         let id = normKey.substring(10, normKey.length - 5);
+        const owner = cache.getValue(`playlists.${id}.owner`);
         a.push({
             id: id,
             name: states[key].val,
-            your: application.userId === cache.getValue(`playlists.${id}.owner`).val
+            your: application.userId === owner ? owner.val : ''
         });
     };
 
@@ -1316,10 +1332,11 @@ function refreshDeviceList() {
         }
         let normKey = removeNameSpace(key);
         let id = normKey.substring(8, normKey.length - 5);
+        const available = cache.getValue(`devices.${id}.isAvailable`);
         a.push({
             id,
             name: states[key].val,
-            available: cache.getValue(`devices.${id}.isAvailable`).val
+            available: available ? available.val : false
         });
     };
 
@@ -1536,7 +1553,7 @@ function increaseTime(durationMs, progressMs, startDate, count) {
                     setTimeout(pollStatusApi, 1000);
                 } else {
                     let state = cache.getValue('player.isPlaying');
-                    if (state.val) {
+                    if (state && state.val) {
                         scheduleStatusInternalTimer(durationMs, progressMs, now, count);
                     }
                 }
@@ -1573,7 +1590,7 @@ function pollStatusApi(noReschedule) {
                 application.error202shown = false;
             }
             //if (err === 202 || err === 401 || err === 502) {
-              if (err === 202 || err === 401 || err === 500 || err === 502 || err === 503 || err === 504) {
+            if (err === 202 || err === 401 || err === 500 || err === 502 || err === 503 || err === 504) {
                 if (err === 202) {
                     if (!application.error202shown) {
                         adapter.log.debug(
@@ -1654,10 +1671,13 @@ function startPlaylist(playlist, owner, trackNo, keepTrack) {
         r = r
             .then(() => {
                 let state = cache.getValue('player.shuffle');
-                if (state.val) {
+                if (state && state.val) {
                     resetShuffle = true;
                     if (!keepTrack) {
-                        trackNo = Math.floor(Math.random() * Math.floor(cache.getValue(`playlists.${shrinkStateName(owner + '-' + playlist)}.tracksTotal`).val));
+                        const tracksTotal = cache.getValue(`playlists.${shrinkStateName(owner + '-' + playlist)}.tracksTotal`);
+                        if (tracksTotal && tracksTotal.val) {
+                            trackNo = Math.floor(Math.random() * Math.floor(tracksTotal.val));
+                        }
                     }
                 }
             });
@@ -1692,7 +1712,7 @@ function listenOnAuthorizationReturnUri(obj) {
     if ('undefined' !== typeof returnUri.state) {
         returnUri.state = returnUri.state.replace(/#_=_$/g, '');
     }
-    if (returnUri.state === state.val) {
+    if (state && returnUri.state === state.val) {
         adapter.log.debug('getToken');
         application.code = returnUri.code;
         return getToken();
@@ -1737,7 +1757,11 @@ function listenOnAuthorized(obj) {
 }
 
 function listenOnUseForPlayback(obj) {
-    deviceData.lastSelectDeviceId = cache.getValue(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id').val;
+    const lastDeviceId = cache.getValue(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id');
+    if (!lastDeviceId) {
+        return;
+    }
+    deviceData.lastSelectDeviceId = lastDeviceId.val;
     let send = {
         device_ids: [deviceData.lastSelectDeviceId],
         play: true
@@ -1760,8 +1784,13 @@ function listenOnPlayThisList(obj, pos) {
         pos = 0;
     }
     // Play a specific playlist immediately
-    let id = cache.getValue(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id').val;
-    let owner = cache.getValue(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.owner').val;
+    const idState = cache.getValue(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.id');
+    const ownerState = cache.getValue(obj.id.slice(0, obj.id.lastIndexOf('.')) + '.owner');
+    if (!idState || !ownerState) {
+        return;
+    }
+    let id = idState.val;
+    let owner = ownerState.val;
     return startPlaylist(id, owner, pos, keepTrack);
 }
 
@@ -1883,15 +1912,18 @@ function listenOnProgressMs(obj) {
     clearTimeout(application.statusInternalTimer);
 
     sendRequest('/v1/me/player/seek?position_ms=' + progress, 'PUT', '', true).then(function () {
-        let duration = cache.getValue('player.durationMs').val;
+        const durationState = cache.getValue('player.durationMs');
+        if (durationState) {
+            let duration = durationState.val;
 
-        if (duration > 0 && duration <= progress) {
-            let progressPercentage = Math.floor(progress / duration * 100);
-            return Promise.all([
-                cache.setValue('player.progressMs', progress),
-                cache.setValue('player.progress', convertToDigiClock(progress)),
-                cache.setValue('player.progressPercentage', progressPercentage)
-            ]);
+            if (duration > 0 && duration <= progress) {
+                let progressPercentage = Math.floor(progress / duration * 100);
+                return Promise.all([
+                    cache.setValue('player.progressMs', progress),
+                    cache.setValue('player.progress', convertToDigiClock(progress)),
+                    cache.setValue('player.progressPercentage', progressPercentage)
+                ]);
+            }
         }
     })
         .catch(err => adapter.log.error('could not execute command: ' + err))
@@ -1904,17 +1936,20 @@ function listenOnProgressPercentage(obj) {
         return;
     }
     clearTimeout(application.statusInternalTimer);
-    let duration = cache.getValue('player.durationMs').val;
-    if (duration > 0) {
-        let progress = Math.floor(progressPercentage / 100 * duration);
-        sendRequest('/v1/me/player/seek?position_ms=' + progress, 'PUT', '', true)
-            .then(() => Promise.all([
-                cache.setValue('player.progressMs', progress),
-                cache.setValue('player.progress', convertToDigiClock(progress)),
-                cache.setValue('player.progressPercentage', progressPercentage)
-            ]))
-            .catch(err => adapter.log.error('could not execute command: ' + err))
-            .then(() => setTimeout(pollStatusApi, 1000));
+    const durationState = cache.getValue('player.durationMs');
+    if (durationState) {
+        let duration = durationState.val;
+        if (duration > 0) {
+            let progress = Math.floor(progressPercentage / 100 * duration);
+            sendRequest('/v1/me/player/seek?position_ms=' + progress, 'PUT', '', true)
+                .then(() => Promise.all([
+                    cache.setValue('player.progressMs', progress),
+                    cache.setValue('player.progress', convertToDigiClock(progress)),
+                    cache.setValue('player.progressPercentage', progressPercentage)
+                ]))
+                .catch(err => adapter.log.error('could not execute command: ' + err))
+                .then(() => setTimeout(pollStatusApi, 1000));
+        }
     }
 }
 
@@ -1957,16 +1992,29 @@ function listenOnTrackId(obj) {
 }
 
 function listenOnPlaylistId(obj) {
-    return startPlaylist(obj.state.val, cache.getValue('player.playlist.owner').val, 0);
+    const ownerState = cache.getValue('player.playlist.owner');
+    if (!ownerState) {
+        return;
+    }
+    return startPlaylist(obj.state.val, ownerState.val, 0);
 }
 
 function listenOnPlaylistOwner(obj) {
-    return startPlaylist(cache.getValue('player.playlist.id').val, obj.state.val, 0);
+    const PlayListIdState = cache.getValue('player.playlist.id');
+    if (!PlayListIdState) {
+        return;
+    }
+    return startPlaylist(PlayListIdState.val, obj.state.val, 0);
 }
 
 function listenOnPlaylistTrackNo(obj) {
-    let owner = cache.getValue('player.playlist.owner').val;
-    let id = cache.getValue('player.playlist.id').val;
+    const PlayListIdState = cache.getValue('player.playlist.id');
+    const ownerState = cache.getValue('player.playlist.owner');
+    if (!PlayListIdState || !ownerState) {
+        return;
+    }
+    let owner = ownerState.val;
+    let id = PlayListIdState.val;
     let o = obj.state.val;
     o = parseInt(o, 10) || 1;
 
@@ -2146,7 +2194,11 @@ function listenOnHtmlDevices() {
     let html = '<table class="spotifyDevicesTable">';
 
     for (let i = 0; i < ids.length; i++) {
-        let type = getIconByType(cache.getValue('devices.' + ids[i] + '.type').val);
+        const typeState = cache.getValue('devices.' + ids[i] + '.type');
+        if (!typeState) {
+            continue;
+        }
+        let type = getIconByType(typeState.val);
 
         let style = '';
         let cssClassRow = '';

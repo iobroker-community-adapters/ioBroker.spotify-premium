@@ -1,12 +1,15 @@
 ![Logo](admin/spotify-premium.png)
 # ioBroker.spotify-premium
 
-![Number of Installations](http://iobroker.live/badges/spotify-premium-installed.svg) ![Number of Installations](http://iobroker.live/badges/spotify-premium-stable.svg) 
-[![NPM version](https://img.shields.io/npm/v/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
-[![Downloads](https://img.shields.io/npm/dm/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
-[![Tests](http://img.shields.io/travis/iobroker-community-adapters/ioBroker.spotify-premium/master.svg)](https://travis-ci.org/iobroker-community-adapters/ioBroker.spotify-premium)
+![Number of Installations](http://iobroker.live/badges/spotify-premium-installed.svg)
+![Number of Installations](http://iobroker.live/badges/spotify-premium-stable.svg)
+[![NPM version](http://img.shields.io/npm/v/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
 
-[![NPM](https://nodei.co/npm/iobroker.spotify-premium.png?downloads=true)](https://nodei.co/npm/iobroker.spotify-premium/)
+![Test and Release](https://github.com/iobroker-community-adapters/iobroker.spotify-premium/workflows/Test%20and%20Release/badge.svg)
+[![Translation status](https://weblate.iobroker.net/widgets/adapters/-/spotify-premium/svg-badge.svg)](https://weblate.iobroker.net/engage/adapters/?utm_source=widget)
+[![Downloads](https://img.shields.io/npm/dm/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
+
+**This adapter uses Sentry libraries to automatically report exceptions and code errors to the developers.** For more details and for information how to disable the error reporting see [Sentry-Plugin Documentation](https://github.com/ioBroker/plugin-sentry#plugin-sentry)! Sentry reporting is used starting with js-controller 3.0.
 
 Adapter to access spotify playback controls. Because of the spotify API a premium account is necessary.
 
@@ -86,6 +89,12 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+
+### __WORK IN PROGRESS__
+* (duczz) Fix tracklist request issues
+* (Apollon77) Fix several potential crash cases and object warnings
+* (Apollon77) Add Sentry for crash reporting
+
 ### 1.1.9 (2021-11-21)
 * (bluefox) Tried to catch 403 error
 
