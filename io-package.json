@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.1.9",
+    "version": "1.2.0",
     "news": {
+      "1.2.0": {
+        "en": "Fix tracklist request issues\nFix several potential crash cases and object warnings\nAdd Sentry for crash reporting",
+        "de": "Beheben Sie Probleme mit Tracklist-Anforderungen\nBeheben Sie mehrere potenzielle Absturzfälle und Objektwarnungen\nFügen Sie Sentry für Absturzberichte hinzu",
+        "ru": "Исправить проблемы с запросом треклиста\nИсправлено несколько возможных случаев сбоя и предупреждений об объектах.\nДобавьте Sentry для отчетов о сбоях",
+        "pt": "Corrigir problemas de solicitação de lista de faixas\nCorrigir vários casos de falha em potencial e avisos de objetos\nAdicionar Sentinela para relatórios de falhas",
+        "nl": "Problemen met tracklijstverzoeken oplossen\nVerschillende mogelijke crashgevallen en objectwaarschuwingen oplossen\nSentry toevoegen voor crashrapportage",
+        "fr": "Résoudre les problèmes de demande de liste de pistes\nCorrection de plusieurs cas de plantage potentiels et avertissements d'objet\nAjouter Sentry pour les rapports de plantage",
+        "it": "Risolti i problemi di richiesta della tracklist\nRisolvi diversi potenziali casi di arresto anomalo e avvisi sugli oggetti\nAggiungi Sentinella per la segnalazione degli arresti anomali",
+        "es": "Solucionar problemas de solicitud de lista de canciones\nSolucione varios posibles casos de bloqueo y advertencias de objetos\nAgregar Sentry para informes de fallas",
+        "pl": "Napraw problemy z żądaniami listy utworów\nNapraw kilka potencjalnych przypadków awarii i ostrzeżeń o obiektach\nDodaj Sentry do zgłaszania awarii",
+        "zh-cn": "修复曲目列表请求问题\n修复几个潜在的崩溃案例和对象警告\n添加 Sentry 以进行崩溃报告"
+      },
       "1.1.9": {
         "en": "Tried to catch 403 error",
         "de": "Versucht, den Fehler 403 abzufangen",
@@ -74,18 +86,6 @@
         "es": "Corregir errores\n",
         "pl": "Naprawić błędy\n",
         "zh-cn": "修正错误\n"
-      },
-      "1.1.3": {
-        "en": "Improved authorization process",
-        "de": "Verbesserter Autorisierungsprozess",
-        "ru": "Улучшенный процесс авторизации",
-        "pt": "Processo de autorização aprimorado",
-        "nl": "Verbeterd autorisatieproces",
-        "fr": "Processus d'autorisation amélioré",
-        "it": "Processo di autorizzazione migliorato",
-        "es": "Proceso de autorización mejorado",
-        "pl": "Ulepszony proces autoryzacji",
-        "zh-cn": "改进的授权流程"
       }
     },
     "title": "Spotify (Premium)",

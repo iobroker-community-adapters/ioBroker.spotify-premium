@@ -89,8 +89,7 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-
-### __WORK IN PROGRESS__
+### 1.2.0 (2022-05-11)
 * (duczz) Fix tracklist request issues
 * (Apollon77) Fix several potential crash cases and object warnings
 * (Apollon77) Add Sentry for crash reporting
