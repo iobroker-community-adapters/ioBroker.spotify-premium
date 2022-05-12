@@ -499,7 +499,11 @@
         "type": "string",
         "read": true,
         "write": true,
-        "states": "{\"off\": \"no repeat\",\"context\": \"context, e.g. playlist\",\"track\": \"one track\"}",
+        "states": {
+          "off": "no repeat",
+          "context": "context, e.g. playlist",
+          "track": "one track"
+        },
         "icon": "icons/repeat_black.png"
       },
       "native": {}
@@ -598,7 +602,10 @@
         "read": true,
         "write": true,
         "icon": "icons/shuffle_black.png",
-        "states": "{\"on\": \"On\",\"off\": \"Off\"}"
+        "states": {
+          "on": "On",
+          "off": "Off"
+        }
       },
       "native": {}
     },
@@ -793,7 +800,12 @@
         "type": "string",
         "read": true,
         "write": false,
-        "states": "{\"album\": \"Album\",\"artist\": \"Artist\",\"playlist\": \"Playlist\",\"track\": \"Track\"}"
+        "states": {
+          "album": "Album",
+          "artist": "Artist",
+          "playlist": "Playlist",
+          "track": "Track"
+        }
       },
       "native": {}
     },
@@ -1094,7 +1106,11 @@
         "type": "string",
         "read": true,
         "write": false,
-        "states": "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"
+        "states": {
+          "Computer": "Computer",
+          "Smartphone": "Smartphone",
+          "Speaker": "Speaker"
+        }
       },
       "native": {}
     },

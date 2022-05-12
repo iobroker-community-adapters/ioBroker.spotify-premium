@@ -1237,7 +1237,7 @@ function createDevices(data) {
             createOrDefault(device, 'is_restricted', prefix + '.isRestricted', false, 'it is not possible to control restricted devices with the adapter', 'boolean'),
             createOrDefault(device, 'name', prefix + '.name', '', 'device name', 'string'),
             createOrDefault(device, 'type', prefix + '.type', 'Speaker', 'device type', 'string',
-                "{\"Computer\": \"Computer\",\"Smartphone\": \"Smartphone\",\"Speaker\": \"Speaker\"}"
+                {Computer: 'Computer', Smartphone: 'Smartphone', Speaker: 'Speaker'}
             ),
             createOrDefault(device, 'volume_percent', prefix + '.volume', '', 'volume in percent',
                 'number'),
