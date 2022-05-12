@@ -89,8 +89,7 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
-
-### __WORK IN PROGRESS__
+### 1.2.1 (2022-05-12)
 * (Apollon77) Prevent js-controller warnings
 
 ### 1.2.0 (2022-05-11)

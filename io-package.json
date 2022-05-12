@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "news": {
+      "1.2.1": {
+        "en": "Prevent js-controller warnings",
+        "de": "js-controller-Warnungen verhindern",
+        "ru": "Предотвратить предупреждения js-контроллера",
+        "pt": "Impedir avisos do controlador js",
+        "nl": "Voorkom js-controller-waarschuwingen",
+        "fr": "Empêcher les avertissements js-controller",
+        "it": "Impedisci gli avvisi del controller js",
+        "es": "Prevenir las advertencias del controlador js",
+        "pl": "Zapobiegaj ostrzeżeniom kontrolera js",
+        "zh-cn": "防止 js-controller 警告"
+      },
       "1.2.0": {
         "en": "Fix tracklist request issues\nFix several potential crash cases and object warnings\nAdd Sentry for crash reporting",
         "de": "Beheben Sie Probleme mit Tracklist-Anforderungen\nBeheben Sie mehrere potenzielle Absturzfälle und Objektwarnungen\nFügen Sie Sentry für Absturzberichte hinzu",
@@ -74,18 +86,6 @@
         "es": "Se permite establecer el valor aleatorio predeterminado",
         "pl": "Umożliwiono ustawienie domyślnej wartości odtwarzania losowego",
         "zh-cn": "允许设置默认的shuffle值"
-      },
-      "1.1.4": {
-        "en": "Fix errors\n",
-        "de": "Fehler beheben\n",
-        "ru": "Исправить ошибки\n",
-        "pt": "Corrigir erros\n",
-        "nl": "Fouten verbeteren\n",
-        "fr": "Corriger les erreurs\n",
-        "it": "Correggere errori\n",
-        "es": "Corregir errores\n",
-        "pl": "Naprawić błędy\n",
-        "zh-cn": "修正错误\n"
       }
     },
     "title": "Spotify (Premium)",
