@@ -89,6 +89,11 @@ Click for widget source.
 	### __WORK IN PROGRESS__
 -->
 ## Changelog
+
+### __WORK IN PROGRESS__
+* (Apollon77) Fix potential crash cases reported by Sentry
+* (Apollon77) Optimize adapter stop behaviour
+
 ### 1.2.1 (2022-05-12)
 * (Apollon77) Prevent js-controller warnings
 

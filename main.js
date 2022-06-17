@@ -48,6 +48,7 @@ let deviceData = {
     lastActiveDeviceId: '',
     lastSelectDeviceId: ''
 };
+let stopped = false;
 
 function startAdapter(options) {
     options = options || {};
@@ -94,6 +95,20 @@ function startAdapter(options) {
                 .then(() => main());
         },
         unload: callback => {
+            stopped = true;
+            if ('undefined' !== typeof application.statusPollingHandle) {
+                clearTimeout(application.statusPollingHandle);
+                clearTimeout(application.statusInternalTimer);
+            }
+            if ('undefined' !== typeof application.devicePollingHandle) {
+                clearTimeout(application.devicePollingHandle);
+            }
+            if ('undefined' !== typeof application.playlistPollingHandle) {
+                clearTimeout(application.playlistPollingHandle);
+            }
+            if ('undefined' !== typeof application.cacheClearHandle) {
+                clearTimeout(application.cacheClearHandle);
+            }
             Promise.all([
                 cache.setValue('authorization.authorizationUrl', ''),
                 cache.setValue('authorization.authorizationReturnUri', ''),
@@ -104,23 +119,9 @@ function startAdapter(options) {
                 cache.setValue('player.playlist.owner', ''),
                 cache.setValue('authorization.authorized', false),
                 cache.setValue('info.connection', false)
-            ])
-                .then(() => {
-                    if ('undefined' !== typeof application.statusPollingHandle) {
-                        clearTimeout(application.statusPollingHandle);
-                        clearTimeout(application.statusInternalTimer);
-                    }
-                    if ('undefined' !== typeof application.devicePollingHandle) {
-                        clearTimeout(application.devicePollingHandle);
-                    }
-                    if ('undefined' !== typeof application.playlistPollingHandle) {
-                        clearTimeout(application.playlistPollingHandle);
-                    }
-                    if ('undefined' !== typeof application.cacheClearHandle) {
-                        clearTimeout(application.cacheClearHandle);
-                    }
-                    callback();
-                });
+            ]).then(() => {
+                callback();
+            });
         }
     });
 
@@ -349,7 +350,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                         wait = response.headers['retry-after'];
                         adapter.log.warn('too many requests, wait ' + wait + 's');
                     }
-                    ret = new Promise(resolve => setTimeout(resolve, wait * 1000))
+                    ret = new Promise(resolve => setTimeout(() => !stopped && resolve(), wait * 1000))
                         .then(() => sendRequest(endpoint, method, sendBody, delayAccepted));
                     break;
 
@@ -914,7 +915,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
             createOrDefault(item, 'tracks.total', prefix + '.tracksTotal', '', 'number of songs', 'number'),
             createOrDefault(item, 'images[0].url', prefix + '.imageUrl', '', 'image url', 'string')
         ])
-            .then(() => getPlaylistTracks(ownerId, playlistId, 0))
+            .then(() => getPlaylistTracks(ownerId, playlistId))
             .then(playlistObject => {
                 let trackListValue = '';
                 let currentPlaylistId = cache.getValue('player.playlist.id').val;
@@ -980,7 +981,7 @@ function createPlaylists(parseJson, autoContinue, addedList) {
     let p = Promise.resolve();
     for (let i = 0; i < parseJson.items.length; i++) {
         p = p
-            .then(() => new Promise(resolve => setTimeout(() => resolve(), 1000)))
+            .then(() => new Promise(resolve => setTimeout(() => !stopped && resolve(), 1000)))
             .then(() => fn(parseJson.items[i]));
     }
 
@@ -1030,8 +1031,8 @@ function cleanState(str) {
     return str.trim();
 }
 
-function getPlaylistTracks(owner, id, offset, playlistObject) {
-    playlistObject = playlistObject || {
+async function getPlaylistTracks(owner, id) {
+    const playlistObject = {
         stateString: '',
         listString: '',
         listNumber: '',
@@ -1039,16 +1040,18 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
         trackIds: '',
         songs: []
     };
+    let offset = 0;
     let regParam = `${owner}/playlists/${id}/tracks`;
-    let query = {
-        limit: 50,
-        offset: offset
-    };
-    return sendRequest(`/v1/users/${regParam}?${querystring.stringify(query)}`, 'GET', '')
-        .then(data => {
+    while (true) {
+        const query = {
+            limit: 50,
+            offset: offset
+        };
+        try {
+            const data = await sendRequest(`/v1/users/${regParam}?${querystring.stringify(query)}`, 'GET', '');
             let i = offset;
+            let no = i.toString();
             data.items.forEach(item => {
-                let no = i.toString();
                 let trackId = loadOrDefault(item, 'track.id', '');
                 if (isEmpty(trackId)) {
                     return adapter.log.debug(
@@ -1097,14 +1100,17 @@ function getPlaylistTracks(owner, id, offset, playlistObject) {
                 i++;
             });
             if (offset + 50 < data.total) {
-                return new Promise(resolve => setTimeout(resolve, 1000))
-                    .then(() => getPlaylistTracks(owner, id, offset + 50, playlistObject));
+                offset += 50;
             } else {
-                return Promise.resolve(playlistObject);
+                break
             }
-        })
-        //.catch(err => adapter.log.warn('error on load tracks: ' + err));
-        .catch(err => adapter.log.warn('error on load tracks(getPlaylistTracks): ' + err + ' owner: ' + owner + ' id: ' + id));
+            //.catch(err => adapter.log.warn('error on load tracks: ' + err));
+        } catch(err) {
+            adapter.log.warn('error on load tracks(getPlaylistTracks): ' + err + ' owner: ' + owner + ' id: ' + id)
+            break;
+        }
+    }
+    return playlistObject;
 }
 
 function reloadDevices(data) {
@@ -1550,7 +1556,7 @@ function increaseTime(durationMs, progressMs, startDate, count) {
         .then(() => {
             if (count > 0) {
                 if (progressMs + 1000 > durationMs) {
-                    setTimeout(pollStatusApi, 1000);
+                    setTimeout(() => !stopped && pollStatusApi(), 1000);
                 } else {
                     let state = cache.getValue('player.isPlaying');
                     if (state && state.val) {
@@ -1563,13 +1569,13 @@ function increaseTime(durationMs, progressMs, startDate, count) {
 
 function scheduleStatusInternalTimer(durationMs, progressMs, startDate, count) {
     clearTimeout(application.statusInternalTimer);
-    application.statusInternalTimer = setTimeout(increaseTime, 1000, durationMs, progressMs, startDate, count);
+    application.statusInternalTimer = setTimeout(() => !stopped && increaseTime(), 1000, durationMs, progressMs, startDate, count);
 }
 
 function scheduleStatusPolling() {
     clearTimeout(application.statusPollingHandle);
     if (application.statusPollingDelaySeconds > 0) {
-        application.statusPollingHandle = setTimeout(pollStatusApi, application.statusPollingDelaySeconds * 1000);
+        application.statusPollingHandle = setTimeout(() => !stopped && pollStatusApi(), application.statusPollingDelaySeconds * 1000);
     }
 }
 
@@ -1620,7 +1626,7 @@ function pollStatusApi(noReschedule) {
 function scheduleDevicePolling() {
     clearTimeout(application.devicePollingHandle);
     if (application.devicePollingDelaySeconds > 0) {
-        application.devicePollingHandle = setTimeout(pollDeviceApi, application.devicePollingDelaySeconds *
+        application.devicePollingHandle = setTimeout(() => !stopped && pollDeviceApi(), application.devicePollingDelaySeconds *
             1000);
     }
 }
@@ -1639,7 +1645,7 @@ function pollDeviceApi() {
 function schedulePlaylistPolling() {
     clearTimeout(application.playlistPollingHandle);
     if (application.playlistPollingDelaySeconds > 0) {
-        application.playlistPollingHandle = setTimeout(pollPlaylistApi, application.playlistPollingDelaySeconds *
+        application.playlistPollingHandle = setTimeout(() => !stopped && pollPlaylistApi(), application.playlistPollingDelaySeconds *
             1000);
     }
 }
@@ -1692,7 +1698,7 @@ function startPlaylist(playlist, owner, trackNo, keepTrack) {
                 }
             };
             return sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), true)
-                .then(() => setTimeout(pollStatusApi, 1000, true))
+                .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000, true))
                 .catch(err => adapter.log.error(`could not start playlist ${playlist} of user ${owner}; error: ${err}`));
         })
         .then(() => {
@@ -1767,7 +1773,7 @@ function listenOnUseForPlayback(obj) {
         play: true
     };
     return sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), true)
-        .then(() => setTimeout(pollStatusApi, 1000, true))
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000, true))
         .catch(err => adapter.log.error('could not execute command: ' + err));
 }
 
@@ -1820,7 +1826,7 @@ function listenOnPlayUri(obj) {
     clearTimeout(application.statusInternalTimer);
     sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', send, true)
         .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
 
 function listenOnPlay() {
@@ -1831,7 +1837,7 @@ function listenOnPlay() {
     clearTimeout(application.statusInternalTimer);
     sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', '', true)
         .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
 
 function listenOnPause() {
@@ -1841,7 +1847,7 @@ function listenOnPause() {
     clearTimeout(application.statusInternalTimer);
     sendRequest('/v1/me/player/pause?' + querystring.stringify(query), 'PUT', '', true)
         .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
 
 function listenOnSkipPlus() {
@@ -1851,7 +1857,7 @@ function listenOnSkipPlus() {
     clearTimeout(application.statusInternalTimer);
     sendRequest('/v1/me/player/next?' + querystring.stringify(query), 'POST', '', true)
         .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
 
 function listenOnSkipMinus() {
@@ -1861,7 +1867,7 @@ function listenOnSkipMinus() {
     clearTimeout(application.statusInternalTimer);
     sendRequest('/v1/me/player/previous?' + querystring.stringify(query), 'POST', '', true)
         .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
 
 function listenOnRepeat(obj) {
@@ -1869,7 +1875,7 @@ function listenOnRepeat(obj) {
         clearTimeout(application.statusInternalTimer);
         sendRequest('/v1/me/player/repeat?state=' + obj.state.val, 'PUT', '', true)
             .catch(err => adapter.log.error('could not execute command: ' + err))
-            .then(() => setTimeout(pollStatusApi, 1000));
+            .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
     }
 }
 
@@ -1903,7 +1909,7 @@ function listenOnVolume(obj) {
         clearTimeout(application.statusInternalTimer);
         sendRequest('/v1/me/player/volume?volume_percent=' + obj.state.val, 'PUT', '', true)
             .catch(err => adapter.log.error('could not execute command: ' + err))
-            .then(() => setTimeout(pollStatusApi, 1000));
+            .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
     }
 }
 
@@ -1927,7 +1933,7 @@ function listenOnProgressMs(obj) {
         }
     })
         .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
 
 function listenOnProgressPercentage(obj) {
@@ -1948,7 +1954,7 @@ function listenOnProgressPercentage(obj) {
                     cache.setValue('player.progressPercentage', progressPercentage)
                 ]))
                 .catch(err => adapter.log.error('could not execute command: ' + err))
-                .then(() => setTimeout(pollStatusApi, 1000));
+                .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
         }
     }
 }
@@ -1957,7 +1963,7 @@ function listenOnShuffle(obj) {
     clearTimeout(application.statusInternalTimer);
     return sendRequest('/v1/me/player/shuffle?state=' + (obj.state.val === 'on' ? 'true' : 'false'), 'PUT', '', true)
         .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
 
 function listenOnShuffleOff() {
@@ -1988,7 +1994,7 @@ function listenOnTrackId(obj) {
     clearTimeout(application.statusInternalTimer);
     sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), true)
         .catch(err => adapter.log.error('could not execute command: ' + err))
-        .then(() => setTimeout(pollStatusApi, 1000));
+        .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
 
 function listenOnPlaylistId(obj) {
@@ -2033,7 +2039,7 @@ function listenOnGetDevices() {
 function clearCache() {
     artistImageUrlCache = {};
     playlistCache = {};
-    application.cacheClearHandle = setTimeout(clearCache, 1000 * 60 * 60 * 24);
+    application.cacheClearHandle = setTimeout(() => !stopped && clearCache(), 1000 * 60 * 60 * 24);
 }
 
 function listenOnHtmlPlaylists() {
