@@ -1,8 +1,20 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "news": {
+      "1.2.2": {
+        "en": "Fix potential crash cases reported by Sentry\nOptimize adapter stop behaviour",
+        "de": "Behebt mögliche Crashfälle, die von Sentry gemeldet wurden\nOptimieren des Adapters",
+        "ru": "Исправление потенциальных аварийных случаев, сообщенных Sentry\nОптимизируйте поведение остановки адаптера",
+        "pt": "Corrigir casos potenciais de acidente relatados pela Sentry\nOtimizar o comportamento da parada do adaptador",
+        "nl": "Vertaling:\nOptimize adapter stop gedrag",
+        "fr": "Correction des cas de crash potentiels signalés par Sentry\nOptimiser le comportement d'arrêt de l'adaptateur",
+        "it": "Fissare potenziali casi di crash segnalati da Sentry\nOttimizzare il comportamento di arresto dell'adattatore",
+        "es": "Fijar posibles casos de accidentes reportados por Sentry\nOptimize adapter stop behaviour",
+        "pl": "Fixowe przypadki katastrofy (ang.)\nOptimize adaptator stop behaviour",
+        "zh-cn": "Sentry报告的潜在事故\n减少适应者停止行为"
+      },
       "1.2.1": {
         "en": "Prevent js-controller warnings",
         "de": "js-controller-Warnungen verhindern",
@@ -74,18 +86,6 @@
         "es": "Se permite establecer el valor aleatorio predeterminado\nEl tipo de pista No corregido",
         "pl": "Umożliwiono ustawienie domyślnej wartości odtwarzania losowego\nRodzaj toruNie poprawiono",
         "zh-cn": "允许设置默认的shuffle值\n轨道类型未更正"
-      },
-      "1.1.5": {
-        "en": "Allowed to set the default shuffle value",
-        "de": "Erlaubt, den Standard-Shuffle-Wert festzulegen",
-        "ru": "Разрешено установить значение перемешивания по умолчанию",
-        "pt": "Tem permissão para definir o valor aleatório padrão",
-        "nl": "Toegestaan om de standaard shuffle-waarde in te stellen",
-        "fr": "Autorisé à définir la valeur de lecture aléatoire par défaut",
-        "it": "Autorizzato a impostare il valore di riproduzione casuale predefinito",
-        "es": "Se permite establecer el valor aleatorio predeterminado",
-        "pl": "Umożliwiono ustawienie domyślnej wartości odtwarzania losowego",
-        "zh-cn": "允许设置默认的shuffle值"
       }
     },
     "title": "Spotify (Premium)",
