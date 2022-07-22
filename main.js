@@ -2093,7 +2093,7 @@ function listenOnHtmlPlaylists() {
         html += '</td>';
         html += '<td class="spotifyPlaylistsCol spotifyPlaylistsColIcon' + cssClassIcon + '">';
         if (current === ids[i]) {
-            html += '<img style="width: 16px; height: 16px" class="spotifyPlaylistsColIconActive" src='+application.img_path+'active_song_speaker_green.png" alt="cover" />';
+            html += '<img style="width: 16px; height: 16px" class="spotifyPlaylistsColIconActive" src="'+application.img_path+'active_song_speaker_green.png" alt="cover" />';
         }
         html += '</td>';
         html += '</tr>';
@@ -2165,9 +2165,9 @@ function listenOnHtmlTracklist() {
         
         html += `<td class="spotifyTracksColIcon${cssClassIcon}">`;
         if (current == i) {
-            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconActive" src='+application.img_path+'/active_song_speaker_green.png" />';
+            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconActive" src="'+application.img_path+'/active_song_speaker_green.png" />';
         } else {
-            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconInactive" src='+application.img_path+'/inactive_song_note_white.png" />';
+            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconInactive" src="'+application.img_path+'/inactive_song_note_white.png" />';
         }
         html += '</td>';
         html += `<td${styleTitle} class="spotifyTracksColTitle${cssClassColTitle}">`;
