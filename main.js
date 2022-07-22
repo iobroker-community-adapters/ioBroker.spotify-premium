@@ -41,7 +41,8 @@ let application = {
     playlistPollingHandle: null,
     playlistPollingDelaySeconds: 900,
     error202shown: false,
-    cacheClearHandle: null
+    cacheClearHandle: null,
+    jarvis_html: false
 };
 
 let deviceData = {
@@ -139,7 +140,13 @@ function main() {
     application.deletePlaylists = adapter.config.delete_playlists;
     application.statusPollingDelaySeconds = adapter.config.status_interval;
     application.keepShuffleState = adapter.config.keep_shuffle_state;
-    let deviceInterval = adapter.config.device_interval;
+    application.jarvis_html = adapter.config.jarvis_html;
+    if(application.jarvis_html == true){
+        application.img_path = "/vis.0/spotify";
+    }else{
+        application.img_path = "widgets/spotify-premium/img";
+    }
+        let deviceInterval = adapter.config.device_interval;
     let playlistInterval = adapter.config.playlist_interval;
     if (isEmpty(application.clientId)) {
         return adapter.log.error('Client_ID is not filled');
@@ -172,6 +179,9 @@ function main() {
     }
     if (playlistInterval < 1 && playlistInterval) {
         playlistInterval = 1;
+    }
+    if (isEmpty(application.jarvis_html)) {
+        application.jarvis_html = false;
     }
     application.devicePollingDelaySeconds = deviceInterval * 60;
     application.playlistPollingDelaySeconds = playlistInterval * 60;
@@ -2073,13 +2083,17 @@ function listenOnHtmlPlaylists() {
             cssClassTitle = ' spotifyPlaylistsColTitleActive';
             cssClassIcon = ' spotifyPlaylistsColIconActive';
         }
-        html += `<tr class="spotifyPlaylistsRow${cssClassRow}" onclick="vis.setValue('${adapter.namespace}.playlists.playlistList', '${ids[i]}')">`;
+        if(application.jarvis_html == true){
+            html += `<tr class="spotifyPlaylistsRow${cssClassRow}" onclick="window.Socket.setState('${adapter.namespace}.playlists.playlistList', '${ids[i]}')">`;
+        } else {
+            html += `<tr class="spotifyPlaylistsRow${cssClassRow}" onclick="vis.setValue('${adapter.namespace}.playlists.playlistList', '${ids[i]}')">`;
+        }
         html += '<td' + style + ' class="spotifyPlaylistsCol spotifyPlaylistsColTitle' + cssClassTitle + '">';
         html += strings[i];
         html += '</td>';
         html += '<td class="spotifyPlaylistsCol spotifyPlaylistsColIcon' + cssClassIcon + '">';
         if (current === ids[i]) {
-            html += '<img style="width: 16px; height: 16px" class="spotifyPlaylistsColIconActive" src="widgets/spotify-premium/img/active_song_speaker_green.png" alt="cover" />';
+            html += '<img style="width: 16px; height: 16px" class="spotifyPlaylistsColIconActive" src='+application.img_path+'active_song_speaker_green.png" alt="cover" />';
         }
         html += '</td>';
         html += '</tr>';
@@ -2143,13 +2157,17 @@ function listenOnHtmlTracklist() {
             cssClassSpace = ' spotifyTracksSpaceActive';
             cssClassLinebreak = ' spotifyTracksLinebreakActive';
         }
-
-        html += `<tr class="spotifyTracksRow${cssClassRow}" onclick="vis.setValue('${adapter.namespace}.player.playlist.trackList', ${i})">`;
+        if(application.jarvis_html == true){
+            html += `<tr class="spotifyTracksRow${cssClassRow}" onclick="window.Socket.setState('${adapter.namespace}.player.playlist.trackList', ${i})">`;
+        } else {
+            html += `<tr class="spotifyTracksRow${cssClassRow}" onclick="vis.setValue('${adapter.namespace}.player.playlist.trackList', ${i})">`;
+        }
+        
         html += `<td class="spotifyTracksColIcon${cssClassIcon}">`;
         if (current == i) {
-            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconActive" src="widgets/spotify-premium/img/active_song_speaker_green.png" />';
+            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconActive" src='+application.img_path+'/active_song_speaker_green.png" />';
         } else {
-            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconInactive" src="widgets/spotify-premium/img/inactive_song_note_white.png" />';
+            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconInactive" src='+application.img_path+'/inactive_song_note_white.png" />';
         }
         html += '</td>';
         html += `<td${styleTitle} class="spotifyTracksColTitle${cssClassColTitle}">`;
@@ -2159,7 +2177,7 @@ function listenOnHtmlTracklist() {
         html += `<span class="spotifyTracksLinebreak${cssClassLinebreak}"><br /></span>`;
         html += `<span class="spotifyTracksArtistAlbum${cssClassArtistAlbum}">`;
         if (source[i].explicit) {
-            html += `<img style="width: auto; height: 16px" class="spotifyTracksExplicit${cssClassExplicit}" src="widgets/spotify-premium/img/explicit.png" />`;
+            html += `<img style="width: auto; height: 16px" class="spotifyTracksExplicit${cssClassExplicit}" src="`+application.img_path+`/explicit.png" />`;
         }
         html += `<span class="spotifyTracksArtist${cssClassArtist}">`;
         html += source[i].artistName;
@@ -2216,12 +2234,16 @@ function listenOnHtmlDevices() {
             cssClassColName = ' spotifyDevicesColNameActive';
             cssClassColIcon = ' spotifyDevicesColIconActive';
         }
-        html += `<tr class="spotifyDevicesRow${cssClassRow}" onclick="vis.setValue('${adapter.namespace}.devices.deviceList', '${ids[i]}')">`;
+        if(application.jarvis_html == true){
+            html += `<tr class="spotifyDevicesRow${cssClassRow}" onclick="window.Socket.setState('${adapter.namespace}.devices.deviceList', '${ids[i]}')">`;    
+        } else {
+            html += `<tr class="spotifyDevicesRow${cssClassRow}" onclick="vis.setValue('${adapter.namespace}.devices.deviceList', '${ids[i]}')">`;    
+        }
         html += `<td${style} class="spotifyDevicesColIcon${cssClassColIcon}">`;
         if (current === ids[i]) {
-            html += `<img style="width: 16px; height: 16px" class="spotifyDevicesIconActive" src="widgets/spotify-premium/img/${type.replace('black', 'green').replace('icons/', '')}" />`;
+            html += `<img style="width: 16px; height: 16px" class="spotifyDevicesIconActive" src="`+application.img_path+`/${type.replace('black', 'green').replace('icons/', '')}" />`;
         } else {
-            html += `<img style="width: 16px; height: 16px" class="spotifyDevicesIcon" src="widgets/spotify-premium/img/${type.replace('icons/', '')}" />`;
+            html += `<img style="width: 16px; height: 16px" class="spotifyDevicesIcon" src="`+application.img_path+`/${type.replace('icons/', '')}" />`;
         }
         html += '</td>';
         html += `<td${style} class="spotifyDevicesColName${cssClassColName}">`;
