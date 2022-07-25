@@ -2093,7 +2093,7 @@ function listenOnHtmlPlaylists() {
         html += '</td>';
         html += '<td class="spotifyPlaylistsCol spotifyPlaylistsColIcon' + cssClassIcon + '">';
         if (current === ids[i]) {
-            html += '<img style="width: 16px; height: 16px" class="spotifyPlaylistsColIconActive" src="'+application.img_path+'active_song_speaker_green.png" alt="cover" />';
+            html += `<img style="width: 16px; height: 16px" class="spotifyPlaylistsColIconActive" src="${application.img_path}/active_song_speaker_green.png" alt="cover" />`;
         }
         html += '</td>';
         html += '</tr>';
@@ -2165,9 +2165,9 @@ function listenOnHtmlTracklist() {
         
         html += `<td class="spotifyTracksColIcon${cssClassIcon}">`;
         if (current == i) {
-            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconActive" src="'+application.img_path+'/active_song_speaker_green.png" />';
+            html += `<img style="width: 16px; height: 16px" class="spotifyTracksIconActive" src="${application.img_path}/active_song_speaker_green.png" />`;
         } else {
-            html += '<img style="width: 16px; height: 16px" class="spotifyTracksIconInactive" src="'+application.img_path+'/inactive_song_note_white.png" />';
+            html += `<img style="width: 16px; height: 16px" class="spotifyTracksIconInactive" src="${application.img_path}/inactive_song_note_white.png" />`;
         }
         html += '</td>';
         html += `<td${styleTitle} class="spotifyTracksColTitle${cssClassColTitle}">`;
@@ -2177,7 +2177,7 @@ function listenOnHtmlTracklist() {
         html += `<span class="spotifyTracksLinebreak${cssClassLinebreak}"><br /></span>`;
         html += `<span class="spotifyTracksArtistAlbum${cssClassArtistAlbum}">`;
         if (source[i].explicit) {
-            html += `<img style="width: auto; height: 16px" class="spotifyTracksExplicit${cssClassExplicit}" src="`+application.img_path+`/explicit.png" />`;
+            html += `<img style="width: auto; height: 16px" class="spotifyTracksExplicit${cssClassExplicit}" src="${application.img_path}/explicit.png" />`;
         }
         html += `<span class="spotifyTracksArtist${cssClassArtist}">`;
         html += source[i].artistName;
@@ -2241,9 +2241,9 @@ function listenOnHtmlDevices() {
         }
         html += `<td${style} class="spotifyDevicesColIcon${cssClassColIcon}">`;
         if (current === ids[i]) {
-            html += `<img style="width: 16px; height: 16px" class="spotifyDevicesIconActive" src="`+application.img_path+`/${type.replace('black', 'green').replace('icons/', '')}" />`;
+            html += `<img style="width: 16px; height: 16px" class="spotifyDevicesIconActive" src="${application.img_path}/${type.replace('black', 'green').replace('icons/', '')}" />`;
         } else {
-            html += `<img style="width: 16px; height: 16px" class="spotifyDevicesIcon" src="`+application.img_path+`/${type.replace('icons/', '')}" />`;
+            html += `<img style="width: 16px; height: 16px" class="spotifyDevicesIcon" src="${application.img_path}/${type.replace('icons/', '')}" />`;
         }
         html += '</td>';
         html += `<td${style} class="spotifyDevicesColName${cssClassColName}">`;
