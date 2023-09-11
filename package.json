@@ -27,6 +27,9 @@
     "type": "git",
     "url": "https://github.com/iobroker-community-adapters/ioBroker.spotify-premium"
   },
+  "engines": {
+    "node": ">=16"
+  },
   "dependencies": {
     "@iobroker/adapter-core": "^2.6.7",
     "request": "^2.88.2"
