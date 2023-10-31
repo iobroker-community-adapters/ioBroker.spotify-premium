@@ -1824,7 +1824,7 @@ function listenOnPlayUri(obj) {
     }
 
     clearTimeout(application.statusInternalTimer);
-    sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', send, true)
+    sendRequest('/v1/me/player/play?' + querystring.stringify(query), 'PUT', JSON.stringify(send), true)
         .catch(err => adapter.log.error('could not execute command: ' + err))
         .then(() => setTimeout(() => !stopped && pollStatusApi(), 1000));
 }
