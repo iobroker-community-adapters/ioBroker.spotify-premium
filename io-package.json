@@ -88,7 +88,6 @@
         "zh-cn": "允许设置默认的shuffle值\n轨道类型未更正"
       }
     },
-    "title": "Spotify (Premium)",
     "titleLang": {
       "en": "Spotify (Premium)",
       "de": "Spotify (Premium)",
@@ -99,6 +98,7 @@
       "it": "Spotify (Premium)",
       "es": "Spotify (premium)",
       "pl": "Spotify (Premium)",
+      "uk": "Spotify (Premium)",
       "zh-cn": "Spotify（高级）"
     },
     "desc": {
@@ -111,42 +111,50 @@
       "it": "controllare i dispositivi spotify",
       "es": "controlar dispositivos spotify",
       "pl": "kontroluj urządzenia spotify",
+      "uk": "управління точністю пристроїв",
       "zh-cn": "控制spotify设备"
     },
     "authors": [
       "Lucky",
-      "Alexander Kose"
+      "Alexander Kose",
+      "iobroker-community-adapters <mcm57@gmx.at>"
     ],
+    "keywords": [
+        "spotify",
+        "player",
+        "media"
+      ],
     "license": "MIT",
     "platform": "Javascript/Node.js",
-    "mode": "daemon",
+    "main": "main.js",
     "icon": "spotify-premium.png",
-    "materialize": true,
     "enabled": true,
     "extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.spotify-premium/master/admin/spotify-premium.png",
-    "keywords": [
-      "spotify",
-      "player",
-      "media"
-    ],
     "readme": "https://github.com/iobroker-community-adapters/ioBroker.spotify-premium/blob/master/README.md",
     "loglevel": "info",
+    "mode": "daemon",
     "type": "multimedia",
     "compact": true,
     "connectionType": "cloud",
     "dataSource": "poll",
+    "materialize": true,
     "tier": 2,
+    "dependencies": [
+        {
+          "js-controller": ">=4.0.24"
+        }
+      ],
+    "globalDependencies": [
+        {
+          "admin": ">=5.1.13"
+        }
+      ],
     "plugins": {
-      "sentry": {
-        "dsn": "https://df92a91a757f4325ab1ff04a0d17d4a4@sentry.iobroker.net/195"
+        "sentry": {
+          "dsn": "https://df92a91a757f4325ab1ff04a0d17d4a4@sentry.iobroker.net/195"
+        }
       }
     },
-    "dependencies": [
-      {
-        "js-controller": ">=2.0.0"
-      }
-    ]
-  },
   "native": {
     "client_id": "",
     "client_secret": "",
