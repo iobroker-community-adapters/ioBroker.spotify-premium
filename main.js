@@ -158,7 +158,7 @@ function main() {
     }
     if (isEmpty(application.statusPollingDelaySeconds)) {
         application.statusPollingDelaySeconds = 5;
-    } else if (application.statusPollingDelaySeconds < 1 && application.statusPollingDelaySeconds) {
+    } else if (application.statusPollingDelaySeconds < 1 && application.statusPollingDelaySeconds !=0) {
         application.statusPollingDelaySeconds = 1;
     }
     if (isEmpty(deviceInterval)) {
@@ -167,10 +167,10 @@ function main() {
     if (isEmpty(playlistInterval)) {
         playlistInterval = 0;
     }
-    if (deviceInterval < 1 && deviceInterval) {
+    if (deviceInterval < 1 && deviceInterval !=0) {
         deviceInterval = 1;
     }
-    if (playlistInterval < 1 && playlistInterval) {
+    if (playlistInterval < 1 && playlistInterval !=0) {
         playlistInterval = 1;
     }
     application.devicePollingDelaySeconds = deviceInterval * 60;
