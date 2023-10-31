@@ -2,7 +2,7 @@
 
 # ioBroker.spotify-premium
 
-![GitHub license](https://img.shields.io/github/license/iobroker-community-adapters/ioBroker.spotify-premium)](https://github.com/iobroker-community-adapters/ioBroker.spotify-premium/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/iobroker-community-adapters/ioBroker.spotify-premium)](https://github.com/iobroker-community-adapters/ioBroker.spotify-premium/blob/master/LICENSE)
 [![Downloads](https://img.shields.io/npm/dm/iobroker.spotify-premium.svg)](https://www.npmjs.com/package/iobroker.spotify-premium)
 ![GitHub repo size](https://img.shields.io/github/repo-size/iobroker-community-adapters/ioBroker.spotify-premium)
 [![Translation status](https://weblate.iobroker.net/widgets/adapters/-/spotify-premium/svg-badge.svg)](https://weblate.iobroker.net/engage/adapters/?utm_source=widget)</br>
