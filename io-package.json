@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.3.0",
+    "version": "1.3.1",
     "news": {
+      "1.3.1": {
+        "en": "A problem has been fixed which cause 'Error 400' with playUri errors [#259]",
+        "de": "Es wurde ein Problem behoben, das 'Error 400' mit playUri Fehlern verursacht [#259]",
+        "ru": "Проблема была исправлена, которая вызывает 'Error 400' с ошибками playUri [#259]",
+        "pt": "Um problema foi corrigido que causa 'Error 400' com erros playUri [#259]",
+        "nl": "Er is een probleem opgelost wat Err 400 veroorzaakt met speelUri fouten",
+        "fr": "Un problème a été corrigé qui cause 'Error 400' avec playUri erreurs [#259]",
+        "it": "Un problema è stato risolto che causa 'Error 400' con playUri errori [#259]",
+        "es": "Se ha solucionado un problema que causa 'Error 400' con errores playUri [#259]",
+        "pl": "Problem został ustalony, co powoduje 'Error 400' z błędami gryUri (#259)",
+        "uk": "Проблема була виправлена, яка спричиняє 'Error 400' з playUri error [#259]",
+        "zh-cn": "已确定一个问题,造成400英勇的错误(第259号)"
+      },
       "1.3.0": {
         "en": "A problem has been fixed which cause 'too many requests' errors [#241, #245]\nAdapter requires nodejs 16 now\nTesting has been changed to support node 16, 18 and 20\nDependencies have been updated",
         "de": "Es wurde ein Problem behoben, das 'zu viele Anfragen' Fehler verursacht [#241, #245]\nAdapter benötigt jetzt Nodejs 16\nDie Prüfung wurde auf node 16, 18 und 20 geändert\nAbhängigkeiten wurden aktualisiert",
@@ -65,18 +78,6 @@
         "zh-cn": "试图捕捉 403 错误"
       },
       "1.1.8": {
-        "en": "Fixed the shuffle behaviour \nAllowed to set the default shuffle value\nThe type of trackNo corrected",
-        "de": "Das Shuffle-Verhalten wurde behoben\nErlaubt, den Standard-Shuffle-Wert festzulegen\nDie Art des TracksNein korrigiert",
-        "ru": "Исправлено поведение в случайном порядке\nРазрешено установить значение перемешивания по умолчанию\nТип трека: Нет исправлено",
-        "pt": "Corrigido o comportamento aleatório\nTem permissão para definir o valor aleatório padrão\nO tipo de faixa Não corrigido",
-        "nl": "Het shuffle-gedrag opgelost\nToegestaan om de standaard shuffle-waarde in te stellen\nHet type trackGeen gecorrigeerd",
-        "fr": "Correction du comportement de lecture aléatoire\nAutorisé à définir la valeur de lecture aléatoire par défaut\nLe type de pisteNon corrigé",
-        "it": "Risolto il problema di shuffle\nAutorizzato a impostare il valore di riproduzione casuale predefinito\nIl tipo di tracciaNo corretto",
-        "es": "Se corrigió el comportamiento de reproducción aleatoria.\nSe permite establecer el valor aleatorio predeterminado\nEl tipo de pista No corregido",
-        "pl": "Naprawiono zachowanie odtwarzania losowego\nUmożliwiono ustawienie domyślnej wartości odtwarzania losowego\nRodzaj toruNie poprawiono",
-        "zh-cn": "修复了随机播放行为\n允许设置默认的shuffle值\n轨道类型未更正"
-      },
-      "1.1.7": {
         "en": "Fixed the shuffle behaviour \nAllowed to set the default shuffle value\nThe type of trackNo corrected",
         "de": "Das Shuffle-Verhalten wurde behoben\nErlaubt, den Standard-Shuffle-Wert festzulegen\nDie Art des TracksNein korrigiert",
         "ru": "Исправлено поведение в случайном порядке\nРазрешено установить значение перемешивания по умолчанию\nТип трека: Нет исправлено",

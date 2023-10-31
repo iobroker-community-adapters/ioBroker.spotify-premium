@@ -100,7 +100,7 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.3.1 (2023-10-31)
 -   (aruttkamp) A problem has been fixed which cause 'Error 400' with playUri errors [#259]
 
 ### 1.3.0 (2023-10-31)
