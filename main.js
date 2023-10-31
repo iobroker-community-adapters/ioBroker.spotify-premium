@@ -1,6 +1,9 @@
 /* jshint -W097 */
 /* jshint strict: false */
 /* jslint node: true */
+
+/* eslint-disable no-prototype-builtins */ // TODO: should be checked/corrected
+
 'use strict';
 const utils = require('@iobroker/adapter-core');
 const cache = require('./lib/cache');
@@ -215,7 +218,7 @@ function readTokenStates() {
             try {
                 tokenObj = JSON.parse(tokenObj);
             } catch (e) {
-
+                // empty
             }
         }
         const validAccessToken  = !isEmpty(loadOrDefault(tokenObj, 'accessToken', ''));
@@ -281,15 +284,10 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                     // OK, No Content
                     ret = null;
                     break;
-                case 400:
-                // Bad Request, message body will contain more
-                // information
-                case 500:
-                // Server Error
-                case 503:
-                // Service Unavailable
-                case 404:
-                // Not Found
+                case 400: // Bad Request, message body will contain more information
+                case 500: // Server Error
+                case 503: // Service Unavailable
+                case 404: // Not Found
                 case 502:
                     // Bad Gateway
                     ret = Promise.reject(response.statusCode);
@@ -344,6 +342,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
 
                 case 429:
                     // Too Many Requests
+                    /* eslint-disable-next-line */ // TODO: Verify why eslint reports'Unexpected lexical declaration in case block'
                     let wait = 1;
                     if (response.headers.hasOwnProperty('retry-after') && response.headers['retry-after'] >
                         0) {
@@ -1042,6 +1041,7 @@ async function getPlaylistTracks(owner, id) {
     };
     let offset = 0;
     const regParam = `${owner}/playlists/${id}/tracks`;
+    /* eslint-disable-next-line */
     while (true) {
         const query = {
             limit: 50,
