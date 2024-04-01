@@ -100,6 +100,9 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### 1.3.2 (2024-04-01)
+-   (N1tR0) A problem has been fixed that did not correctly update the progress of playing media [#339]
+
 ### 1.3.1 (2023-10-31)
 -   (aruttkamp) A problem has been fixed which cause 'Error 400' with playUri errors [#259]
 

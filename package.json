@@ -1,6 +1,6 @@
 {
   "name": "iobroker.spotify-premium",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "ioBroker spotify-premium Adapter",
   "author": {
     "name": "twonky4",
@@ -17,6 +17,10 @@
     {
       "name": "twonky4",
       "email": "twonky4@gmx.de"
+    },
+    {
+      "name": "N1tR0",
+      "email": "fabi@ihlecloud.de"
     }
   ],
   "homepage": "https://github.com/iobroker-community-adapters/ioBroker.spotify-premium",

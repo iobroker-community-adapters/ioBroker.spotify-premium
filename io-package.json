@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.3.1",
+    "version": "1.3.2",
     "news": {
+      "1.3.2": {
+        "en": "A problem has been fixed that did not correctly update the progress of playing media [#339]",
+        "de": "Ein Problem wurde behoben, das dazu führte, dass der Fortschritt der Medienwiedergabe nicht korrekt aktualisiert wurde [#339]",
+        "ru": "Исправлена проблема, из-за которой некорректно обновлялся прогресс воспроизведения мультимедиа [#339].",
+        "pt": "Foi corrigido um problema que não atualizava corretamente o progresso da reprodução de mídia [#339]",
+        "nl": "Er is een probleem opgelost waarbij de voortgang van het afspelen van media niet correct werd bijgewerkt [#339]",
+        "fr": "Un problème qui ne mettait pas correctement à jour la progression de la lecture multimédia a été corrigé [#339]",
+        "it": "È stato risolto un problema che non aggiornava correttamente l'avanzamento della riproduzione multimediale [#339]",
+        "es": "Se solucionó un problema que no actualizaba correctamente el progreso de la reproducción multimedia [#339]",
+        "pl": "Naprawiono problem, który nie aktualizował poprawnie postępu odtwarzania multimediów [#339]",
+        "uk": "Виправлено проблему, яка некоректно оновлювала хід відтворення медіа [#339]",
+        "zh-cn": "修复了无法正确更新媒体播放进度的问题 [#339]"
+      },      
       "1.3.1": {
         "en": "A problem has been fixed which cause 'Error 400' with playUri errors [#259]",
         "de": "Es wurde ein Problem behoben, das 'Error 400' mit playUri Fehlern verursacht [#259]",
