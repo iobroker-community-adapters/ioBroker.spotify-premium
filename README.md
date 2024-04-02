@@ -100,7 +100,7 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.4.0 (2024-04-02)
 * (mcm1957) Adapter requires node.js 18 and js-controller >= 5 now
 * (N1tR0) A problem has been fixed that did not correctly update the progress of playing media [#339]
 * (mcm1957) Dependencies have been updated0
