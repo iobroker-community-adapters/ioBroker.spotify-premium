@@ -16,19 +16,19 @@
         "uk": "Проблема була виправлена, яка викликає помилки «до багатьох запитів» [#241, #245, #311]. Додано DNS-кеш [#341]",
         "zh-cn": "已确定一个问题,造成许多请求的错误[第241号、第245号, 第311号]. 添加了 DNS 缓存 [#341]"
       },  
-      "1.3.2": {
-        "en": "A problem has been fixed that did not correctly update the progress of playing media [#339]",
-        "de": "Ein Problem wurde behoben, das dazu führte, dass der Fortschritt der Medienwiedergabe nicht korrekt aktualisiert wurde [#339]",
-        "ru": "Исправлена проблема, из-за которой некорректно обновлялся прогресс воспроизведения мультимедиа [#339].",
-        "pt": "Foi corrigido um problema que não atualizava corretamente o progresso da reprodução de mídia [#339]",
-        "nl": "Er is een probleem opgelost waarbij de voortgang van het afspelen van media niet correct werd bijgewerkt [#339]",
-        "fr": "Un problème qui ne mettait pas correctement à jour la progression de la lecture multimédia a été corrigé [#339]",
-        "it": "È stato risolto un problema che non aggiornava correttamente l'avanzamento della riproduzione multimediale [#339]",
-        "es": "Se solucionó un problema que no actualizaba correctamente el progreso de la reproducción multimedia [#339]",
-        "pl": "Naprawiono problem, który nie aktualizował poprawnie postępu odtwarzania multimediów [#339]",
-        "uk": "Виправлено проблему, яка некоректно оновлювала хід відтворення медіа [#339]",
-        "zh-cn": "修复了无法正确更新媒体播放进度的问题 [#339]"
-      },      
+      "1.4.0": {
+        "en": "Adapter requires node.js 18 and js-controller >= 5 now\nA problem has been fixed that did not correctly update the progress of playing media [#339]\nDependencies have been updated0",
+        "de": "Adapter benötigt node.js 18 und js-controller >= 5 jetzt\nEs wurde ein Problem behoben, das den Fortschritt der Wiedergabe von Medien nicht korrekt aktualisierte [#339]\nAbhängigkeiten wurden aktualisiert0",
+        "ru": "Адаптер требует node.js 18 и js-controller >= 5 сейчас\nБыла исправлена проблема, которая некорректно обновила ход игры в медиа [#339]\nЗависимость обновлена0",
+        "pt": "Adapter requer node.js 18 e js-controller >= 5 agora\nUm problema foi corrigido que não atualizou corretamente o progresso da mídia de jogo [#339]\nAs dependências foram atualizadas0",
+        "nl": "Adapter vereist node.js 18 en js-controller Nu 5\nEr is een probleem opgelost dat de voortgang van het afspelen van media niet correct heeft bijgewerkt [#339]\nAfhankelijkheden zijn bijgewerkt0",
+        "fr": "Adaptateur nécessite node.js 18 et js-controller >= 5 maintenant\nUn problème a été corrigé qui n'a pas correctement mis à jour la progression de la lecture des médias [#339]\nLes dépendances ont été mises à jour0",
+        "it": "Adattatore richiede node.js 18 e js-controller >= 5 ora\nUn problema è stato risolto che non ha correttamente aggiornato il progresso della riproduzione dei supporti [#339]\nLe dipendenze sono state aggiornate0",
+        "es": "Adaptador requiere node.js 18 y js-controller √= 5 ahora\nSe ha fijado un problema que no actualizó correctamente el progreso de los medios de comunicación [#339]\nSe han actualizado las dependencias0",
+        "pl": "Adapter wymaga node.js 18 i sterownika js- > = 5 teraz\nNaprawiono problem, który nie uaktualnił poprawnie postępów w odtwarzaniu mediów [# 339]\nUaktualniono zależności0",
+        "uk": "Адаптер вимагає node.js 18 і js-controller >= 5 тепер\nПроблема була виправлена, що не вірно оновити прогрес ігрових медіа [#339]\nЗалежність було оновлено0",
+        "zh-cn": "适配器需要节点.js 18和js控制器 QQ 现在5号\n一个问题已经解决, 无法正确更新播放媒体的进展 [# 339]\n依赖关系已更新0"
+      },
       "1.3.1": {
         "en": "A problem has been fixed which cause 'Error 400' with playUri errors [#259]",
         "de": "Es wurde ein Problem behoben, das 'Error 400' mit playUri Fehlern verursacht [#259]",
@@ -90,30 +90,6 @@
         "es": "Solucionar problemas de solicitud de lista de canciones\nSolucione varios posibles casos de bloqueo y advertencias de objetos\nAgregar Sentry para informes de fallas",
         "pl": "Napraw problemy z żądaniami listy utworów\nNapraw kilka potencjalnych przypadków awarii i ostrzeżeń o obiektach\nDodaj Sentry do zgłaszania awarii",
         "zh-cn": "修复曲目列表请求问题\n修复几个潜在的崩溃案例和对象警告\n添加 Sentry 以进行崩溃报告"
-      },
-      "1.1.9": {
-        "en": "Tried to catch 403 error",
-        "de": "Versucht, den Fehler 403 abzufangen",
-        "ru": "Пытался отловить ошибку 403",
-        "pt": "Tentei pegar o erro 403",
-        "nl": "Probeerde 403-fout te vangen",
-        "fr": "J'ai essayé d'attraper l'erreur 403",
-        "it": "Ho provato a rilevare l'errore 403",
-        "es": "Intenté detectar el error 403",
-        "pl": "Próbowałem złapać błąd 403",
-        "zh-cn": "试图捕捉 403 错误"
-      },
-      "1.1.8": {
-        "en": "Fixed the shuffle behaviour \nAllowed to set the default shuffle value\nThe type of trackNo corrected",
-        "de": "Das Shuffle-Verhalten wurde behoben\nErlaubt, den Standard-Shuffle-Wert festzulegen\nDie Art des TracksNein korrigiert",
-        "ru": "Исправлено поведение в случайном порядке\nРазрешено установить значение перемешивания по умолчанию\nТип трека: Нет исправлено",
-        "pt": "Corrigido o comportamento aleatório\nTem permissão para definir o valor aleatório padrão\nO tipo de faixa Não corrigido",
-        "nl": "Het shuffle-gedrag opgelost\nToegestaan om de standaard shuffle-waarde in te stellen\nHet type trackGeen gecorrigeerd",
-        "fr": "Correction du comportement de lecture aléatoire\nAutorisé à définir la valeur de lecture aléatoire par défaut\nLe type de pisteNon corrigé",
-        "it": "Risolto il problema di shuffle\nAutorizzato a impostare il valore di riproduzione casuale predefinito\nIl tipo di tracciaNo corretto",
-        "es": "Se corrigió el comportamiento de reproducción aleatoria.\nSe permite establecer el valor aleatorio predeterminado\nEl tipo de pista No corregido",
-        "pl": "Naprawiono zachowanie odtwarzania losowego\nUmożliwiono ustawienie domyślnej wartości odtwarzania losowego\nRodzaj toruNie poprawiono",
-        "zh-cn": "修复了随机播放行为\n允许设置默认的shuffle值\n轨道类型未更正"
       }
     },
     "titleLang": {
@@ -152,7 +128,10 @@
       "player",
       "media"
     ],
-    "license": "MIT",
+    "licenseInformation": {
+      "license": "MIT",
+      "type": "free"
+    },
     "platform": "Javascript/Node.js",
     "main": "main.js",
     "icon": "spotify-premium.png",
@@ -169,7 +148,7 @@
     "tier": 2,
     "dependencies": [
       {
-        "js-controller": ">=4.0.24"
+        "js-controller": ">=5.0.0"
       }
     ],
     "globalDependencies": [
