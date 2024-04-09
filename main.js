@@ -258,7 +258,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
 
     if (tooManyRequests){
         // We are currently blocked because of too many requests. Do not send out a new request.
-        adapter.log.debug("TooManyRequests: " + tooManyRequests + " endpoint: " + endpoint);
+        adapter.log.debug('TooManyRequests: ' + tooManyRequests + ' endpoint: ' + endpoint);
         return Promise.reject(429);
     }
 
@@ -363,7 +363,8 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                     ret = new Promise(resolve => setTimeout(() => !stopped && resolve(), wait * 1000))
                         .then(() => {
                             tooManyRequests = false;
-                            sendRequest(endpoint, method, sendBody, delayAccepted)})
+                            sendRequest(endpoint, method, sendBody, delayAccepted);
+                        })
                         .catch(error => {
                             adapter.log.debug(error);
                         });
@@ -661,7 +662,7 @@ function createPlaybackInfo(data) {
                             }
                         })
                         .catch(error => {
-                            adapter.log.debug(error);
+                            adapter.log.debug(error)
                         });;
                 }
             };
@@ -1629,7 +1630,7 @@ function pollStatusApi(noReschedule) {
                     }
                     application.error202shown = true;
                 } else if (err === 429){
-                    adapter.log.debug("We are currently being rate limited, waiting for next update ...")
+                    adapter.log.debug('We are currently being rate limited, waiting for next update ...');
                 } else {
                     adapter.log.warn('unexpected api response http ' + err + '; continue polling');
                 }
