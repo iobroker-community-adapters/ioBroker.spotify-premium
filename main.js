@@ -12,6 +12,8 @@ const ownUtils = require('./lib/utils');
 const querystring = require('querystring');
 const _request = require('request');
 
+const {lookup} = require('dns-lookup-cache');
+
 function request(options) {
     return new Promise((resolve, reject) =>
         _request(options, (error, status) => error ? reject(error) : resolve(status)));
@@ -52,6 +54,7 @@ const deviceData = {
     lastSelectDeviceId: ''
 };
 let stopped = false;
+let tooManyRequests = false;
 
 function startAdapter(options) {
     options = options || {};
@@ -243,6 +246,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
     const options = {
         url: application.baseUrl + endpoint,
         method,
+        lookup: lookup, // DNS caching
         headers: {
             Authorization: 'Bearer ' + application.token
         },
@@ -251,6 +255,12 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
     adapter.log.debug(`spotify api call... ${endpoint}; ${options.form}`);
     const callStack = new Error().stack;
     adapter.setState('authorization.error', '', true);
+
+    if (tooManyRequests){
+        // We are currently blocked because of too many requests. Do not send out a new request.
+        adapter.log.debug("TooManyRequests: " + tooManyRequests + " endpoint: " + endpoint);
+        return Promise.reject(429);
+    }
 
     return request(options)
         .then(response => {
@@ -347,10 +357,16 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                     if (response.headers.hasOwnProperty('retry-after') && response.headers['retry-after'] >
                         0) {
                         wait = response.headers['retry-after'];
+                        tooManyRequests = true;
                         adapter.log.warn('too many requests, wait ' + wait + 's');
                     }
                     ret = new Promise(resolve => setTimeout(() => !stopped && resolve(), wait * 1000))
-                        .then(() => sendRequest(endpoint, method, sendBody, delayAccepted));
+                        .then(() => {
+                            tooManyRequests = false;
+                            sendRequest(endpoint, method, sendBody, delayAccepted)})
+                        .catch(error => {
+                            adapter.log.debug(error);
+                        });
                     break;
 
                 default:
@@ -643,7 +659,10 @@ function createPlaybackInfo(data) {
                                 artistImageUrlCache[artist] = url;
                                 urls.push(url);
                             }
-                        });
+                        })
+                        .catch(error => {
+                            adapter.log.debug(error);
+                        });;
                 }
             };
 
@@ -759,7 +778,10 @@ function createPlaybackInfo(data) {
                         } else {
                             return sendRequest(`/v1/users/${userId}/playlists/${playlistId}?${querystring.stringify(query)}`,
                                 'GET', '')
-                                .then(refreshPlaylist);
+                                .then(refreshPlaylist)
+                                .catch(error => {
+                                    adapter.log.debug(error);
+                                });
                         }
                     });
             } else {
@@ -1048,6 +1070,8 @@ async function getPlaylistTracks(owner, id) {
             offset: offset
         };
         try {
+            // Wait 1s between Playlist updates to avoid getting rate limitted
+            await new Promise(resolve => setTimeout(resolve, 1000));
             const data = await sendRequest(`/v1/users/${regParam}?${querystring.stringify(query)}`, 'GET', '');
             let i = offset;
             const no = i.toString();
@@ -1596,7 +1620,7 @@ function pollStatusApi(noReschedule) {
                 application.error202shown = false;
             }
             //if (err === 202 || err === 401 || err === 502) {
-            if (err === 202 || err === 401 || err === 500 || err === 502 || err === 503 || err === 504) {
+            if (err === 429 || err === 202 || err === 401 || err === 500 || err === 502 || err === 503 || err === 504) {
                 if (err === 202) {
                     if (!application.error202shown) {
                         adapter.log.debug(
@@ -1604,6 +1628,8 @@ function pollStatusApi(noReschedule) {
                         );
                     }
                     application.error202shown = true;
+                } else if (err === 429){
+                    adapter.log.debug("We are currently being rate limited, waiting for next update ...")
                 } else {
                     adapter.log.warn('unexpected api response http ' + err + '; continue polling');
                 }
@@ -1652,7 +1678,6 @@ function schedulePlaylistPolling() {
 
 function pollPlaylistApi() {
     clearTimeout(application.playlistInternalTimer);
-    adapter.log.debug('call playlist polling');
     reloadUsersPlaylist();
     schedulePlaylistPolling();
 }
@@ -2033,7 +2058,10 @@ function listenOnGetPlaybackInfo() {
 
 function listenOnGetDevices() {
     return sendRequest('/v1/me/player/devices', 'GET', '')
-        .then(data => reloadDevices(data));
+        .then(data => reloadDevices(data))
+        .catch(error => {
+            adapter.log.debug(error);
+        });
 }
 
 function clearCache() {
