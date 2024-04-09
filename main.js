@@ -662,8 +662,8 @@ function createPlaybackInfo(data) {
                             }
                         })
                         .catch(error => {
-                            adapter.log.debug(error)
-                        });;
+                            adapter.log.debug(error);
+                        });
                 }
             };
 
