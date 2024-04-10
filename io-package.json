@@ -170,7 +170,7 @@
     "keep_shuffle_state": false,
     "status_interval": 10,
     "device_interval": 5,
-    "playlist_interval": 15,
+    "playlist_interval": 60,
     "defaultShuffle": "on"
   },
   "objects": [],
@@ -950,7 +950,7 @@
       "common": {
         "role": "value",
         "name": "number of songs",
-        "type": "string",
+        "type": "number",
         "read": true,
         "write": false
       },
