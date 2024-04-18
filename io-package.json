@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "news": {
+      "1.5.0": {
+        "en": "A problem has been fixed which cause 'too many requests' errors [#241, #245, #311]. The recommended update interval for playlist information is now 60 minutes.\nA DNS cache has been added [#341].\nPotentially fix 'Current played track is not highlighted' [#283]\nSome state types have been fixed\nDependencies have been updated",
+        "de": "Es wurde ein Problem behoben, das 'zu viele Anfragen' Fehler verursacht [#241, #245, #311]. Das empfohlene Update-Intervall für Wiedergabelisteninformationen beträgt jetzt 60 Minuten.\nEin DNS-Cache wurde hinzugefügt [#341].\nPotentielle fix 'Current gespielter Track wird nicht hervorgehoben' [#283]\nEinige Zustandstypen wurden behobenkorrigiert\nAbhängigkeiten wurden aktualisiert",
+        "ru": "Была исправлена проблема, которая вызывает «слишком много ошибок» [#241, #245, #311]. Рекомендованный интервал обновления для плейлистовой информации сейчас составляет 60 минут.\nДобавлен DNS-кэш [#341].\nПотенциально исправить 'Current play track не выделяется' [#283]\nНекоторые типы состояний были зафиксированы\nЗависимость обновлена",
+        "pt": "Um problema foi corrigido que causam erros de 'too muitos pedidos' [#241, #245, #311]. O intervalo de atualização recomendado para informações da lista de reprodução é agora 60 minutos.\nUm cache DNS foi adicionado [#341].\nPotencialmente corrigir 'Current pista tocada não é destacada' [#283]\nAlguns tipos de estado foram corrigidos\nAs dependências foram atualizadas",
+        "nl": "Er is een probleem opgelost dat 'te veel verzoeken' fouten veroorzaakt [#241, #245, #311]. Het aanbevolen updateinterval voor afspeellijstinformatie is nu 60 minuten.\nEr is een DNS-cache toegevoegd [#341].\nPotentiële fix 'Current played track is not marked' [#283]\nSommige status types zijn vastgesteld\nAfhankelijkheden zijn bijgewerkt",
+        "fr": "Un problème a été corrigé qui cause des erreurs « trop de requêtes » [#241, #245, #311]. L'intervalle de mise à jour recommandé pour les informations sur les listes de lecture est maintenant de 60 minutes.\nUn cache DNS a été ajouté [#341].\nCorrection potentielle 'Le morceau en cours n'est pas surligné' [#283]\nCertains types d'état ont été corrigés\nLes dépendances ont été actualisées",
+        "it": "Un problema è stato risolto che causa 'troppe richieste' errori [#241, #245, #311]. L'intervallo di aggiornamento raccomandato per le informazioni della playlist è ora 60 minuti.\nÈ stata aggiunta una cache DNS [#341].\nPotenzialmente corretto 'Current play track non è evidenziato' [#283]\nAlcuni tipi di stato sono stati fissati\nLe dipendenze sono state aggiornate",
+        "es": "Se ha solucionado un problema que causa \"demasiados pedidos\" errores [#241, #245, #311]. El intervalo de actualización recomendado para la información de la lista de reproducción es ahora de 60 minutos.\nSe ha añadido un caché DNS [#341].\nPotentially fix 'Current played track is not highlighted' [#283]\nAlgunos tipos de estado han sido fijos\nSe han actualizado las dependencias",
+        "pl": "Problem został rozwiązany, co powoduje błędy 'zbyt wielu żądań' [# 241, # 245, # 311]. Zalecany interwał aktualizacji informacji o playlist wynosi teraz 60 minut.\nDodano pamięci podręcznej DNS [# 341].\nPotencjalnie naprawić 'Bieżący odtwarzany utwór nie jest podświetlony' [# 283]\nNiektóre rodzaje stanu zostały ustalone\nZaktualizowano zależności",
+        "uk": "Проблема була виправлена, яка викликає помилки «до багатьох запитів» [#241, #245, #311]. Рекомендований інтервал оновлення для отримання інформації про списки відтворення тепер 60 хвилин.\nДодано кеш DNS [#341].\nПотенціално зафіксувати 'Current грали доріжки не виділено' [#283]\nДеякі державні типи були виправлені\nЗалежність було оновлено",
+        "zh-cn": "问题已经解决, 导致“ 太多请求” 错误 [# 241, # 245, # 311] 。 播放列表信息建议更新间隔为60分钟.\n添加了一个 DNS 缓存 [# 341].\n可能修补“ 当前播放的音轨没有突出显示 ” [# 283]\n一些状态类型已经固定\n依赖关系已更新"
+      },
       "1.4.0": {
         "en": "Adapter requires node.js 18 and js-controller >= 5 now\nA problem has been fixed that did not correctly update the progress of playing media [#339]\nDependencies have been updated0",
         "de": "Adapter benötigt node.js 18 und js-controller >= 5 jetzt\nEs wurde ein Problem behoben, das den Fortschritt der Wiedergabe von Medien nicht korrekt aktualisierte [#339]\nAbhängigkeiten wurden aktualisiert0",
