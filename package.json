@@ -39,7 +39,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.0.6",
+    "@iobroker/adapter-core": "^3.1.0",
     "dns-lookup-cache": "^1.0.4",
     "request": "^2.88.2"
   },
