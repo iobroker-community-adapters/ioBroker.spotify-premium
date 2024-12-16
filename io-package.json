@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "news": {
+      "1.5.2": {
+        "en": "ESLint 9 implemented",
+        "de": "ESLint 9 implementiert",
+        "ru": "ESLint 9 реализован",
+        "pt": "ESLint 9 implementado",
+        "nl": "ESLint 9 geïmplementeerd",
+        "fr": "ESLint 9 mis en œuvre",
+        "it": "ESLint 9 implementato",
+        "es": "ESLint 9 implemented",
+        "pl": "Wdrożenie ESLint 9",
+        "uk": "ESLint 9 реалізований",
+        "zh-cn": "已执行ESLint 9"
+      },
       "1.5.1": {
         "en": "Testing Node 22.x implemented",
         "de": "Test Node 22.x implementiert",
@@ -79,18 +92,6 @@
         "es": "Fijar posibles casos de accidentes reportados por Sentry\nOptimize adapter stop behaviour",
         "pl": "Fixowe przypadki katastrofy (ang.)\nOptimize adaptator stop behaviour",
         "zh-cn": "Sentry报告的潜在事故\n减少适应者停止行为"
-      },
-      "1.2.1": {
-        "en": "Prevent js-controller warnings",
-        "de": "js-controller-Warnungen verhindern",
-        "ru": "Предотвратить предупреждения js-контроллера",
-        "pt": "Impedir avisos do controlador js",
-        "nl": "Voorkom js-controller-waarschuwingen",
-        "fr": "Empêcher les avertissements js-controller",
-        "it": "Impedisci gli avvisi del controller js",
-        "es": "Prevenir las advertencias del controlador js",
-        "pl": "Zapobiegaj ostrzeżeniom kontrolera js",
-        "zh-cn": "防止 js-controller 警告"
       }
     },
     "titleLang": {

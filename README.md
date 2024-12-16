@@ -100,7 +100,7 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.5.2 (2024-12-16)
 - (aruttkamp) ESLint 9 implemented
 
 ### 1.5.1 (2024-12-16)
@@ -120,12 +120,6 @@ Click for widget source.
 
 ### 1.3.1 (2023-10-31)
 -   (aruttkamp) A problem has been fixed which cause 'Error 400' with playUri errors [#259]
-
-### 1.3.0 (2023-10-31)
--   (aruttkamp) A problem has been fixed which cause 'too many requests' errors [#241, #245]
--   (mcm1957) Adapter requires nodejs 16 now
--   (mcm1957) Testing has been changed to support node 16, 18 and 20
--   (mcm1957) Dependencies have been updated
 
 ## License
 The MIT License (MIT)

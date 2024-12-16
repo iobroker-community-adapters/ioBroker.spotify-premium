@@ -1,4 +1,10 @@
 # Older changes
+## 1.3.0 (2023-10-31)
+-   (aruttkamp) A problem has been fixed which cause 'too many requests' errors [#241, #245]
+-   (mcm1957) Adapter requires nodejs 16 now
+-   (mcm1957) Testing has been changed to support node 16, 18 and 20
+-   (mcm1957) Dependencies have been updated
+
 ## 1.2.2 (2022-06-17)
 * (Apollon77) Fix potential crash cases reported by Sentry
 * (Apollon77) Optimize adapter stop behaviour
