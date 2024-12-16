@@ -357,7 +357,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                 // Too Many Requests
                 /* eslint-disable-next-line */ // TODO: Verify why eslint reports'Unexpected lexical declaration in case block'
                     let wait = 1;
-                if (response.headers.hasOwnProperty('retry-after') && response.headers['retry-after'] > 0) {
+                if (response.headers.hasOwnProperty.call('retry-after') && response.headers['retry-after'] > 0) {
                     wait = response.headers['retry-after'];
                     tooManyRequests = true;
                     adapter.log.warn(`too many requests, wait ${wait}s`);
@@ -653,7 +653,7 @@ function createPlaybackInfo(data) {
             }
             const urls = [];
             const fn = function (artist) {
-                if (artistImageUrlCache.hasOwnProperty(artist)) {
+                if (artistImageUrlCache.hasOwnProperty.call(artist)) {
                     urls.push(artistImageUrlCache[artist]);
                 } else {
                     return sendRequest(`/v1/artists/${artist}`, 'GET', '')
@@ -775,7 +775,7 @@ function createPlaybackInfo(data) {
                             });
                     };
 
-                    if (playlistCache.hasOwnProperty(`${userId}-${playlistId}`)) {
+                    if (playlistCache.hasOwnProperty.call(`${userId}-${playlistId}`)) {
                         return refreshPlaylist(playlistCache[`${userId}-${playlistId}`]);
                     }
                     return sendRequest(
@@ -1564,7 +1564,7 @@ function refreshToken() {
                     parsedJson = {};
                     this.log.info(`Error: ${e}`);
                 }
-                if (!parsedJson.hasOwnProperty('refresh_token')) {
+                if (!parsedJson.hasOwnProperty.call('refresh_token')) {
                     parsedJson.refresh_token = application.refreshToken;
                 }
                 adapter.log.debug(JSON.stringify(parsedJson));
