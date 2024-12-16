@@ -2,8 +2,6 @@
 /* jshint strict: false */
 /* jslint node: true */
 
-/* eslint-disable no-prototype-builtins */ // TODO: should be checked/corrected
-
 'use strict';
 const utils = require('@iobroker/adapter-core');
 const cache = require('./lib/cache');
