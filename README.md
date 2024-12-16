@@ -100,6 +100,9 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+- (aruttkamp) ESLint 9 implemented
+
 ### 1.5.1 (2024-12-16)
 - (aruttkamp) Testing Node 22.x implemented
 
