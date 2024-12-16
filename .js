@@ -1,13 +1,13 @@
-"use strict";
+'use strict';
 
-const gulp = require("gulp");
-const fs = require("fs");
-const pkg = require("./package.json");
-const iopackage = require("./io-package.json");
-const version = (pkg && pkg.version) ? pkg.version : iopackage.common.version;
-const fileName = "words.js";
-const EMPTY = "";
-const translate = require("./lib/tools.js").translateText;
+const gulp = require('gulp');
+const fs = require('fs');
+const pkg = require('./package.json');
+const iopackage = require('./io-package.json');
+const version = pkg && pkg.version ? pkg.version : iopackage.common.version;
+const fileName = 'words.js';
+const EMPTY = '';
+const translate = require('./lib/tools.js').translateText;
 const languages = {
     en: {},
     de: {},
@@ -18,47 +18,48 @@ const languages = {
     it: {},
     es: {},
     pl: {},
-    "zh-cn": {}
+    'zh-cn': {},
 };
 
 function lang2data(lang, isFlat) {
     let str = isFlat ? '' : '{\n';
     let count = 0;
     for (const w in lang) {
-        if (lang.hasOwnProperty(w)) {
+        if (lang.prototype.hasOwnProperty.call(w)) {
             count++;
             if (isFlat) {
-                str += (lang[w] === '' ? (isFlat[w] || w) : lang[w]) + '\n';
+                str += `${lang[w] === '' ? isFlat[w] || w : lang[w]}\n`;
             } else {
-                const key = '  "' + w.replace(/"/g, '\\"') + '": ';
-                str += key + '"' + lang[w].replace(/"/g, '\\"') + '",\n';
+                const key = `  "${w.replace(/"/g, '\\"')}": `;
+                str += `${key}"${lang[w].replace(/"/g, '\\"')}",\n`;
             }
         }
     }
-    if (!count)
+    if (!count) {
         return isFlat ? '' : '{\n}';
+    }
     if (isFlat) {
         return str;
-    } else {
-        return str.substring(0, str.length - 2) + '\n}';
     }
+    return `${str.substring(0, str.length - 2)}\n}`;
 }
 
 function readWordJs(src) {
     try {
         let words;
-        if (fs.existsSync(src + "js/" + fileName)) {
-            words = fs.readFileSync(src + "js/" + fileName).toString();
+        if (fs.existsSync(`${src}js/${fileName}`)) {
+            words = fs.readFileSync(`${src}js/${fileName}`).toString();
         } else {
             words = fs.readFileSync(src + fileName).toString();
         }
         words = words.substring(words.indexOf('{'), words.length);
         words = words.substring(0, words.lastIndexOf(';'));
 
-        const resultFunc = new Function("return " + words + ";");
+        const resultFunc = new Function(`return ${words};`);
 
         return resultFunc();
     } catch (e) {
+        this.log.info(`Error: ${e}`);
         return null;
     }
 }
@@ -70,29 +71,29 @@ function padRight(text, totalLength) {
 function writeWordJs(data, src) {
     let text = '';
     text += '/*global systemDictionary:true */\n';
-    text += '\'use strict\';\n\n';
+    text += "'use strict';\n\n";
     text += 'systemDictionary = {\n';
     for (const word in data) {
-        if (data.hasOwnProperty(word)) {
-            text += '    ' + padRight('"' + word.replace(/"/g, '\\"') + '": {', 50);
+        if (Object.prototype.hasOwnProperty.call(data, word)) {
+            text += `    ${padRight(`"${word.replace(/"/g, '\\"')}": {`, 50)}`;
             let line = '';
             for (const lang in data[word]) {
-                if (data[word].hasOwnProperty(lang)) {
-                    line += '"' + lang + '": "' + padRight(data[word][lang].replace(/"/g, '\\"') + '",', 50) + ' ';
+                if (data[word].prototype.hasOwnProperty.call(lang)) {
+                    line += `"${lang}": "${padRight(`${data[word][lang].replace(/"/g, '\\"')}",`, 50)} `;
                 }
             }
             if (line) {
                 line = line.trim();
                 line = line.substring(0, line.length - 1);
             }
-            text += line + '},\n';
+            text += `${line}},\n`;
         }
     }
     text += '};';
-    if (fs.existsSync(src + 'js/' + fileName)) {
-        fs.writeFileSync(src + 'js/' + fileName, text);
+    if (fs.existsSync(`${src}js/${fileName}`)) {
+        fs.writeFileSync(`${src}js/${fileName}`, text);
     } else {
-        fs.writeFileSync(src + '' + fileName, text);
+        fs.writeFileSync(`${src}${fileName}`, text);
     }
 }
 
@@ -101,13 +102,13 @@ function words2languages(src) {
     const data = readWordJs(src);
     if (data) {
         for (const word in data) {
-            if (data.hasOwnProperty(word)) {
+            if (data.prototype.hasOwnProperty.call(word)) {
                 for (const lang in data[word]) {
-                    if (data[word].hasOwnProperty(lang)) {
+                    if (data[word].prototype.hasOwnProperty.call(lang)) {
                         langs[lang][word] = data[word][lang];
                         //  pre-fill all other languages
                         for (const j in langs) {
-                            if (langs.hasOwnProperty(j)) {
+                            if (langs.prototype.hasOwnProperty.call(j)) {
                                 langs[j][word] = langs[j][word] || EMPTY;
                             }
                         }
@@ -115,26 +116,27 @@ function words2languages(src) {
                 }
             }
         }
-        if (!fs.existsSync(src + 'i18n/')) {
-            fs.mkdirSync(src + 'i18n/');
+        if (!fs.existsSync(`${src}i18n/`)) {
+            fs.mkdirSync(`${src}i18n/`);
         }
         for (const l in langs) {
-            if (!langs.hasOwnProperty(l))
+            if (!langs.prototype.hasOwnProperty.call(l)) {
                 continue;
+            }
             const keys = Object.keys(langs[l]);
             keys.sort();
             const obj = {};
             for (let k = 0; k < keys.length; k++) {
                 obj[keys[k]] = langs[l][keys[k]];
             }
-            if (!fs.existsSync(src + 'i18n/' + l)) {
-                fs.mkdirSync(src + 'i18n/' + l);
+            if (!fs.existsSync(`${src}i18n/${l}`)) {
+                fs.mkdirSync(`${src}i18n/${l}`);
             }
 
-            fs.writeFileSync(src + 'i18n/' + l + '/translations.json', lang2data(obj));
+            fs.writeFileSync(`${src}i18n/${l}/translations.json`, lang2data(obj));
         }
     } else {
-        console.error('Cannot read or parse ' + fileName);
+        console.error(`Cannot read or parse ${fileName}`);
     }
 }
 
@@ -143,13 +145,13 @@ function words2languagesFlat(src) {
     const data = readWordJs(src);
     if (data) {
         for (const word in data) {
-            if (data.hasOwnProperty(word)) {
+            if (data.prototype.hasOwnProperty.call(word)) {
                 for (const lang in data[word]) {
-                    if (data[word].hasOwnProperty(lang)) {
+                    if (data[word].prototype.hasOwnProperty.call(lang)) {
                         langs[lang][word] = data[word][lang];
                         //  pre-fill all other languages
                         for (const j in langs) {
-                            if (langs.hasOwnProperty(j)) {
+                            if (langs.prototype.hasOwnProperty.call(j)) {
                                 langs[j][word] = langs[j][word] || EMPTY;
                             }
                         }
@@ -160,34 +162,36 @@ function words2languagesFlat(src) {
         const keys = Object.keys(langs.en);
         keys.sort();
         for (const l in langs) {
-            if (!langs.hasOwnProperty(l))
+            if (!langs.prototype.hasOwnProperty.call(l)) {
                 continue;
+            }
             const obj = {};
             for (let k = 0; k < keys.length; k++) {
                 obj[keys[k]] = langs[l][keys[k]];
             }
             langs[l] = obj;
         }
-        if (!fs.existsSync(src + 'i18n/')) {
-            fs.mkdirSync(src + 'i18n/');
+        if (!fs.existsSync(`${src}i18n/`)) {
+            fs.mkdirSync(`${src}i18n/`);
         }
         for (const ll in langs) {
-            if (!langs.hasOwnProperty(ll))
+            if (!langs.prototype.hasOwnProperty.call(ll)) {
                 continue;
-            if (!fs.existsSync(src + 'i18n/' + ll)) {
-                fs.mkdirSync(src + 'i18n/' + ll);
+            }
+            if (!fs.existsSync(`${src}i18n/${ll}`)) {
+                fs.mkdirSync(`${src}i18n/${ll}`);
             }
 
-            fs.writeFileSync(src + 'i18n/' + ll + '/flat.txt', lang2data(langs[ll], langs.en));
+            fs.writeFileSync(`${src}i18n/${ll}/flat.txt`, lang2data(langs[ll], langs.en));
         }
-        fs.writeFileSync(src + 'i18n/flat.txt', keys.join('\n'));
+        fs.writeFileSync(`${src}i18n/flat.txt`, keys.join('\n'));
     } else {
-        console.error('Cannot read or parse ' + fileName);
+        console.error(`Cannot read or parse ${fileName}`);
     }
 }
 
 function languagesFlat2words(src) {
-    const dirs = fs.readdirSync(src + 'i18n/');
+    const dirs = fs.readdirSync(`${src}i18n/`);
     const langs = {};
     const bigOne = {};
     const order = Object.keys(languages);
@@ -195,30 +199,34 @@ function languagesFlat2words(src) {
         const posA = order.indexOf(a);
         const posB = order.indexOf(b);
         if (posA === -1 && posB === -1) {
-            if (a > b)
+            if (a > b) {
                 return 1;
-            if (a < b)
+            }
+            if (a < b) {
                 return -1;
+            }
             return 0;
         } else if (posA === -1) {
             return -1;
         } else if (posB === -1) {
             return 1;
-        } else {
-            if (posA > posB)
-                return 1;
-            if (posA < posB)
-                return -1;
-            return 0;
         }
+        if (posA > posB) {
+            return 1;
+        }
+        if (posA < posB) {
+            return -1;
+        }
+        return 0;
     });
-    const keys = fs.readFileSync(src + 'i18n/flat.txt').toString().split('\n');
+    const keys = fs.readFileSync(`${src}i18n/flat.txt`).toString().split('\n');
 
     for (let l = 0; l < dirs.length; l++) {
-        if (dirs[l] === 'flat.txt')
+        if (dirs[l] === 'flat.txt') {
             continue;
+        }
         const lang = dirs[l];
-        const values = fs.readFileSync(src + 'i18n/' + lang + '/flat.txt').toString().split('\n');
+        const values = fs.readFileSync(`${src}i18n/${lang}/flat.txt`).toString().split('\n');
         langs[lang] = {};
         keys.forEach(function (word, i) {
             langs[lang][word] = values[i];
@@ -226,7 +234,7 @@ function languagesFlat2words(src) {
 
         const words = langs[lang];
         for (const word in words) {
-            if (words.hasOwnProperty(word)) {
+            if (words.prototype.hasOwnProperty.call(word)) {
                 bigOne[word] = bigOne[word] || {};
                 if (words[word] !== EMPTY) {
                     bigOne[word][lang] = words[word];
@@ -241,28 +249,28 @@ function languagesFlat2words(src) {
     if (aWords) {
         // Merge words together
         for (const w in aWords) {
-            if (aWords.hasOwnProperty(w)) {
+            if (aWords.prototype.hasOwnProperty.call(w)) {
                 if (!bigOne[w]) {
-                    console.warn('Take from actual words.js: ' + w);
+                    console.warn(`Take from actual words.js: ${w}`);
                     bigOne[w] = aWords[w];
                 }
                 dirs.forEach(function (lang) {
-                    if (temporaryIgnore.indexOf(lang) !== -1)
+                    if (temporaryIgnore.indexOf(lang) !== -1) {
                         return;
+                    }
                     if (!bigOne[w][lang]) {
-                        console.warn('Missing "' + lang + '": ' + w);
+                        console.warn(`Missing "${lang}": ${w}`);
                     }
                 });
             }
         }
-
     }
 
     writeWordJs(bigOne, src);
 }
 
 function languages2words(src) {
-    const dirs = fs.readdirSync(src + 'i18n/');
+    const dirs = fs.readdirSync(`${src}i18n/`);
     const langs = {};
     const bigOne = {};
     const order = Object.keys(languages);
@@ -270,32 +278,36 @@ function languages2words(src) {
         const posA = order.indexOf(a);
         const posB = order.indexOf(b);
         if (posA === -1 && posB === -1) {
-            if (a > b)
+            if (a > b) {
                 return 1;
-            if (a < b)
+            }
+            if (a < b) {
                 return -1;
+            }
             return 0;
         } else if (posA === -1) {
             return -1;
         } else if (posB === -1) {
             return 1;
-        } else {
-            if (posA > posB)
-                return 1;
-            if (posA < posB)
-                return -1;
-            return 0;
         }
+        if (posA > posB) {
+            return 1;
+        }
+        if (posA < posB) {
+            return -1;
+        }
+        return 0;
     });
     for (let l = 0; l < dirs.length; l++) {
-        if (dirs[l] === 'flat.txt')
+        if (dirs[l] === 'flat.txt') {
             continue;
+        }
         const lang = dirs[l];
-        langs[lang] = fs.readFileSync(src + 'i18n/' + lang + '/translations.json').toString();
+        langs[lang] = fs.readFileSync(`${src}i18n/${lang}/translations.json`).toString();
         langs[lang] = JSON.parse(langs[lang]);
         const words = langs[lang];
         for (const word in words) {
-            if (words.hasOwnProperty(word)) {
+            if (words.prototype.hasOwnProperty.call(word)) {
                 bigOne[word] = bigOne[word] || {};
                 if (words[word] !== EMPTY) {
                     bigOne[word][lang] = words[word];
@@ -310,21 +322,21 @@ function languages2words(src) {
     if (aWords) {
         // Merge words together
         for (const w in aWords) {
-            if (aWords.hasOwnProperty(w)) {
+            if (aWords.prototype.hasOwnProperty.call(w)) {
                 if (!bigOne[w]) {
-                    console.warn('Take from actual words.js: ' + w);
+                    console.warn(`Take from actual words.js: ${w}`);
                     bigOne[w] = aWords[w];
                 }
                 dirs.forEach(function (lang) {
-                    if (temporaryIgnore.indexOf(lang) !== -1)
+                    if (temporaryIgnore.indexOf(lang) !== -1) {
                         return;
+                    }
                     if (!bigOne[w][lang]) {
-                        console.warn('Missing "' + lang + '": ' + w);
+                        console.warn(`Missing "${lang}": ${w}`);
                     }
                 });
             }
         }
-
     }
 
     writeWordJs(bigOne, src);
@@ -367,7 +379,7 @@ gulp.task('adminLanguages2words', function (done) {
     done();
 });
 
-gulp.task("updatePackages", function (done) {
+gulp.task('updatePackages', function (done) {
     iopackage.common.version = pkg.version;
     iopackage.common.news = iopackage.common.news || {};
     if (!iopackage.common.news[pkg.version]) {
@@ -375,41 +387,42 @@ gulp.task("updatePackages", function (done) {
         const newNews = {};
 
         newNews[pkg.version] = {
-            en: "news",
-            de: "neues",
-            ru: "новое",
-            pt: "novidades",
-            nl: "nieuws",
-            fr: "nouvelles",
-            it: "notizie",
-            es: "noticias",
-            pl: "nowości",
-            "zh-cn": "新"
+            en: 'news',
+            de: 'neues',
+            ru: 'новое',
+            pt: 'novidades',
+            nl: 'nieuws',
+            fr: 'nouvelles',
+            it: 'notizie',
+            es: 'noticias',
+            pl: 'nowości',
+            'zh-cn': '新',
         };
         iopackage.common.news = Object.assign(newNews, news);
     }
-    fs.writeFileSync("io-package.json", JSON.stringify(iopackage, null, 4));
+    fs.writeFileSync('io-package.json', JSON.stringify(iopackage, null, 4));
     done();
 });
 
-gulp.task('rename', function ()  {
+gulp.task('rename', function () {
     let newname;
     let author = '@@Author@@';
-    let email  = '@@email@@';
+    let email = '@@email@@';
     for (let a = 0; a < process.argv.length; a++) {
         if (process.argv[a] === '--name') {
-            newname = process.argv[a + 1]
+            newname = process.argv[a + 1];
         } else if (process.argv[a] === '--email') {
-            email = process.argv[a + 1]
+            email = process.argv[a + 1];
         } else if (process.argv[a] === '--author') {
-            author = process.argv[a + 1]
+            author = process.argv[a + 1];
         }
     }
 
-
-    console.log('Try to rename to "' + newname + '"');
+    console.log(`Try to rename to "${newname}"`);
     if (!newname) {
-        console.log('Please write the new template name, like: "gulp rename --name mywidgetset" --author "Author Name"');
+        console.log(
+            'Please write the new template name, like: "gulp rename --name mywidgetset" --author "Author Name"',
+        );
         process.exit();
     }
     if (newname.indexOf(' ') !== -1) {
@@ -420,53 +433,53 @@ gulp.task('rename', function ()  {
         console.log('Name must be lower case.');
         process.exit();
     }
-    if (fs.existsSync(__dirname + '/admin/template.png')) {
-        fs.renameSync(__dirname + '/admin/template.png',              __dirname + '/admin/' + newname + '.png');
+    if (fs.existsSync(`${__dirname}/admin/template.png`)) {
+        fs.renameSync(`${__dirname}/admin/template.png`, `${__dirname}/admin/${newname}.png`);
     }
-    if (fs.existsSync(__dirname + '/widgets/template.html')) {
-        fs.renameSync(__dirname + '/widgets/template.html',           __dirname + '/widgets/' + newname + '.html');
+    if (fs.existsSync(`${__dirname}/widgets/template.html`)) {
+        fs.renameSync(`${__dirname}/widgets/template.html`, `${__dirname}/widgets/${newname}.html`);
     }
-    if (fs.existsSync(__dirname + '/widgets/template/js/template.js')) {
-        fs.renameSync(__dirname + '/widgets/template/js/template.js', __dirname + '/widgets/template/js/' + newname + '.js');
+    if (fs.existsSync(`${__dirname}/widgets/template/js/template.js`)) {
+        fs.renameSync(`${__dirname}/widgets/template/js/template.js`, `${__dirname}/widgets/template/js/${newname}.js`);
     }
-    if (fs.existsSync(__dirname + '/widgets/template')) {
-        fs.renameSync(__dirname + '/widgets/template',                __dirname + '/widgets/' + newname);
+    if (fs.existsSync(`${__dirname}/widgets/template`)) {
+        fs.renameSync(`${__dirname}/widgets/template`, `${__dirname}/widgets/${newname}`);
     }
     let patterns = [
         {
             match: /ioBroker template Adapter/g,
-            replacement: newname
+            replacement: newname,
         },
         {
             match: /template/g,
-            replacement: newname
+            replacement: newname,
         },
         {
             match: /Template/g,
-            replacement: newname ? (newname[0].toUpperCase() + newname.substring(1)) : 'Template'
+            replacement: newname ? newname[0].toUpperCase() + newname.substring(1) : 'Template',
         },
         {
             match: /@@Author@@/g,
-            replacement: author
+            replacement: author,
         },
         {
             match: /@@email@@/g,
-            replacement: email
-        }
+            replacement: email,
+        },
     ];
     let files = [
-        __dirname + '/io-package.json',
-        __dirname + '/LICENSE',
-        __dirname + '/package.json',
-        __dirname + '/README.md',
-        __dirname + '/main.js',
-        __dirname + '/gulpfile.js',
-        __dirname + '/widgets/' + newname +'.html',
-        __dirname + '/www/index.html',
-        __dirname + '/admin/index.html',
-        __dirname + '/admin/index_m.html',
-        __dirname + '/widgets/' + newname + '/js/' + newname +'.js',
-        __dirname + '/widgets/' + newname + '/css/style.css'
+        `${__dirname}/io-package.json`,
+        `${__dirname}/LICENSE`,
+        `${__dirname}/package.json`,
+        `${__dirname}/README.md`,
+        `${__dirname}/main.js`,
+        `${__dirname}/gulpfile.js`,
+        `${__dirname}/widgets/${newname}.html`,
+        `${__dirname}/www/index.html`,
+        `${__dirname}/admin/index.html`,
+        `${__dirname}/admin/index_m.html`,
+        `${__dirname}/widgets/${newname}/js/${newname}.js`,
+        `${__dirname}/widgets/${newname}/css/style.css`,
     ];
     files.forEach(function (f) {
         try {
@@ -478,11 +491,10 @@ gulp.task('rename', function ()  {
                 fs.writeFileSync(f, data);
             }
         } catch (e) {
-
+            this.log.info(`Error: ${e}`);
         }
     });
 });
-
 gulp.task('updateReadme', function (done) {
     const readme = fs.readFileSync('README.md').toString();
     const pos = readme.indexOf('## Changelog\n');
@@ -492,22 +504,25 @@ gulp.task('updateReadme', function (done) {
 
         if (readme.indexOf(version) === -1) {
             const timestamp = new Date();
-            const date = timestamp.getFullYear() + '-' +
-                    ('0' + (timestamp.getMonth() + 1).toString(10)).slice(-2) + '-' +
-                    ('0' + (timestamp.getDate()).toString(10)).slice(-2);
+            const date = `${timestamp.getFullYear()}-${`0${(timestamp.getMonth() + 1).toString(10)}`.slice(-2)}-${`0${timestamp.getDate().toString(10)}`.slice(
+                -2,
+            )}`;
 
             let news = '';
             if (iopackage.common.news && iopackage.common.news[pkg.version]) {
-                news += '* ' + iopackage.common.news[pkg.version].en;
+                news += `* ${iopackage.common.news[pkg.version].en}`;
             }
 
-            fs.writeFileSync('README.md', readmeStart + '### ' + version + ' (' + date + ')\n' + (news ? news + '\n\n' : '\n') + readmeEnd);
+            fs.writeFileSync(
+                'README.md',
+                `${readmeStart}### ${version} (${date})\n${news ? `${news}\n\n` : '\n'}${readmeEnd}`,
+            );
         }
     }
     done();
 });
 
-gulp.task('translate', async function (done) {
+gulp.task('translate', async function (_done) {
     if (iopackage && iopackage.common) {
         if (iopackage.common.news) {
             for (let k in iopackage.common.news) {
@@ -526,25 +541,24 @@ gulp.task('translate', async function (done) {
             let enTranslations = require('./admin/i18n/en/translations.json');
             for (let l in languages) {
                 let existing = {};
-                if (fs.existsSync('./admin/i18n/' + l + '/translations.json')) {
-                    existing = require('./admin/i18n/' + l + '/translations.json');
+                if (fs.existsSync(`./admin/i18n/${l}/translations.json`)) {
+                    existing = require(`./admin/i18n/${l}/translations.json`);
                 }
                 for (let t in enTranslations) {
                     if (!existing[t]) {
                         existing[t] = await translate(enTranslations[t], l);
                     }
                 }
-                if (!fs.existsSync('./admin/i18n/' + l + '/')) {
-                    fs.mkdirSync('./admin/i18n/' + l + '/');
+                if (!fs.existsSync(`./admin/i18n/${l}/`)) {
+                    fs.mkdirSync(`./admin/i18n/${l}/`);
                 }
-                fs.writeFileSync('./admin/i18n/' + l + '/translations.json', JSON.stringify(existing, null, 4));
+                fs.writeFileSync(`./admin/i18n/${l}/translations.json`, JSON.stringify(existing, null, 4));
             }
         }
-
     }
     fs.writeFileSync('io-package.json', JSON.stringify(iopackage, null, 4));
 });
 
-gulp.task("translateAndUpdateWordsJS", gulp.series("translate", "adminLanguages2words"));
+gulp.task('translateAndUpdateWordsJS', gulp.series('translate', 'adminLanguages2words'));
 
 gulp.task('default', gulp.series('updatePackages', 'updateReadme'));
