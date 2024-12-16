@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "news": {
+      "1.5.1": {
+        "en": "Testing Node 22.x implemented",
+        "de": "Test Node 22.x implementiert",
+        "ru": "Испытательный узел 22.x реализован",
+        "pt": "Testando o nó 22.x implementado",
+        "nl": "Testknop 22.x geïmplementeerd",
+        "fr": "Test Node 22.x mis en œuvre",
+        "it": "Test Node 22.x implementato",
+        "es": "Número de prueba 22.x aplicado",
+        "pl": "Węzeł testowy 22.x wdrożony",
+        "uk": "Тестування Node 22.x реалізовано",
+        "zh-cn": "测试节点22x已实施"
+      },
       "1.5.0": {
         "en": "A problem has been fixed which cause 'too many requests' errors [#241, #245, #311]. The recommended update interval for playlist information is now 60 minutes.\nA DNS cache has been added [#341].\nPotentially fix 'Current played track is not highlighted' [#283]\nSome state types have been fixed\nDependencies have been updated",
         "de": "Es wurde ein Problem behoben, das 'zu viele Anfragen' Fehler verursacht [#241, #245, #311]. Das empfohlene Update-Intervall für Wiedergabelisteninformationen beträgt jetzt 60 Minuten.\nEin DNS-Cache wurde hinzugefügt [#341].\nPotentielle fix 'Current gespielter Track wird nicht hervorgehoben' [#283]\nEinige Zustandstypen wurden behobenkorrigiert\nAbhängigkeiten wurden aktualisiert",
@@ -78,18 +91,6 @@
         "es": "Prevenir las advertencias del controlador js",
         "pl": "Zapobiegaj ostrzeżeniom kontrolera js",
         "zh-cn": "防止 js-controller 警告"
-      },
-      "1.2.0": {
-        "en": "Fix tracklist request issues\nFix several potential crash cases and object warnings\nAdd Sentry for crash reporting",
-        "de": "Beheben Sie Probleme mit Tracklist-Anforderungen\nBeheben Sie mehrere potenzielle Absturzfälle und Objektwarnungen\nFügen Sie Sentry für Absturzberichte hinzu",
-        "ru": "Исправить проблемы с запросом треклиста\nИсправлено несколько возможных случаев сбоя и предупреждений об объектах.\nДобавьте Sentry для отчетов о сбоях",
-        "pt": "Corrigir problemas de solicitação de lista de faixas\nCorrigir vários casos de falha em potencial e avisos de objetos\nAdicionar Sentinela para relatórios de falhas",
-        "nl": "Problemen met tracklijstverzoeken oplossen\nVerschillende mogelijke crashgevallen en objectwaarschuwingen oplossen\nSentry toevoegen voor crashrapportage",
-        "fr": "Résoudre les problèmes de demande de liste de pistes\nCorrection de plusieurs cas de plantage potentiels et avertissements d'objet\nAjouter Sentry pour les rapports de plantage",
-        "it": "Risolti i problemi di richiesta della tracklist\nRisolvi diversi potenziali casi di arresto anomalo e avvisi sugli oggetti\nAggiungi Sentinella per la segnalazione degli arresti anomali",
-        "es": "Solucionar problemas de solicitud de lista de canciones\nSolucione varios posibles casos de bloqueo y advertencias de objetos\nAgregar Sentry para informes de fallas",
-        "pl": "Napraw problemy z żądaniami listy utworów\nNapraw kilka potencjalnych przypadków awarii i ostrzeżeń o obiektach\nDodaj Sentry do zgłaszania awarii",
-        "zh-cn": "修复曲目列表请求问题\n修复几个潜在的崩溃案例和对象警告\n添加 Sentry 以进行崩溃报告"
       }
     },
     "titleLang": {
