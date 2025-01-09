@@ -16,19 +16,6 @@
         "uk": "ESLint 9 реалізований",
         "zh-cn": "已执行ESLint 9"
       },
-      "1.5.1": {
-        "en": "Testing Node 22.x implemented",
-        "de": "Test Node 22.x implementiert",
-        "ru": "Испытательный узел 22.x реализован",
-        "pt": "Testando o nó 22.x implementado",
-        "nl": "Testknop 22.x geïmplementeerd",
-        "fr": "Test Node 22.x mis en œuvre",
-        "it": "Test Node 22.x implementato",
-        "es": "Número de prueba 22.x aplicado",
-        "pl": "Węzeł testowy 22.x wdrożony",
-        "uk": "Тестування Node 22.x реалізовано",
-        "zh-cn": "测试节点22x已实施"
-      },
       "1.5.0": {
         "en": "A problem has been fixed which cause 'too many requests' errors [#241, #245, #311]. The recommended update interval for playlist information is now 60 minutes.\nA DNS cache has been added [#341].\nPotentially fix 'Current played track is not highlighted' [#283]\nSome state types have been fixed\nDependencies have been updated",
         "de": "Es wurde ein Problem behoben, das 'zu viele Anfragen' Fehler verursacht [#241, #245, #311]. Das empfohlene Update-Intervall für Wiedergabelisteninformationen beträgt jetzt 60 Minuten.\nEin DNS-Cache wurde hinzugefügt [#341].\nPotentielle fix 'Current gespielter Track wird nicht hervorgehoben' [#283]\nEinige Zustandstypen wurden behobenkorrigiert\nAbhängigkeiten wurden aktualisiert",
