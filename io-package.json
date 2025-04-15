@@ -133,7 +133,9 @@
     "compact": true,
     "connectionType": "cloud",
     "dataSource": "poll",
-    "materialize": true,
+    "adminUI": {
+    "config": "materialize"
+    }
     "tier": 2,
     "dependencies": [
       {
