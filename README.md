@@ -101,7 +101,7 @@ Click for widget source.
     ### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
-- (aruttkamp) redirect URI changed
+- (aruttkamp) redirect URI changed [#429]
 
 ### 1.5.2 (2024-12-16)
 - (aruttkamp) ESLint 9 implemented
