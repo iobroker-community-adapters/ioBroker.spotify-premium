@@ -91,6 +91,7 @@
         "it": "Fissare potenziali casi di crash segnalati da Sentry\nOttimizzare il comportamento di arresto dell'adattatore",
         "es": "Fijar posibles casos de accidentes reportados por Sentry\nOptimize adapter stop behaviour",
         "pl": "Fixowe przypadki katastrofy (ang.)\nOptimize adaptator stop behaviour",
+        "uk": "",
         "zh-cn": "Sentry报告的潜在事故\n减少适应者停止行为"
       }
     },
@@ -154,7 +155,7 @@
     ],
     "globalDependencies": [
       {
-        "admin": ">=6.13.16"
+        "admin": ">=7.4.10"
       }
     ],
     "plugins": {
