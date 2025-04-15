@@ -7,15 +7,18 @@ const utils = require('@iobroker/adapter-core');
 const cache = require('./lib/cache');
 const ownUtils = require('./lib/utils');
 
-const querystring = require('querystring');
-const _request = require('request');
-
 const { lookup } = require('dns-lookup-cache');
 
+const querystring = require('querystring');
+
+const axios = require('axios');
+
 function request(options) {
-    return new Promise((resolve, reject) =>
-        _request(options, (error, status) => (error ? reject(error) : resolve(status))),
-    );
+    return axios(options)
+        .then(response => response.status) // oder: response.data, je nach dem, was du brauchst
+        .catch(error => {
+            throw error;
+        });
 }
 
 let adapter;

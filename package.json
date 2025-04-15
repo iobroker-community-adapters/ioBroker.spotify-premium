@@ -40,8 +40,8 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.2.3",
-    "dns-lookup-cache": "^1.0.4",
-    "request": "^2.88.2"
+    "axios": "^1.8.4",
+    "dns-lookup-cache": "^1.0.4"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^3.8.0",
