@@ -135,7 +135,7 @@
     "dataSource": "poll",
     "adminUI": {
     "config": "materialize"
-    }
+    },
     "tier": 2,
     "dependencies": [
       {
