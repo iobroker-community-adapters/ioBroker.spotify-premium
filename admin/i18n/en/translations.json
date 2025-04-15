@@ -17,7 +17,7 @@
   "manual11": "The value in 'spotify-premium.X.authorization.authorized' turns to true if everything was successful",
   "manual12": "Video Tutorial",
   "manual2": "Create an application, you get a Client ID and a Client Secret",
-  "manual3": "Set the redirect URIs to 'http://localhost' in your app settings at your created spotify application",
+  "manual3": "Set the redirect URIs to 'http://127.0.0.1' in your app settings at your created spotify application",
   "manual4": "Put the Client ID and Client Secret in the fields down below",
   "manual5": "Save the changes",
   "manual6": "Switch to objects tab and push the button getAuthorization at 'spotify-premium.X.authorization'",
@@ -25,11 +25,11 @@
   "manual7": "Copy the appearing URL from 'spotify-premium.X.authorization.authorizationUrl' to your webbrowser and call it",
   "manual8": "You maybe need to sign in to spotify and grant access",
   "manual9": "The browser will redirected to an invalid URL. If the error 'invalid redirect uri' occurs please verify step 3",
-  "message": "Now the new window will be opened. Please enter password and login and authorize the application.<br/>After the page is redirected to \"http://localhost\" with the error - \"page not found\".<br/>Copy this URL into the input field below and press \"Send\" button",
+  "message": "Now the new window will be opened. Please enter password and login and authorize the application.<br/>After the page is redirected to \"http://127.0.0.1\" with the error - \"page not found\".<br/>Copy this URL into the input field below and press \"Send\" button",
   "off": "off",
   "on": "on",
   "on save adapter restarts with new config immediately": "on save adapter restarts with new config immediately",
   "playlistInterval": "Refresh interval for playlist information. (in minutes, recommended 15, 0 = disabled)",
-  "sendLabel": "Copy here the link from other window. Starts with \"http://localhost/?code=...\" and press \"Send\"",
+  "sendLabel": "Copy here the link from other window. Starts with \"http://127.0.0.1/?code=...\" and press \"Send\"",
   "statusInterval": "Refresh interval for status information. (in seconds, recommended 10, 0 = disabled). Only required if you control Spotify on devices apart from the adapter."
 }

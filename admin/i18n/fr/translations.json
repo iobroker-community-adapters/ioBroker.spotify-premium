@@ -17,7 +17,7 @@
   "manual11": "tout est correctement configuré si vrai dans 'spotify-premium.X.authorization.authorized'",
   "manual12": "Didacticiel vidéo",
   "manual2": "Créer une application, obtenir un Client ID et un Client Secret",
-  "manual3": "Dans les paramètres de l'application de votre application, entrez 'http://localhost' sur Redirect URIs",
+  "manual3": "Dans les paramètres de l'application de votre application, entrez 'http://127.0.0.1' sur Redirect URIs",
   "manual4": "entrez votre Cliend ID et Client Secret ici",
   "manual5": "Démarrer l'instance",
   "manual6": "passer à l'onglet Objets et cliquer sur 'getAuthorization' sous 'spotify-premium.X.authorization'",
@@ -25,11 +25,11 @@
   "manual7": "Copiez l'URL affichée sous 'spotify-premium.X.authorization.authorizationUrl' dans un navigateur Web et accédez-y.",
   "manual8": "Vous devrez peut-être vous connecter à Spotify et autoriser l'accès.",
   "manual9": "Le navigateur rejettera la connexion et retournera une URL dans la barre d'adresse. Si l'erreur 'invalid redirect uri' apparaît, assurez-vous que l'étape 3 a bien été effectuée.",
-  "message": "Maintenant, la nouvelle fenêtre s'ouvrira. Veuillez entrer le mot de passe et vous connecter et autoriser l'application.<br/> Une fois la page redirigée vers \"http://localhost\" avec l'erreur - \"page not found\".<br/> Copiez cette URL dans le champ de saisie ci-dessous et appuyez sur le bouton \"Envoyer\"",
+  "message": "Maintenant, la nouvelle fenêtre s'ouvrira. Veuillez entrer le mot de passe et vous connecter et autoriser l'application.<br/> Une fois la page redirigée vers \"http://127.0.0.1\" avec l'erreur - \"page not found\".<br/> Copiez cette URL dans le champ de saisie ci-dessous et appuyez sur le bouton \"Envoyer\"",
   "off": "désactivé",
   "on": "au",
   "on save adapter restarts with new config immediately": "sur l'adaptateur de sauvegarde redémarre avec la nouvelle config immédiatement",
   "playlistInterval": "Intervalle d'actualisation pour les informations de playlist. (en minutes, recommandé 15, 0 = désactivé)",
-  "sendLabel": "Copiez ici le lien d'une autre fenêtre. Commence par \"http://localhost/?code=...\" et appuyez sur \"Envoyer\"",
+  "sendLabel": "Copiez ici le lien d'une autre fenêtre. Commence par \"http://127.0.0.1/?code=...\" et appuyez sur \"Envoyer\"",
   "statusInterval": "Intervalle d'actualisation pour les informations d'état. (en secondes, recommandé 10, 0 = désactivé). Requis uniquement si vous contrôlez Spotify sur des appareils autres que l'adaptateur."
 }

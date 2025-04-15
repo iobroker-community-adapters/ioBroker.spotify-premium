@@ -17,7 +17,7 @@
   "manual11": "tudo está configurado corretamente se verdadeiro em 'spotify-premium.X.authorization.authorized'",
   "manual12": "Vídeo tutorial",
   "manual2": "Crie um aplicativo, obtenha um Client ID e um Client Secret",
-  "manual3": "nas configurações do aplicativo do seu aplicativo, digite 'http://localhost' no Redirect URIs",
+  "manual3": "nas configurações do aplicativo do seu aplicativo, digite 'http://127.0.0.1' no Redirect URIs",
   "manual4": "insira seu Cliend ID e Client Secret aqui",
   "manual5": "Comece a instância",
   "manual6": "mude para a guia Objetos e clique no botão getAuthorization em 'spotify-premium.X.authorization'",
@@ -25,11 +25,11 @@
   "manual7": "Copie o URL exibido em 'spotify-premium.X.authorization.authorizationUrl' para um navegador da Web e vá até ele.",
   "manual8": "Talvez seja necessário fazer login no Spotify e permitir o acesso.",
   "manual9": "O navegador rejeitará a conexão e retornará um URL na barra de endereços. Se o erro 'invalid redirect uri' aparecer, verifique se o passo 3 foi executado.",
-  "message": "Agora a nova janela será aberta. Por favor, insira a senha e login e autorize o aplicativo.<br/> Depois que a página for redirecionada para \"http:// localhost\" com o erro - \"página não encontrada\".<br/> Copie este URL no campo de entrada abaixo e pressione o botão \"Envia\"",
+  "message": "Agora a nova janela será aberta. Por favor, insira a senha e login e autorize o aplicativo.<br/> Depois que a página for redirecionada para \"http://127.0.0.1\" com o erro - \"página não encontrada\".<br/> Copie este URL no campo de entrada abaixo e pressione o botão \"Envia\"",
   "off": "desligado",
   "on": "sobre",
   "on save adapter restarts with new config immediately": "no adaptador de salvar reinicia com nova configuração imediatamente",
   "playlistInterval": "Intervalo de atualização para informações de playlist. (em minutos, recomendado 15, 0 = desativado)",
-  "sendLabel": "Copie aqui o link de outra janela. Começa com \"http:// localhost /? Code = ...\" e pressione \"Enviar\"",
+  "sendLabel": "Copie aqui o link de outra janela. Começa com \"http://127.0.0.1/?Code=...\" e pressione \"Enviar\"",
   "statusInterval": "Intervalo de atualização para informações de status. (em segundos, recomendado 10, 0 = desativado). Necessário somente se você controlar o Spotify em dispositivos além do adaptador."
 }

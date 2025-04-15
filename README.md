@@ -32,7 +32,7 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 ### Setup / Authorization
 1. Sign in on https://developer.spotify.com/dashboard/
 2. Create an application, you get a Client ID and a Client Secret
-3. Set the redirect URIs to `http://localhost` in your app settings at your created spotify application
+3. Set the redirect URIs to `http://127.0.0.1` in your app settings at your created spotify application
 4. Put the Client ID and Client Secret in the fields down below
 5. Start the instance
 6. Switch to the objects tab and push the button getAuthorization at `spotify-premium.0.authorization`
@@ -100,6 +100,9 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+- (aruttkamp) redirect URI changed
+
 ### 1.5.2 (2024-12-16)
 - (aruttkamp) ESLint 9 implemented
 

@@ -33,7 +33,7 @@ const application = {
     deleteDevices: false,
     deletePlaylists: false,
     keepShuffleState: true,
-    redirect_uri: 'http://localhost',
+    redirect_uri: 'http://127.0.0.1',
     token: '',
     refreshToken: '',
     code: '',
