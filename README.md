@@ -127,7 +127,7 @@ Click for widget source.
 ## License
 The MIT License (MIT)
 
-Copyright (c) 2024 iobroker-community-adapters <iobroker-community-adapters@gmx.de>
+Copyright (c) 2024-2025 iobroker-community-adapters <iobroker-community-adapters@gmx.de>
 Copyright (c) 2019-2023 twonky4 <twonky4@gmx.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
