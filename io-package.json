@@ -80,19 +80,6 @@
         "pl": "Problem został ustalony, co powoduje 'too many tasks' błędów #241, #245'\nAdapter wymaga już 16 węzłów\nTesty zostały zmienione na węzeł 16 i 20\nZależności zostały zaktualizowane",
         "uk": "Проблема була виправлена, яка викликає помилки «до багатьох запитів» [#241, #245]\nАдаптер вимагає nodejs 16 тепер\nТестування було змінено для підтримки вузлів 16, 18 та 20\nОновлено залежність",
         "zh-cn": "已确定一个问题,造成许多请求的错误[第241号、第245号]\n道歉现在需要16个不听众。\n试验已改变,以支持第16、18和20号。\n已更新了属地"
-      },
-      "1.2.2": {
-        "en": "Fix potential crash cases reported by Sentry\nOptimize adapter stop behaviour",
-        "de": "Behebt mögliche Crashfälle, die von Sentry gemeldet wurden\nOptimieren des Adapters",
-        "ru": "Исправление потенциальных аварийных случаев, сообщенных Sentry\nОптимизируйте поведение остановки адаптера",
-        "pt": "Corrigir casos potenciais de acidente relatados pela Sentry\nOtimizar o comportamento da parada do adaptador",
-        "nl": "Vertaling:\nOptimize adapter stop gedrag",
-        "fr": "Correction des cas de crash potentiels signalés par Sentry\nOptimiser le comportement d'arrêt de l'adaptateur",
-        "it": "Fissare potenziali casi di crash segnalati da Sentry\nOttimizzare il comportamento di arresto dell'adattatore",
-        "es": "Fijar posibles casos de accidentes reportados por Sentry\nOptimize adapter stop behaviour",
-        "pl": "Fixowe przypadki katastrofy (ang.)\nOptimize adaptator stop behaviour",
-        "uk": "",
-        "zh-cn": "Sentry报告的潜在事故\n减少适应者停止行为"
       }
     },
     "titleLang": {
