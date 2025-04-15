@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.5.2",
+    "version": "1.5.3",
     "news": {
+      "1.5.3": {
+        "en": "redirect URI changed [#429]",
+        "de": "umleitung URI geändert [#429]",
+        "ru": "перенаправление URI изменено [#429]",
+        "pt": "redirecionar URI mudou [#429]",
+        "nl": "redirect URI gewijzigd [#429]",
+        "fr": "rediriger URI changé [#429]",
+        "it": "redirect URI cambiato [#429]",
+        "es": "redirect URI changed [#429]",
+        "pl": "przekierowanie URI zmienione [# 429]",
+        "uk": "змінено [#429]",
+        "zh-cn": "重定向 URI 更改 [# 429]"
+      },
       "1.5.2": {
         "en": "ESLint 9 implemented",
         "de": "ESLint 9 implementiert",

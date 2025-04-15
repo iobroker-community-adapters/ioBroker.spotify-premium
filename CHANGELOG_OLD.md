@@ -1,4 +1,7 @@
 # Older changes
+## 1.3.1 (2023-10-31)
+-   (aruttkamp) A problem has been fixed which cause 'Error 400' with playUri errors [#259]
+
 ## 1.3.0 (2023-10-31)
 -   (aruttkamp) A problem has been fixed which cause 'too many requests' errors [#241, #245]
 -   (mcm1957) Adapter requires nodejs 16 now

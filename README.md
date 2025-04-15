@@ -100,7 +100,7 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.5.3 (2025-04-15)
 - (aruttkamp) redirect URI changed [#429]
 
 ### 1.5.2 (2024-12-16)
@@ -120,9 +120,6 @@ Click for widget source.
 * (mcm1957) Adapter requires node.js 18 and js-controller >= 5 now
 * (N1tR0) A problem has been fixed that did not correctly update the progress of playing media [#339]
 * (mcm1957) Dependencies have been updated0
-
-### 1.3.1 (2023-10-31)
--   (aruttkamp) A problem has been fixed which cause 'Error 400' with playUri errors [#259]
 
 ## License
 The MIT License (MIT)
