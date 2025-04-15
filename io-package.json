@@ -146,7 +146,7 @@
     "compact": true,
     "connectionType": "cloud",
     "dataSource": "poll",
-    "materialize": true,
+    "adminUI.config": true,
     "tier": 2,
     "dependencies": [
       {
