@@ -1,0 +1,83 @@
+{
+    "type": "tab",
+    "label": "Settings",
+    "items": [
+      {
+        "type": "group",
+        "label": "Authentication",
+        "items": [
+          {
+            "type": "text",
+            "name": "client_id",
+            "label": "Client ID"
+          },
+          {
+            "type": "password",
+            "name": "client_secret",
+            "label": "Client Secret"
+          }
+        ]
+      },
+      {
+        "type": "group",
+        "label": "Delete Options",
+        "items": [
+          {
+            "type": "checkbox",
+            "name": "delete_devices",
+            "label": "Delete Devices"
+          },
+          {
+            "type": "checkbox",
+            "name": "delete_playlists",
+            "label": "Delete Playlists"
+          }
+        ]
+      },
+      {
+        "type": "group",
+        "label": "State Options",
+        "items": [
+          {
+            "type": "checkbox",
+            "name": "keep_shuffle_state",
+            "label": "Keep Shuffle State"
+          },
+          {
+            "type": "select",
+            "name": "defaultShuffle",
+            "label": "Default Shuffle Mode",
+            "options": [
+              { "value": "on", "label": "On" },
+              { "value": "off", "label": "Off" }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "group",
+        "label": "Intervals (in seconds)",
+        "items": [
+          {
+            "type": "number",
+            "name": "status_interval",
+            "label": "Status Interval",
+            "min": 1
+          },
+          {
+            "type": "number",
+            "name": "device_interval",
+            "label": "Device Interval",
+            "min": 1
+          },
+          {
+            "type": "number",
+            "name": "playlist_interval",
+            "label": "Playlist Interval",
+            "min": 1
+          }
+        ]
+      }
+    ]
+  }
+  
