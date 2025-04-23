@@ -36,7 +36,7 @@ const application = {
     deleteDevices: false,
     deletePlaylists: false,
     keepShuffleState: true,
-    redirect_uri: 'http://127.0.0.1:8000/callback',
+    redirect_uri: 'http://127.0.0.1:8081/callback',
     token: '',
     refreshToken: '',
     code: '',
