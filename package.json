@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.2.3",
-    "axios": "^1.8.4",
+    "axios": "^1.9.0",
     "dns-lookup-cache": "^1.0.4"
   },
   "devDependencies": {
