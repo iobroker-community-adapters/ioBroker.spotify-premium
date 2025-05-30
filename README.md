@@ -49,7 +49,7 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 All states are described in admin.
 
 ### VIS usage examples
-Click for widget source.
+Click for a widget source.
 <details>
   <summary>Start one specific playlist<br/><img src="docs/en/img/choose_playlist.png"></summary>
 <pre><code>[{"tpl":"tplJquiButtonState","data":{"oid":"spotify-premium.0.playlists.YourPlaylistName.playThisList","g_fixed":false,"g_visibility":false,"g_css_font_text":false,"g_css_background":false,"g_css_shadow_padding":false,"g_css_border":false,"g_gestures":false,"g_signals":false,"g_last_change":false,"visibility-cond":"==","visibility-val":1,"visibility-groups-action":"hide","buttontext":"Choose Playlist","signals-cond-0":"==","signals-val-0":true,"signals-icon-0":"/vis/signals/lowbattery.png","signals-icon-size-0":0,"signals-blink-0":false,"signals-horz-0":0,"signals-vert-0":0,"signals-hide-edit-0":false,"signals-cond-1":"==","signals-val-1":true,"signals-icon-1":"/vis/signals/lowbattery.png","signals-icon-size-1":0,"signals-blink-1":false,"signals-horz-1":0,"signals-vert-1":0,"signals-hide-edit-1":false,"signals-cond-2":"==","signals-val-2":true,"signals-icon-2":"/vis/signals/lowbattery.png","signals-icon-size-2":0,"signals-blink-2":false,"signals-horz-2":0,"signals-vert-2":0,"signals-hide-edit-2":false,"lc-type":"last-change","lc-is-interval":true,"lc-is-moment":false,"lc-format":"","lc-position-vert":"top","lc-position-horz":"right","lc-offset-vert":0,"lc-offset-horz":0,"lc-font-size":"12px","lc-font-family":"","lc-font-style":"","lc-bkg-color":"","lc-color":"","lc-border-width":"0","lc-border-style":"","lc-border-color":"","lc-border-radius":10,"lc-zindex":0,"value":"true","no_style":false},"style":{"left":"549px","top":"364px"},"widgetSet":"jqui"}]</code></pre>
@@ -101,7 +101,9 @@ Click for widget source.
     ### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
-- (aruttkamp) correct issues detected by repsoitory checker [#421]
+- (aruttkamp) correct issues detected by repository checker [#421]
+- (@GermanBluefox) Completely rewritten in TypeScript
+- (@GermanBluefox) Added OAuth2 token handling
 
 ### 1.5.3 (2025-04-15)
 - (aruttkamp) redirect URI changed [#429]
@@ -113,7 +115,7 @@ Click for widget source.
 - (aruttkamp) Testing Node 22.x implemented
 
 ### 1.5.0 (2024-04-18)
-- (N1tR0) A problem has been fixed which cause 'too many requests' errors [#241, #245, #311]. The recommended update interval for playlist information is now 60 minutes.
+- (N1tR0) A problem has been fixed which causes 'too many requests' errors [#241, #245, #311]. The recommended update interval for playlist information is now 60 minutes.
 - (N1tR0) A DNS cache has been added [#341].
 - (N1tR0) Potentially fix 'Current played track is not highlighted' [#283]
 - (N1tR0) Some state types have been fixed

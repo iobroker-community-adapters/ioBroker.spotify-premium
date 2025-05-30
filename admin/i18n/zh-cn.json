@@ -1,0 +1,14 @@
+{
+  "Default Shuffle Mode": "默认随机播放状态",
+  "Delete Devices": "删除不再存在的设备",
+  "Delete Playlists": "删除不再存在的播放列表",
+  "Device Interval": "设备信息刷新间隔",
+  "Device Interval_tooltip": "以分钟为单位，建议5，0=禁用",
+  "Keep Shuffle State": "在某些设备上，如果启动了播放列表，随机播放功能将始终处于禁用状态。使用此选项可以采用一种变通方法来避免此行为。",
+  "Off": "离开",
+  "On": "在",
+  "Playlist Interval": "播放列表信息的刷新间隔",
+  "Playlist Interval_tooltip": "以分钟为单位，建议15，0=禁用",
+  "Status Interval": "状态信息的刷新间隔",
+  "Status Interval_tooltip": "以秒为单位，建议设置为 10，0 表示禁用。仅当您在适配器以外的设备上控制 Spotify 时才需要"
+}

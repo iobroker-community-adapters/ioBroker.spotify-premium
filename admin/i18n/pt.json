@@ -1,0 +1,14 @@
+{
+  "Default Shuffle Mode": "Estado de embaralhamento padrão",
+  "Delete Devices": "Excluir dispositivos que não existem mais",
+  "Delete Playlists": "Excluir listas de reprodução que não existem mais",
+  "Device Interval": "Intervalo de atualização das informações do dispositivo",
+  "Device Interval_tooltip": "Em minutos, recomendado 5, 0 = desabilitado",
+  "Keep Shuffle State": "Em alguns dispositivos, o shuffle será sempre desativado se uma lista de reprodução for iniciada. Com esta opção, uma solução alternativa é usada para evitar esse comportamento.",
+  "Off": "desligado",
+  "On": "sobre",
+  "Playlist Interval": "Intervalo de atualização para informações da lista de reprodução",
+  "Playlist Interval_tooltip": "Em minutos, recomendado 15, 0 = desabilitado",
+  "Status Interval": "Intervalo de atualização para informações de status",
+  "Status Interval_tooltip": "Em segundos, recomendado 10, 0 = desabilitado. Necessário somente se você controlar o Spotify em dispositivos diferentes do adaptador."
+}
