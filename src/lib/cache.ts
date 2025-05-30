@@ -1,5 +1,3 @@
-import { removeNameSpace, setUtilsAdapter } from './utils';
-
 const listener: {
     ackIsFalse?: boolean;
     name: string | RegExp;
@@ -36,6 +34,11 @@ function getPath(id: string): CacheNode {
     }
 
     return path;
+}
+
+export function removeNameSpace(id: string): string {
+    const re = new RegExp(`${adapter.namespace}*.`, 'g');
+    return id.replace(re, '');
 }
 
 export async function init(): Promise<void> {
@@ -309,5 +312,4 @@ export function on(
 
 export function setAdapter(a: ioBroker.Adapter): void {
     adapter = a;
-    setUtilsAdapter(a);
 }

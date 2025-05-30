@@ -1,6 +1,7 @@
 import { Adapter, type AdapterOptions } from '@iobroker/adapter-core';
 import type {
     AdapterStoreSong,
+    SpotifyArtistFull,
     SpotifyDevicesResponse,
     SpotifyPlaybackState,
     SpotifyPlaylist,
@@ -11,12 +12,13 @@ import type {
     SpotifyUser,
 } from './types';
 import * as cache from './lib/cache';
-import { isEmpty, removeNameSpace } from './lib/utils';
 import { stringify as stringifyQuery } from 'node:querystring';
 // @ts-expect-error no types
 import { lookup } from 'dns-lookup-cache';
 import axios from 'axios';
 import { TokenRefresher } from './lib/TokenRefresher';
+
+const removeNameSpace = cache.removeNameSpace;
 
 export class SpotifyPremiumAdapter extends Adapter {
     declare public config: SpotifyPremiumAdapterConfig;
@@ -174,26 +176,15 @@ export class SpotifyPremiumAdapter extends Adapter {
         this.application.keepShuffleState = this.config.keep_shuffle_state;
         let deviceInterval = this.config.device_interval;
         let playlistInterval = this.config.playlist_interval;
-        if (isEmpty(this.application.deleteDevices)) {
-            this.application.deleteDevices = false;
-        }
-        if (isEmpty(this.application.deletePlaylists)) {
-            this.application.deletePlaylists = false;
-        }
-        if (isEmpty(this.application.keepShuffleState)) {
-            this.application.keepShuffleState = false;
-        }
-        if (isEmpty(this.application.statusPollingDelaySeconds)) {
-            this.application.statusPollingDelaySeconds = 5;
-        } else if (this.application.statusPollingDelaySeconds < 1 && this.application.statusPollingDelaySeconds != 0) {
+        this.application.deleteDevices ||= false;
+        this.application.deletePlaylists ||= false;
+        this.application.keepShuffleState ||= false;
+        this.application.statusPollingDelaySeconds ??= 5;
+        if (this.application.statusPollingDelaySeconds < 1 && this.application.statusPollingDelaySeconds != 0) {
             this.application.statusPollingDelaySeconds = 1;
         }
-        if (isEmpty(deviceInterval)) {
-            deviceInterval = 0;
-        }
-        if (isEmpty(playlistInterval)) {
-            playlistInterval = 0;
-        }
+        deviceInterval ||= 0;
+        playlistInterval ||= 0;
         if (deviceInterval < 1 && deviceInterval != 0) {
             deviceInterval = 1;
         }
@@ -226,7 +217,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         await cache.setValue('info.connection', true);
         this.listenOnGetPlaybackInfo();
         await this.reloadUsersPlaylist().catch(() => {});
-        this.listenOnGetDevices();
+        await this.listenOnGetDevices();
     }
 
     async sendRequest<T = any>(
@@ -364,7 +355,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             },
             native: {},
         };
-        if (!isEmpty(states)) {
+        if (states) {
             object.common.states = states;
         }
         return cache.setValue(state, t, object);
@@ -381,11 +372,7 @@ export class SpotifyPremiumAdapter extends Adapter {
     }
 
     static shrinkStateName(v: string): string {
-        let n = v.replace(/[\s."`'*,\\?<>[\];:]+/g, '');
-        if (isEmpty(n)) {
-            n = 'onlySpecialCharacters';
-        }
-        return n;
+        return v.replace(/[\s."`'*,\\?<>[\];:]+/g, '') || 'onlySpecialCharacters';
     }
 
     static getArtistNamesOrDefault(
@@ -463,9 +450,7 @@ export class SpotifyPremiumAdapter extends Adapter {
     }
 
     async createPlaybackInfo(data?: SpotifyPlaybackState | null): Promise<void> {
-        if (isEmpty(data)) {
-            data = {} as SpotifyPlaybackState;
-        }
+        data ||= {} as SpotifyPlaybackState;
         const deviceId = data?.device?.id || '';
         const isDeviceActive = data?.device?.is_active || false;
         const isDeviceRestricted = data?.device?.is_restricted || false;
@@ -507,24 +492,22 @@ export class SpotifyPremiumAdapter extends Adapter {
         await cache.setValue('player.device.name', deviceName);
         await cache.setValue('player.device.type', deviceType);
         await cache.setValue('player.device.volume', { val: deviceVolume, ack: true });
-        await cache.setValue('player.device.isAvailable', !isEmpty(deviceName));
+        await cache.setValue('player.device.isAvailable', !!deviceName);
         await cache.setValue('player.device', null, {
             type: 'device',
             _id: `${this.namespace}.player.device`,
             common: {
-                name: isEmpty(deviceName)
-                    ? 'Commands to control playback related to the current active device'
-                    : deviceName,
+                name: deviceName || 'Commands to control playback related to the current active device',
                 icon: SpotifyPremiumAdapter.getIconByType(deviceType),
             },
             native: {},
         });
         await cache.setValue('player.isPlaying', isPlaying);
-        await SpotifyPremiumAdapter.setOrDefault(data!, 'item.id', 'player.trackId', '');
+        await SpotifyPremiumAdapter.setOrDefault(data, 'item.id', 'player.trackId', '');
         await cache.setValue('player.artistName', artist);
         await cache.setValue('player.album', album);
         await cache.setValue('player.albumImageUrl', albumUrl);
-        await SpotifyPremiumAdapter.setOrDefault(data!, 'item.name', 'player.trackName', '');
+        await SpotifyPremiumAdapter.setOrDefault(data, 'item.name', 'player.trackName', '');
         await cache.setValue('player.durationMs', duration);
         await cache.setValue('player.duration', SpotifyPremiumAdapter.convertToDigiClock(duration));
         await cache.setValue('player.type', type);
@@ -532,8 +515,8 @@ export class SpotifyPremiumAdapter extends Adapter {
         await cache.setValue('player.progressPercentage', progressPercentage);
         await cache.setValue('player.progress', SpotifyPremiumAdapter.convertToDigiClock(progress));
         await cache.setValue('player.shuffle', shuffle ? 'on' : 'off');
-        await SpotifyPremiumAdapter.setOrDefault(data!, 'repeat_state', 'player.repeat', 'off');
-        await SpotifyPremiumAdapter.setOrDefault(data!, 'device.volume_percent', 'player.device.volume', 100);
+        await SpotifyPremiumAdapter.setOrDefault(data, 'repeat_state', 'player.repeat', 'off');
+        await SpotifyPremiumAdapter.setOrDefault(data, 'device.volume_percent', 'player.device.volume', 100);
         if (deviceName) {
             this.deviceData.lastActiveDeviceId = deviceId;
             const states = cache.getValues('devices.*');
@@ -604,10 +587,10 @@ export class SpotifyPremiumAdapter extends Adapter {
                 urls.push(this.artistImageUrlCache[artist]);
             } else {
                 try {
-                    const parseJson = await this.sendRequest(`/v1/artists/${artist}`, 'GET', '');
+                    const parseJson = await this.sendRequest<SpotifyArtistFull>(`/v1/artists/${artist}`, 'GET', '');
                     if (parseJson) {
                         const url = parseJson.images?.[0]?.url || '';
-                        if (!isEmpty(url)) {
+                        if (url) {
                             this.artistImageUrlCache[artist] = url;
                             urls.push(url);
                         } else {
@@ -711,9 +694,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                     type: 'channel',
                     _id: `${this.namespace}.player.playlist`,
                     common: {
-                        name: isEmpty(playlistName)
-                            ? 'Commands to control playback related to the playlist'
-                            : playlistName,
+                        name: playlistName || 'Commands to control playback related to the playlist',
                     },
                     native: {},
                 });
@@ -735,7 +716,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 const state = cache.getValue(`playlists.${prefix}.trackListIds`);
                 if (state) {
                     const ids = (state?.val as string) || '';
-                    if (!isEmpty(ids)) {
+                    if (ids) {
                         const stateName = ids.split(';');
                         const stateArr = [];
                         for (let i = 0; i < stateName.length; i++) {
@@ -779,8 +760,8 @@ export class SpotifyPremiumAdapter extends Adapter {
             },
             native: {},
         });
-        this.listenOnHtmlPlaylists();
-        this.listenOnHtmlTracklist();
+        await this.listenOnHtmlPlaylists();
+        await this.listenOnHtmlTracklist();
         await cache.setValue('player.contextImageUrl', contextImage);
         await cache.setValue('player.contextDescription', contextDescription);
     }
@@ -860,7 +841,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         for (let i = 0; i < parseJson.items.length; i++) {
             const item = parseJson.items[i];
             const playlistName = item.name || '';
-            if (isEmpty(playlistName)) {
+            if (!playlistName) {
                 this.log.warn('empty playlist name');
                 continue;
             }
@@ -1094,7 +1075,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 const no = i.toString();
                 data?.items?.forEach(item => {
                     const trackId = item.track.id || '';
-                    if (isEmpty(trackId)) {
+                    if (!trackId) {
                         return this.log.debug(
                             `There was a playlist track ignored because of missing id; playlist: ${id}; track no: ${no}`,
                         );
@@ -1238,7 +1219,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 const device = data.devices[d];
                 const deviceId = device.id || '';
                 const deviceName = device.name || '';
-                if (isEmpty(deviceName)) {
+                if (!deviceName) {
                     this.log.warn('empty device name');
                     continue;
                 }
@@ -1638,13 +1619,11 @@ export class SpotifyPremiumAdapter extends Adapter {
     }
 
     async startPlaylist(playlist: string, owner: string, trackNo: number, keepTrack?: boolean): Promise<void> {
-        if (isEmpty(owner)) {
-            owner = this.application.userId;
-        }
-        if (isEmpty(trackNo)) {
+        owner ||= this.application.userId;
+        if (!trackNo) {
             throw new Error('no track no');
         }
-        if (isEmpty(playlist)) {
+        if (!playlist) {
             throw new Error('no playlist no');
         }
 
@@ -1708,9 +1687,9 @@ export class SpotifyPremiumAdapter extends Adapter {
         }
     };
 
-    listenOnTrackList = (options: { id: string; state: ioBroker.State | null | undefined }): void => {
+    listenOnTrackList = async (options: { id: string; state: ioBroker.State | null | undefined }): Promise<void> => {
         if ((options.state?.val as number) >= 0) {
-            this.listenOnPlayThisList(options, options.state!.val as number);
+            await this.listenOnPlayThisList(options, options.state!.val as number);
         }
     };
 
@@ -1719,7 +1698,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         pos?: number,
     ): Promise<void> => {
         let keepTrack = true;
-        if (isEmpty(pos)) {
+        if (pos === undefined || pos === null) {
             keepTrack = false;
             pos = 0;
         }
@@ -1732,21 +1711,21 @@ export class SpotifyPremiumAdapter extends Adapter {
         const id: string = idState.val as string;
         const owner = ownerState.val as string;
         try {
-            await this.startPlaylist(id, owner, pos!, keepTrack);
+            await this.startPlaylist(id, owner, pos, keepTrack);
         } catch (err) {
             this.log.error(`could not start playlist: ${err}`);
         }
     };
 
     listenOnDeviceList = async (options: { id: string; state: ioBroker.State | null | undefined }): Promise<void> => {
-        if (!isEmpty(options.state?.val)) {
-            await this.listenOnUseForPlayback({ id: `devices.${options.state!.val}.useForPlayback` });
+        if (options.state?.val) {
+            await this.listenOnUseForPlayback({ id: `devices.${options.state.val}.useForPlayback` });
         }
     };
 
     listenOnPlaylistList = async (options: { id: string; state: ioBroker.State | null | undefined }): Promise<void> => {
-        if (!isEmpty(options.state?.val)) {
-            await this.listenOnPlayThisList({ id: `playlists.${options.state!.val}.playThisList` });
+        if (options.state?.val) {
+            await this.listenOnPlayThisList({ id: `playlists.${options.state.val}.playThisList` });
         }
     };
 
@@ -1756,7 +1735,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         };
 
         const send: any = options.state?.val;
-        if (!isEmpty(send.device_id)) {
+        if (send.device_id) {
             query.device_id = send.device_id;
             delete send.device_id;
         }
@@ -2139,8 +2118,8 @@ export class SpotifyPremiumAdapter extends Adapter {
         await cache.setValue('html.playlists', html);
     };
 
-    listenOnHtmlTracklist = (): void => {
-        this.getStateAsync('player.trackId')
+    listenOnHtmlTracklist = (): Promise<void> => {
+        return this.getStateAsync('player.trackId')
             .then((state: ioBroker.State | null | undefined) => {
                 let current_trackID;
                 if (!state?.val) {
@@ -2239,7 +2218,8 @@ export class SpotifyPremiumAdapter extends Adapter {
 
                 return cache.setValue('html.tracks', html);
             })
-            .catch(err => this.log.error(err));
+            .catch(err => this.log.error(err))
+            .then(() => {});
     };
 
     listenOnHtmlDevices = async (): Promise<void> => {

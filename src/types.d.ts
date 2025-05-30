@@ -48,7 +48,7 @@ export type SpotifyPlaybackState = {
             spotify: string;
         };
         href: string;
-        type: 'album' | 'track' | 'artist';
+        type: 'album' | 'track' | 'artist' | 'playlist' | 'collection';
         uri: string;
     };
     progress_ms: number;
@@ -96,7 +96,7 @@ export type SpotifyPlaybackState = {
         popularity: number;
         preview_url: string | null;
         track_number: number;
-        type: 'album' | 'track' | 'artist';
+        type: 'album' | 'track' | 'artist' | 'playlist' | 'collection';
         uri: string;
     };
     currently_playing_type: string;
@@ -199,6 +199,28 @@ export interface SpotifyArtist {
     href: string;
     id: string;
     name: string;
+    type: string;
+    uri: string;
+}
+
+export interface SpotifyArtistFull {
+    external_urls: {
+        spotify: string;
+    };
+    followers: {
+        href: string;
+        total: number;
+    };
+    genres: string[];
+    href: string;
+    id: string;
+    images: {
+        url: string;
+        height: number;
+        width: number;
+    }[];
+    name: string;
+    popularity: number;
     type: string;
     uri: string;
 }

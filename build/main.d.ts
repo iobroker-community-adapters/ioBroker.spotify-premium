@@ -64,7 +64,7 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     listenOnTrackList: (options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => void;
+    }) => Promise<void>;
     listenOnPlayThisList: (options: {
         id: string;
         state?: ioBroker.State | null | undefined;
@@ -136,6 +136,6 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     listenOnGetDevices: () => Promise<void>;
     clearCache(): void;
     listenOnHtmlPlaylists: () => Promise<void>;
-    listenOnHtmlTracklist: () => void;
+    listenOnHtmlTracklist: () => Promise<void>;
     listenOnHtmlDevices: () => Promise<void>;
 }

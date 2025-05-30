@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.removeNameSpace = removeNameSpace;
 exports.init = init;
 exports.getValues = getValues;
 exports.getValue = getValue;
@@ -10,7 +11,6 @@ exports.setExternalObj = setExternalObj;
 exports.delObject = delObject;
 exports.on = on;
 exports.setAdapter = setAdapter;
-const utils_1 = require("./utils");
 const listener = [];
 let adapter;
 const cache = { values: { children: [], nodes: {}, fullName: '', name: '' } };
@@ -29,6 +29,10 @@ function getPath(id) {
     }
     return path;
 }
+function removeNameSpace(id) {
+    const re = new RegExp(`${adapter.namespace}*.`, 'g');
+    return id.replace(re, '');
+}
 async function init() {
     let states = await adapter.getStatesAsync('*');
     if (!states) {
@@ -38,7 +42,7 @@ async function init() {
     const keys = Object.keys(states);
     for (let i = 0; i < keys.length; i++) {
         const longKey = keys[i];
-        const key = (0, utils_1.removeNameSpace)(longKey);
+        const key = removeNameSpace(longKey);
         const path = getPath(key);
         if (states[longKey]) {
             path.state = {};
@@ -57,7 +61,7 @@ async function init() {
     const oKeys = Object.keys(objs);
     for (let i = 0; i < oKeys.length; i++) {
         const longKey = oKeys[i];
-        const key = (0, utils_1.removeNameSpace)(longKey);
+        const key = removeNameSpace(longKey);
         const path = getPath(key);
         if (objs[longKey] != null) {
             path.obj = objs[longKey];
@@ -189,7 +193,7 @@ function setExternal(id, state) {
     if (!state || (!state.val && state.val !== 0 && state.val !== '')) {
         return;
     }
-    const name = (0, utils_1.removeNameSpace)(id);
+    const name = removeNameSpace(id);
     const path = getPath(name);
     if (path.state === undefined) {
         path.state = {
@@ -208,7 +212,7 @@ function setExternal(id, state) {
     trigger(state, name);
 }
 function setExternalObj(id, obj) {
-    const name = (0, utils_1.removeNameSpace)(id);
+    const name = removeNameSpace(id);
     const path = getPath(name);
     if (path.obj === undefined) {
         path.obj = null;
@@ -249,6 +253,5 @@ function on(str, func, triggeredByOtherService) {
 }
 function setAdapter(a) {
     adapter = a;
-    (0, utils_1.setUtilsAdapter)(a);
 }
 //# sourceMappingURL=cache.js.map

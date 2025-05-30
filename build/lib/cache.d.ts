@@ -1,3 +1,4 @@
+export declare function removeNameSpace(id: string): string;
 export declare function init(): Promise<void>;
 export declare function getValues(name: string): Record<string, {
     val?: ioBroker.StateValue;

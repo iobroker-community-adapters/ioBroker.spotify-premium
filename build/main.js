@@ -39,12 +39,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SpotifyPremiumAdapter = void 0;
 const adapter_core_1 = require("@iobroker/adapter-core");
 const cache = __importStar(require("./lib/cache"));
-const utils_1 = require("./lib/utils");
 const node_querystring_1 = require("node:querystring");
 // @ts-expect-error no types
 const dns_lookup_cache_1 = require("dns-lookup-cache");
 const axios_1 = __importDefault(require("axios"));
 const TokenRefresher_1 = require("./lib/TokenRefresher");
+const removeNameSpace = cache.removeNameSpace;
 class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     artistImageUrlCache = {};
     playlistCache = {};
@@ -162,27 +162,15 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.application.keepShuffleState = this.config.keep_shuffle_state;
         let deviceInterval = this.config.device_interval;
         let playlistInterval = this.config.playlist_interval;
-        if ((0, utils_1.isEmpty)(this.application.deleteDevices)) {
-            this.application.deleteDevices = false;
-        }
-        if ((0, utils_1.isEmpty)(this.application.deletePlaylists)) {
-            this.application.deletePlaylists = false;
-        }
-        if ((0, utils_1.isEmpty)(this.application.keepShuffleState)) {
-            this.application.keepShuffleState = false;
-        }
-        if ((0, utils_1.isEmpty)(this.application.statusPollingDelaySeconds)) {
-            this.application.statusPollingDelaySeconds = 5;
-        }
-        else if (this.application.statusPollingDelaySeconds < 1 && this.application.statusPollingDelaySeconds != 0) {
+        this.application.deleteDevices ||= false;
+        this.application.deletePlaylists ||= false;
+        this.application.keepShuffleState ||= false;
+        this.application.statusPollingDelaySeconds ??= 5;
+        if (this.application.statusPollingDelaySeconds < 1 && this.application.statusPollingDelaySeconds != 0) {
             this.application.statusPollingDelaySeconds = 1;
         }
-        if ((0, utils_1.isEmpty)(deviceInterval)) {
-            deviceInterval = 0;
-        }
-        if ((0, utils_1.isEmpty)(playlistInterval)) {
-            playlistInterval = 0;
-        }
+        deviceInterval ||= 0;
+        playlistInterval ||= 0;
         if (deviceInterval < 1 && deviceInterval != 0) {
             deviceInterval = 1;
         }
@@ -214,7 +202,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         await cache.setValue('info.connection', true);
         this.listenOnGetPlaybackInfo();
         await this.reloadUsersPlaylist().catch(() => { });
-        this.listenOnGetDevices();
+        await this.listenOnGetDevices();
     }
     async sendRequest(endPoint, method, sendBody, delayAccepted) {
         const token = await this.tokenWorker?.getAccessToken();
@@ -330,7 +318,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             },
             native: {},
         };
-        if (!(0, utils_1.isEmpty)(states)) {
+        if (states) {
             object.common.states = states;
         }
         return cache.setValue(state, t, object);
@@ -340,11 +328,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         return cache.setValue(state, t);
     }
     static shrinkStateName(v) {
-        let n = v.replace(/[\s."`'*,\\?<>[\];:]+/g, '');
-        if ((0, utils_1.isEmpty)(n)) {
-            n = 'onlySpecialCharacters';
-        }
-        return n;
+        return v.replace(/[\s."`'*,\\?<>[\];:]+/g, '') || 'onlySpecialCharacters';
     }
     static getArtistNamesOrDefault(data, isTrack) {
         if (!data) {
@@ -406,9 +390,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.log.debug('bei copyObjectStates: fehlerhafte Playlists-Daten src');
     }
     async createPlaybackInfo(data) {
-        if ((0, utils_1.isEmpty)(data)) {
-            data = {};
-        }
+        data ||= {};
         const deviceId = data?.device?.id || '';
         const isDeviceActive = data?.device?.is_active || false;
         const isDeviceRestricted = data?.device?.is_restricted || false;
@@ -450,14 +432,12 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         await cache.setValue('player.device.name', deviceName);
         await cache.setValue('player.device.type', deviceType);
         await cache.setValue('player.device.volume', { val: deviceVolume, ack: true });
-        await cache.setValue('player.device.isAvailable', !(0, utils_1.isEmpty)(deviceName));
+        await cache.setValue('player.device.isAvailable', !!deviceName);
         await cache.setValue('player.device', null, {
             type: 'device',
             _id: `${this.namespace}.player.device`,
             common: {
-                name: (0, utils_1.isEmpty)(deviceName)
-                    ? 'Commands to control playback related to the current active device'
-                    : deviceName,
+                name: deviceName || 'Commands to control playback related to the current active device',
                 icon: SpotifyPremiumAdapter.getIconByType(deviceType),
             },
             native: {},
@@ -486,7 +466,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 if (!key.endsWith('.isActive')) {
                     continue;
                 }
-                key = (0, utils_1.removeNameSpace)(key);
+                key = removeNameSpace(key);
                 let name = '';
                 if (deviceId != null) {
                     name = SpotifyPremiumAdapter.shrinkStateName(deviceId);
@@ -520,7 +500,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             if (!keys[i].endsWith('.isActive')) {
                 continue;
             }
-            const key = (0, utils_1.removeNameSpace)(keys[i]);
+            const key = removeNameSpace(keys[i]);
             await cache.setValue(key, false);
         }
         if (progress && isPlaying && this.application.statusPollingDelaySeconds > 0) {
@@ -546,7 +526,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     const parseJson = await this.sendRequest(`/v1/artists/${artist}`, 'GET', '');
                     if (parseJson) {
                         const url = parseJson.images?.[0]?.url || '';
-                        if (!(0, utils_1.isEmpty)(url)) {
+                        if (url) {
                             this.artistImageUrlCache[artist] = url;
                             urls.push(url);
                         }
@@ -643,9 +623,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     type: 'channel',
                     _id: `${this.namespace}.player.playlist`,
                     common: {
-                        name: (0, utils_1.isEmpty)(playlistName)
-                            ? 'Commands to control playback related to the playlist'
-                            : playlistName,
+                        name: playlistName || 'Commands to control playback related to the playlist',
                     },
                     native: {},
                 });
@@ -668,7 +646,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 const state = cache.getValue(`playlists.${prefix}.trackListIds`);
                 if (state) {
                     const ids = state?.val || '';
-                    if (!(0, utils_1.isEmpty)(ids)) {
+                    if (ids) {
                         const stateName = ids.split(';');
                         const stateArr = [];
                         for (let i = 0; i < stateName.length; i++) {
@@ -712,8 +690,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             },
             native: {},
         });
-        this.listenOnHtmlPlaylists();
-        this.listenOnHtmlTracklist();
+        await this.listenOnHtmlPlaylists();
+        await this.listenOnHtmlTracklist();
         await cache.setValue('player.contextImageUrl', contextImage);
         await cache.setValue('player.contextDescription', contextDescription);
     }
@@ -747,7 +725,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const states = cache.getValues('playlists.*');
         const keys = Object.keys(states);
         for (const id of keys) {
-            const key = (0, utils_1.removeNameSpace)(id);
+            const key = removeNameSpace(id);
             let found = false;
             if (addedList) {
                 for (let i = 0; i < addedList.length; i++) {
@@ -779,7 +757,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         for (let i = 0; i < parseJson.items.length; i++) {
             const item = parseJson.items[i];
             const playlistName = item.name || '';
-            if ((0, utils_1.isEmpty)(playlistName)) {
+            if (!playlistName) {
                 this.log.warn('empty playlist name');
                 continue;
             }
@@ -930,7 +908,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 const no = i.toString();
                 data?.items?.forEach(item => {
                     const trackId = item.track.id || '';
-                    if ((0, utils_1.isEmpty)(trackId)) {
+                    if (!trackId) {
                         return this.log.debug(`There was a playlist track ignored because of missing id; playlist: ${id}; track no: ${no}`);
                     }
                     const artist = SpotifyPremiumAdapter.getArtistNamesOrDefault(item, true);
@@ -1004,7 +982,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const states = cache.getValues('devices.*');
         const keys = Object.keys(states);
         for (let i = 0; i < keys.length; i++) {
-            const key = (0, utils_1.removeNameSpace)(keys[i]);
+            const key = removeNameSpace(keys[i]);
             let found = false;
             if (addedList) {
                 for (let i = 0; i < addedList.length; i++) {
@@ -1023,7 +1001,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const states = cache.getValues('devices.*');
         const keys = Object.keys(states);
         for (let i = 0; i < keys.length; i++) {
-            const key = (0, utils_1.removeNameSpace)(keys[i]);
+            const key = removeNameSpace(keys[i]);
             let found = false;
             if (addedList) {
                 for (let i = 0; i < addedList.length; i++) {
@@ -1066,7 +1044,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 const device = data.devices[d];
                 const deviceId = device.id || '';
                 const deviceName = device.name || '';
-                if ((0, utils_1.isEmpty)(deviceName)) {
+                if (!deviceName) {
                     this.log.warn('empty device name');
                     continue;
                 }
@@ -1139,7 +1117,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const keys = Object.keys(states);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const normKey = (0, utils_1.removeNameSpace)(key);
+            const normKey = removeNameSpace(key);
             if (!states[key] || !key.endsWith('.name')) {
                 continue;
             }
@@ -1194,7 +1172,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const keys = Object.keys(states);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const normKey = (0, utils_1.removeNameSpace)(key);
+            const normKey = removeNameSpace(key);
             if (!states[key] || !key.endsWith('.name')) {
                 continue;
             }
@@ -1245,7 +1223,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             const val = dStates[dKey]?.val;
             if (val) {
-                const dNormKey = (0, utils_1.removeNameSpace)(dKey);
+                const dNormKey = removeNameSpace(dKey);
                 const id = dNormKey.substring(8, dNormKey.length - 9);
                 activeDevice = true;
                 await cache.setValue('devices.deviceList', id);
@@ -1424,13 +1402,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.schedulePlaylistPolling();
     }
     async startPlaylist(playlist, owner, trackNo, keepTrack) {
-        if ((0, utils_1.isEmpty)(owner)) {
-            owner = this.application.userId;
-        }
-        if ((0, utils_1.isEmpty)(trackNo)) {
+        owner ||= this.application.userId;
+        if (!trackNo) {
             throw new Error('no track no');
         }
-        if ((0, utils_1.isEmpty)(playlist)) {
+        if (!playlist) {
             throw new Error('no playlist no');
         }
         keepTrack ||= false;
@@ -1487,14 +1463,14 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             this.log.error(`could not execute command: ${err}`);
         }
     };
-    listenOnTrackList = (options) => {
+    listenOnTrackList = async (options) => {
         if (options.state?.val >= 0) {
-            this.listenOnPlayThisList(options, options.state.val);
+            await this.listenOnPlayThisList(options, options.state.val);
         }
     };
     listenOnPlayThisList = async (options, pos) => {
         let keepTrack = true;
-        if ((0, utils_1.isEmpty)(pos)) {
+        if (pos === undefined || pos === null) {
             keepTrack = false;
             pos = 0;
         }
@@ -1514,12 +1490,12 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
     };
     listenOnDeviceList = async (options) => {
-        if (!(0, utils_1.isEmpty)(options.state?.val)) {
+        if (options.state?.val) {
             await this.listenOnUseForPlayback({ id: `devices.${options.state.val}.useForPlayback` });
         }
     };
     listenOnPlaylistList = async (options) => {
-        if (!(0, utils_1.isEmpty)(options.state?.val)) {
+        if (options.state?.val) {
             await this.listenOnPlayThisList({ id: `playlists.${options.state.val}.playThisList` });
         }
     };
@@ -1528,7 +1504,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             device_id: this.getSelectedDevice(this.deviceData),
         };
         const send = options.state?.val;
-        if (!(0, utils_1.isEmpty)(send.device_id)) {
+        if (send.device_id) {
             query.device_id = send.device_id;
             delete send.device_id;
         }
@@ -1868,7 +1844,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         await cache.setValue('html.playlists', html);
     };
     listenOnHtmlTracklist = () => {
-        this.getStateAsync('player.trackId')
+        return this.getStateAsync('player.trackId')
             .then((state) => {
             let current_trackID;
             if (!state?.val) {
@@ -1959,7 +1935,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             html += '</table>';
             return cache.setValue('html.tracks', html);
         })
-            .catch(err => this.log.error(err));
+            .catch(err => this.log.error(err))
+            .then(() => { });
     };
     listenOnHtmlDevices = async () => {
         let obj = cache.getValue('devices.deviceList');
