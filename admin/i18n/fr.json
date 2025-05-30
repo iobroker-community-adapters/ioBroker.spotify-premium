@@ -1,0 +1,14 @@
+{
+  "Default Shuffle Mode": "État de lecture aléatoire par défaut",
+  "Delete Devices": "Supprimer les appareils qui n'existent plus",
+  "Delete Playlists": "Supprimer les listes de lecture qui n'existent plus",
+  "Device Interval": "Intervalle de rafraîchissement des informations sur l'appareil",
+  "Device Interval_tooltip": "En minutes, recommandé 5, 0 = désactivé",
+  "Keep Shuffle State": "Sur certains appareils, la lecture aléatoire est toujours désactivée lorsqu'une playlist est lancée. Cette option permet d'éviter ce problème.",
+  "Off": "désactivé",
+  "On": "sur",
+  "Playlist Interval": "Intervalle de rafraîchissement des informations de la liste de lecture",
+  "Playlist Interval_tooltip": "En minutes, recommandé 15, 0 = désactivé",
+  "Status Interval": "Intervalle de rafraîchissement des informations d'état",
+  "Status Interval_tooltip": "En secondes, recommandé 10, 0 = désactivé. Requis uniquement si vous contrôlez Spotify sur des appareils autres que l'adaptateur."
+}

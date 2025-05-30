@@ -1,0 +1,14 @@
+{
+  "Default Shuffle Mode": "Default shuffle state",
+  "Delete Devices": "Delete devices that no longer exist",
+  "Delete Playlists": "Delete no longer existing playlists",
+  "Device Interval": "Refresh interval for device information",
+  "Device Interval_tooltip": "In minutes, recommended 5, 0 = disabled",
+  "Keep Shuffle State": "On some devices the shuffle will always disabled if a playlist is started. With this option a workaround is used to avoid this behavior",
+  "Off": "off",
+  "On": "on",
+  "Playlist Interval": "Refresh interval for playlist information",
+  "Playlist Interval_tooltip": "In minutes, recommended 15, 0 = disabled",
+  "Status Interval": "Refresh interval for status information",
+  "Status Interval_tooltip": "In seconds, recommended 10, 0 = disabled. Only required if you control Spotify on devices apart from the adapter"
+}

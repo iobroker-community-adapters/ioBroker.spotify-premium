@@ -1,9 +1,9 @@
 # Older changes
 ## 1.3.1 (2023-10-31)
--   (aruttkamp) A problem has been fixed which cause 'Error 400' with playUri errors [#259]
+-   (aruttkamp) A problem has been fixed, which causes 'Error 400' with playUri errors [#259]
 
 ## 1.3.0 (2023-10-31)
--   (aruttkamp) A problem has been fixed which cause 'too many requests' errors [#241, #245]
+-   (aruttkamp) A problem has been fixed, which causes 'too many requests' errors [#241, #245]
 -   (mcm1957) Adapter requires nodejs 16 now
 -   (mcm1957) Testing has been changed to support node 16, 18 and 20
 -   (mcm1957) Dependencies have been updated
@@ -25,7 +25,7 @@
 
 ## 1.1.8 (2021-11-18)
 * (ohle64) Fixed the shuffle behaviour 
-* (bluefox) Allowed to set the default shuffle value
+* (bluefox) Allowed setting the default shuffle value
 * (bluefox) The type of trackNo corrected
 
 ## 1.1.4 (2021-11-17)

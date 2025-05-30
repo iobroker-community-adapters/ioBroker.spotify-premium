@@ -10,23 +10,23 @@ export default [
         ignores: [
             '.dev-server/',
             '.vscode/',
-            '*.test.js', 
-            'test/**/*.js', 
-            '*.config.mjs', 
-            'build', 
-            'admin/build', 
+            '*.test.js',
+            'test/**/*.js',
+            '*.config.mjs',
+            'build',
+            'admin/build',
             'admin/words.js',
             'admin/admin.d.ts',
-            '**/adapter-config.d.ts'     
-        ] 
+            '**/adapter-config.d.ts',
+        ],
     },
-
     {
-        // you may disable some 'jsdoc' warnings - but using jsdoc is highly recommended
-        // as this improves maintainability. jsdoc warnings will not block buiuld process.
+        // disable temporary the rule 'jsdoc/require-param' and enable 'jsdoc/require-jsdoc'
         rules: {
-            // 'jsdoc/require-jsdoc': 'off',
+            'jsdoc/require-jsdoc': 'off',
+            'jsdoc/require-param': 'off',
+
+            '@typescript-eslint/no-require-imports': 'off',
         },
     },
-    
 ];
