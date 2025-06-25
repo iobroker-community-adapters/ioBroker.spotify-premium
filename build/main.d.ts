@@ -13,16 +13,16 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     main(): Promise<void>;
     start(): Promise<void>;
     sendRequest<T = any>(endPoint: string, method: 'POST' | 'GET' | 'PUT', sendBody: string, delayAccepted?: boolean): Promise<T | null>;
-    static loadOrDefault<T = any>(obj: Record<string, any> | null | undefined, name: string, defaultVal: T): T;
+    loadOrDefault<T = any>(obj: Record<string, any> | null | undefined, name: string, defaultVal: T): T;
     createOrDefault(obj: Record<string, any>, name: string, state: string, defaultVal: ioBroker.StateValue, description: string, type: ioBroker.CommonType, states?: Record<string, string>): Promise<string>;
-    static setOrDefault(obj: Record<string, any> | null | undefined, name: string, state: string, defaultVal: ioBroker.StateValue): Promise<string>;
-    static shrinkStateName(v: string): string;
-    static getArtistNamesOrDefault(data: SpotifyPlaybackState | SpotifyPlaylistTrackItem | null | undefined, isTrack?: boolean): string;
-    static setObjectStatesIfChanged(id: string, states?: Record<string, string>): Promise<string>;
+    setOrDefault(obj: Record<string, any> | null | undefined, name: string, state: string, defaultVal: ioBroker.StateValue): Promise<string>;
+    shrinkStateName(v: string): string;
+    getArtistNamesOrDefault(data: SpotifyPlaybackState | SpotifyPlaylistTrackItem | null | undefined, isTrack?: boolean): string;
+    setObjectStatesIfChanged(id: string, states?: Record<string, string>): Promise<string>;
     copyState(src: string, dst: string): Promise<void>;
     copyObjectStates(src: string, dst: string): Promise<void>;
     createPlaybackInfo(data?: SpotifyPlaybackState | null): Promise<void>;
-    static convertToDigiClock(ms: number | string): string;
+    convertToDigiClock(ms: number | string): string;
     setUserInformation(data: SpotifyUser): void;
     reloadUsersPlaylist(): Promise<void>;
     deleteUsersPlaylist(addedList: string[]): Promise<void>;
@@ -32,7 +32,7 @@ export declare class SpotifyPremiumAdapter extends Adapter {
         lastActiveDeviceId: string;
         lastSelectDeviceId: string;
     }): string;
-    static cleanState(str: string): string;
+    cleanState(str: string): string;
     getPlaylistTracks(owner: string, id: string): Promise<{
         stateString: string;
         listString: string;
@@ -44,7 +44,7 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     reloadDevices(data: SpotifyDevicesResponse | null | undefined): Promise<void>;
     disableDevices(addedList: string[]): Promise<void>;
     deleteDevices(addedList: string[]): Promise<void>;
-    static getIconByType(type: string): string;
+    getIconByType(type: string): string;
     createDevices(data?: SpotifyDevicesResponse | null): Promise<string[]>;
     refreshPlaylistList(): Promise<void>;
     refreshDeviceList(): Promise<void>;

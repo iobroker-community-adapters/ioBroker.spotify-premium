@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { Adapter, type AdapterOptions } from '@iobroker/adapter-core';
 import type {
     AdapterStoreSong,
@@ -265,7 +266,13 @@ export class SpotifyPremiumAdapter extends Adapter {
                 return response.data as T;
             case 202:
                 // Accepted, processing has not been completed.
-                this.log.debug(`http response: ${JSON.stringify(response)}`);
+                if (this.log.level === 'silly' || this.log.level === 'debug') {
+                    let str = JSON.stringify(response);
+                    if (this.log.level === 'debug' && str.length > 200) {
+                        str = `${str.substring(0, 200)}...`;
+                    }
+                    this.log.debug(`http response: ${str}`);
+                }
                 if (delayAccepted) {
                     return null;
                 }
@@ -328,7 +335,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         return null;
     }
 
-    static loadOrDefault<T = any>(obj: Record<string, any> | null | undefined, name: string, defaultVal: T): T {
+    loadOrDefault<T = any>(obj: Record<string, any> | null | undefined, name: string, defaultVal: T): T {
         let t;
         try {
             const f = new Function('obj', 'name', `return obj?.${name}`);
@@ -353,7 +360,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         type: ioBroker.CommonType,
         states?: Record<string, string>,
     ): Promise<string> {
-        const t = SpotifyPremiumAdapter.loadOrDefault(obj, name, defaultVal);
+        const t = this.loadOrDefault(obj, name, defaultVal);
         const object: ioBroker.StateObject = {
             _id: `${this.namespace}.${state}`,
             type: 'state',
@@ -372,21 +379,21 @@ export class SpotifyPremiumAdapter extends Adapter {
         return cache.setValue(state, t, object);
     }
 
-    static setOrDefault(
+    setOrDefault(
         obj: Record<string, any> | null | undefined,
         name: string,
         state: string,
         defaultVal: ioBroker.StateValue,
     ): Promise<string> {
-        const t = SpotifyPremiumAdapter.loadOrDefault(obj, name, defaultVal);
+        const t = this.loadOrDefault(obj, name, defaultVal);
         return cache.setValue(state, t);
     }
 
-    static shrinkStateName(v: string): string {
+    shrinkStateName(v: string): string {
         return v.replace(/[\s."`'*,\\?<>[\];:]+/g, '') || 'onlySpecialCharacters';
     }
 
-    static getArtistNamesOrDefault(
+    getArtistNamesOrDefault(
         data: SpotifyPlaybackState | SpotifyPlaylistTrackItem | null | undefined,
         isTrack?: boolean,
     ): string {
@@ -409,7 +416,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         return ret.join(', ');
     }
 
-    static setObjectStatesIfChanged(id: string, states?: Record<string, string>): Promise<string> {
+    setObjectStatesIfChanged(id: string, states?: Record<string, string>): Promise<string> {
         const obj: ioBroker.Object = cache.getObj(id) || {
             _id: id,
             common: {
@@ -443,6 +450,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         const tmpSrc = cache.getValue(src);
         if (tmpSrc?.val !== undefined) {
             await cache.setValue(dst, tmpSrc.val);
+            return;
         }
         this.log.debug('bei copyState: fehlerhafte Playlists-Daten src');
     }
@@ -450,7 +458,8 @@ export class SpotifyPremiumAdapter extends Adapter {
     async copyObjectStates(src: string, dst: string): Promise<void> {
         const tmpSrc = cache.getObj(src);
         if (tmpSrc?.common) {
-            await SpotifyPremiumAdapter.setObjectStatesIfChanged(dst, tmpSrc.common.states);
+            await this.setObjectStatesIfChanged(dst, tmpSrc.common.states);
+            return;
         }
         this.log.debug('bei copyObjectStates: fehlerhafte Playlists-Daten src');
     }
@@ -477,7 +486,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         let contextImage = '';
         const album = data?.item?.album.name || '';
         const albumUrl = data?.item?.album?.images?.[0]?.url || '';
-        const artist = SpotifyPremiumAdapter.getArtistNamesOrDefault(data);
+        const artist = this.getArtistNamesOrDefault(data);
         if (type === 'album') {
             contextDescription = `Album: ${album}`;
             contextImage = albumUrl;
@@ -503,25 +512,25 @@ export class SpotifyPremiumAdapter extends Adapter {
             _id: `${this.namespace}.player.device`,
             common: {
                 name: deviceName || 'Commands to control playback related to the current active device',
-                icon: SpotifyPremiumAdapter.getIconByType(deviceType),
+                icon: this.getIconByType(deviceType),
             },
             native: {},
         });
         await cache.setValue('player.isPlaying', isPlaying);
-        await SpotifyPremiumAdapter.setOrDefault(data, 'item.id', 'player.trackId', '');
+        await this.setOrDefault(data, 'item.id', 'player.trackId', '');
         await cache.setValue('player.artistName', artist);
         await cache.setValue('player.album', album);
         await cache.setValue('player.albumImageUrl', albumUrl);
-        await SpotifyPremiumAdapter.setOrDefault(data, 'item.name', 'player.trackName', '');
+        await this.setOrDefault(data, 'item.name', 'player.trackName', '');
         await cache.setValue('player.durationMs', duration);
-        await cache.setValue('player.duration', SpotifyPremiumAdapter.convertToDigiClock(duration));
+        await cache.setValue('player.duration', this.convertToDigiClock(duration));
         await cache.setValue('player.type', type);
         await cache.setValue('player.progressMs', progress);
         await cache.setValue('player.progressPercentage', progressPercentage);
-        await cache.setValue('player.progress', SpotifyPremiumAdapter.convertToDigiClock(progress));
+        await cache.setValue('player.progress', this.convertToDigiClock(progress));
         await cache.setValue('player.shuffle', shuffle ? 'on' : 'off');
-        await SpotifyPremiumAdapter.setOrDefault(data, 'repeat_state', 'player.repeat', 'off');
-        await SpotifyPremiumAdapter.setOrDefault(data, 'device.volume_percent', 'player.device.volume', 100);
+        await this.setOrDefault(data, 'repeat_state', 'player.repeat', 'off');
+        await this.setOrDefault(data, 'device.volume_percent', 'player.device.volume', 100);
         if (deviceName) {
             this.deviceData.lastActiveDeviceId = deviceId;
             const states = cache.getValues('devices.*');
@@ -535,9 +544,9 @@ export class SpotifyPremiumAdapter extends Adapter {
                 key = removeNameSpace(key);
                 let name = '';
                 if (deviceId != null) {
-                    name = SpotifyPremiumAdapter.shrinkStateName(deviceId);
+                    name = this.shrinkStateName(deviceId);
                 } else {
-                    name = SpotifyPremiumAdapter.shrinkStateName(deviceName);
+                    name = this.shrinkStateName(deviceName);
                 }
                 if (key !== `devices.${name}.isActive`) {
                     await cache.setValue(key, false);
@@ -670,14 +679,14 @@ export class SpotifyPremiumAdapter extends Adapter {
             }
 
             if (rawData) {
-                const playlistName = SpotifyPremiumAdapter.loadOrDefault(rawData, 'name', '');
+                const playlistName = this.loadOrDefault(rawData, 'name', '');
                 contextDescription = `Playlist: ${playlistName}`;
                 const songId = data?.item.id || '';
-                const playlistImage = SpotifyPremiumAdapter.loadOrDefault(rawData, 'images[0].url', '');
+                const playlistImage = this.loadOrDefault(rawData, 'images[0].url', '');
                 contextImage = playlistImage;
-                const ownerId = SpotifyPremiumAdapter.loadOrDefault(rawData, 'owner.id', '');
+                const ownerId = this.loadOrDefault(rawData, 'owner.id', '');
                 const trackCount = rawData?.tracks?.total || 0;
-                const prefix = SpotifyPremiumAdapter.shrinkStateName(`${ownerId}-${playlistId}`);
+                const prefix = this.shrinkStateName(`${ownerId}-${playlistId}`);
                 this.playlistCache[`${ownerId}-${playlistId}`] = {
                     id: playlistId,
                     name: playlistName,
@@ -769,7 +778,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         await cache.setValue('player.contextDescription', contextDescription);
     }
 
-    static convertToDigiClock(ms: number | string): string {
+    convertToDigiClock(ms: number | string): string {
         // milliseconds to digital time, e.g. 3:59=238759
         if (!ms) {
             ms = 0;
@@ -862,7 +871,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 rawData: item,
             };
 
-            const prefix = `playlists.${SpotifyPremiumAdapter.shrinkStateName(`${ownerId}-${playlistId}`)}`;
+            const prefix = `playlists.${this.shrinkStateName(`${ownerId}-${playlistId}`)}`;
             addedList ||= [];
             addedList.push(prefix);
 
@@ -1020,7 +1029,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         return deviceData.lastSelectDeviceId;
     }
 
-    static cleanState(str: string): string {
+    cleanState(str: string): string {
         str = str.replace(/:/g, ' ');
         str = str.replace(/;/g, ' ');
         let old;
@@ -1083,7 +1092,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                             `There was a playlist track ignored because of missing id; playlist: ${id}; track no: ${no}`,
                         );
                     }
-                    const artist = SpotifyPremiumAdapter.getArtistNamesOrDefault(item, true);
+                    const artist = this.getArtistNamesOrDefault(item, true);
                     const artistArray = item?.track.artists;
                     const trackName = item?.track.name || '';
                     const trackDuration = item?.track.duration_ms || 0;
@@ -1102,10 +1111,10 @@ export class SpotifyPremiumAdapter extends Adapter {
                         playlistObject.trackIds += ';';
                         playlistObject.listNumber += ';';
                     }
-                    playlistObject.stateString += `${no}:${SpotifyPremiumAdapter.cleanState(trackName)} - ${SpotifyPremiumAdapter.cleanState(artist)}`;
-                    playlistObject.listString += `${SpotifyPremiumAdapter.cleanState(trackName)} - ${SpotifyPremiumAdapter.cleanState(artist)}`;
-                    playlistObject.trackIdMap += SpotifyPremiumAdapter.cleanState(trackId);
-                    playlistObject.trackIds += `${no}:${SpotifyPremiumAdapter.cleanState(trackId)}`;
+                    playlistObject.stateString += `${no}:${this.cleanState(trackName)} - ${this.cleanState(artist)}`;
+                    playlistObject.listString += `${this.cleanState(trackName)} - ${this.cleanState(artist)}`;
+                    playlistObject.trackIdMap += this.cleanState(trackId);
+                    playlistObject.trackIds += `${no}:${this.cleanState(trackId)}`;
                     playlistObject.listNumber += no;
                     const a: AdapterStoreSong = {
                         id: trackId,
@@ -1114,7 +1123,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                         artistArray: artistArray,
                         album: { id: trackAlbumId, name: trackAlbumName },
                         durationMs: trackDuration,
-                        duration: SpotifyPremiumAdapter.convertToDigiClock(trackDuration),
+                        duration: this.convertToDigiClock(trackDuration),
                         addedAt: addedAt,
                         addedBy: addedBy,
                         discNumber: trackDiscNumber,
@@ -1200,7 +1209,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         }
     }
 
-    static getIconByType(type: string): string {
+    getIconByType(type: string): string {
         if (type === 'Computer') {
             return 'icons/computer_black.png';
         }
@@ -1227,9 +1236,9 @@ export class SpotifyPremiumAdapter extends Adapter {
                 }
                 let name = '';
                 if (deviceId != null) {
-                    name = SpotifyPremiumAdapter.shrinkStateName(deviceId);
+                    name = this.shrinkStateName(deviceId);
                 } else {
-                    name = SpotifyPremiumAdapter.shrinkStateName(deviceName);
+                    name = this.shrinkStateName(deviceName);
                 }
                 const prefix = `devices.${name}`;
                 addedList.push(prefix);
@@ -1257,7 +1266,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                     type: 'device',
                     common: {
                         name: deviceName,
-                        icon: SpotifyPremiumAdapter.getIconByType(device.type || 'Computer'),
+                        icon: this.getIconByType(device.type || 'Computer'),
                     },
                     native: {},
                 });
@@ -1336,7 +1345,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         let yourString = '';
         for (let i = 0, len = a.length; i < len; i++) {
             const normId = a[i].id;
-            const normName = SpotifyPremiumAdapter.cleanState(a[i].name);
+            const normName = this.cleanState(a[i].name);
             if (listIds.length > 0) {
                 listIds += ';';
                 listString += ';';
@@ -1353,7 +1362,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 yourString += normName;
             }
         }
-        await SpotifyPremiumAdapter.setObjectStatesIfChanged('playlists.playlistList', stateList);
+        await this.setObjectStatesIfChanged('playlists.playlistList', stateList);
         await cache.setValue('playlists.playlistListIds', listIds);
         await cache.setValue('playlists.playlistListString', listString);
         await cache.setValue('playlists.yourPlaylistListIds', yourIds);
@@ -1395,7 +1404,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         let availableString = '';
         for (let i = 0, len = a.length; i < len; i++) {
             const normId = a[i].id;
-            const normName = SpotifyPremiumAdapter.cleanState(a[i].name);
+            const normName = this.cleanState(a[i].name);
             if (listIds.length > 0) {
                 listIds += ';';
                 listString += ';';
@@ -1413,7 +1422,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             }
         }
 
-        await SpotifyPremiumAdapter.setObjectStatesIfChanged('devices.deviceList', stateList);
+        await this.setObjectStatesIfChanged('devices.deviceList', stateList);
         await cache.setValue('devices.deviceListIds', listIds);
         await cache.setValue('devices.deviceListString', listString);
         await cache.setValue('devices.availableDeviceListIds', availableIds);
@@ -1449,7 +1458,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 type: 'device',
                 common: {
                     name: 'Commands to control playback related to the current active device',
-                    icon: SpotifyPremiumAdapter.getIconByType(''),
+                    icon: this.getIconByType(''),
                 },
                 native: {},
             });
@@ -1464,7 +1473,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         progressMs += now - startDate;
         const tDurationMs = (cache.getValue('player.durationMs')?.val as number) || 0;
         const percentage = Math.floor((progressMs / tDurationMs) * 100);
-        await cache.setValue('player.progress', SpotifyPremiumAdapter.convertToDigiClock(progressMs));
+        await cache.setValue('player.progress', this.convertToDigiClock(progressMs));
         await cache.setValue('player.progressMs', progressMs);
         await cache.setValue('player.progressPercentage', percentage);
 
@@ -1630,7 +1639,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 resetShuffle = true;
                 if (!keepTrack) {
                     const tracksTotal = cache.getValue(
-                        `playlists.${SpotifyPremiumAdapter.shrinkStateName(`${owner}-${playlist}`)}.tracksTotal`,
+                        `playlists.${this.shrinkStateName(`${owner}-${playlist}`)}.tracksTotal`,
                     );
                     if (tracksTotal?.val) {
                         trackNo = Math.floor(Math.random() * Math.floor(tracksTotal.val as number));
@@ -1892,7 +1901,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 if (duration > 0 && duration <= progress) {
                     const progressPercentage = Math.floor((progress / duration) * 100);
                     await cache.setValue('player.progressMs', progress);
-                    await cache.setValue('player.progress', SpotifyPremiumAdapter.convertToDigiClock(progress));
+                    await cache.setValue('player.progress', this.convertToDigiClock(progress));
                     await cache.setValue('player.progressPercentage', progressPercentage);
                 }
             }
@@ -1919,7 +1928,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 try {
                     await this.sendRequest(`/v1/me/player/seek?position_ms=${progress}`, 'PUT', '', true);
                     await cache.setValue('player.progressMs', progress);
-                    await cache.setValue('player.progress', SpotifyPremiumAdapter.convertToDigiClock(progress));
+                    await cache.setValue('player.progress', this.convertToDigiClock(progress));
                     await cache.setValue('player.progressPercentage', progressPercentage);
                 } catch (err) {
                     this.log.error(`could not execute command: ${err}`);
@@ -2227,7 +2236,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             if (!typeState) {
                 continue;
             }
-            const type = SpotifyPremiumAdapter.getIconByType(typeState.val as string);
+            const type = this.getIconByType(typeState.val as string);
 
             let style = '';
             let cssClassRow = '';

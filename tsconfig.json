@@ -26,5 +26,5 @@
         "types": ["@iobroker/types", "node"]
     },
     "include": ["src/**/*.ts", "src/*.d.ts"],
-    "exclude": ["build/**", "node_modules/**", "eslint.config.mjs"]
+    "exclude": ["build/**", "node_modules/**", ".dev-server/**", "eslint.config.mjs"]
 }

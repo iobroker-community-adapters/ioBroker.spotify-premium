@@ -195,7 +195,13 @@ export async function setValue(
     }
 
     if (stateChanged) {
-        adapter.log.debug(`save state: ${name} -> ${JSON.stringify(path.state?.val)}`);
+        if (adapter.log.level === 'silly' || adapter.log.level === 'debug') {
+            let str = JSON.stringify(path.state?.val);
+            if (adapter.log.level === 'debug' && str.length > 200) {
+                str = `${str.substring(0, 200)}...`;
+            }
+            adapter.log.debug(`save state: ${name} -> ${str}`);
+        }
 
         let val = path.state!.val;
         if (val !== null && typeof val === 'object') {
