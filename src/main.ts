@@ -317,10 +317,10 @@ export class SpotifyPremiumAdapter extends Adapter {
         return null;
     }
 
-    static loadOrDefault<T = any>(obj: Record<string, any>, name: string, defaultVal: T): T {
+    static loadOrDefault<T = any>(obj: Record<string, any> | null | undefined, name: string, defaultVal: T): T {
         let t;
         try {
-            const f = new Function('obj', 'name', `return obj.${name}`);
+            const f = new Function('obj', 'name', `return obj?.${name}`);
             t = f(obj, name);
         } catch (e) {
             if (!obj) {
@@ -362,7 +362,7 @@ export class SpotifyPremiumAdapter extends Adapter {
     }
 
     static setOrDefault(
-        obj: Record<string, any>,
+        obj: Record<string, any> | null | undefined,
         name: string,
         state: string,
         defaultVal: ioBroker.StateValue,
@@ -383,14 +383,9 @@ export class SpotifyPremiumAdapter extends Adapter {
             return '';
         }
         const ret: string[] = [];
-        const artists: {
-            external_urls: { spotify: string };
-            href: string;
-            id: string;
-            name: string;
-            type: string;
-            uri: string;
-        }[] = isTrack ? (data as SpotifyPlaylistTrackItem).track.artists : (data as SpotifyPlaybackState).item.artists;
+        const artists = isTrack
+            ? (data as SpotifyPlaylistTrackItem).track.artists
+            : (data as SpotifyPlaybackState).item.artists;
 
         for (let i = 0; i < artists.length; i++) {
             const artist: string = artists[i].name || '';
@@ -435,8 +430,8 @@ export class SpotifyPremiumAdapter extends Adapter {
 
     async copyState(src: string, dst: string): Promise<void> {
         const tmpSrc = cache.getValue(src);
-        if (tmpSrc) {
-            await cache.setValue(dst, tmpSrc.val!);
+        if (tmpSrc?.val !== undefined) {
+            await cache.setValue(dst, tmpSrc.val);
         }
         this.log.debug('bei copyState: fehlerhafte Playlists-Daten src');
     }
@@ -450,7 +445,6 @@ export class SpotifyPremiumAdapter extends Adapter {
     }
 
     async createPlaybackInfo(data?: SpotifyPlaybackState | null): Promise<void> {
-        data ||= {} as SpotifyPlaybackState;
         const deviceId = data?.device?.id || '';
         const isDeviceActive = data?.device?.is_active || false;
         const isDeviceRestricted = data?.device?.is_restricted || false;

@@ -13,9 +13,9 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     main(): void;
     start(): Promise<void>;
     sendRequest<T = any>(endPoint: string, method: 'POST' | 'GET' | 'PUT', sendBody: string, delayAccepted?: boolean): Promise<T | null>;
-    static loadOrDefault<T = any>(obj: Record<string, any>, name: string, defaultVal: T): T;
+    static loadOrDefault<T = any>(obj: Record<string, any> | null | undefined, name: string, defaultVal: T): T;
     createOrDefault(obj: Record<string, any>, name: string, state: string, defaultVal: ioBroker.StateValue, description: string, type: ioBroker.CommonType, states?: Record<string, string>): Promise<string>;
-    static setOrDefault(obj: Record<string, any>, name: string, state: string, defaultVal: ioBroker.StateValue): Promise<string>;
+    static setOrDefault(obj: Record<string, any> | null | undefined, name: string, state: string, defaultVal: ioBroker.StateValue): Promise<string>;
     static shrinkStateName(v: string): string;
     static getArtistNamesOrDefault(data: SpotifyPlaybackState | SpotifyPlaylistTrackItem | null | undefined, isTrack?: boolean): string;
     static setObjectStatesIfChanged(id: string, states?: Record<string, string>): Promise<string>;

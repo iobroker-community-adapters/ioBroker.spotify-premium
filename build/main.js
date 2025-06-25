@@ -291,7 +291,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     static loadOrDefault(obj, name, defaultVal) {
         let t;
         try {
-            const f = new Function('obj', 'name', `return obj.${name}`);
+            const f = new Function('obj', 'name', `return obj?.${name}`);
             t = f(obj, name);
         }
         catch (e) {
@@ -335,7 +335,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return '';
         }
         const ret = [];
-        const artists = isTrack ? data.track.artists : data.item.artists;
+        const artists = isTrack
+            ? data.track.artists
+            : data.item.artists;
         for (let i = 0; i < artists.length; i++) {
             const artist = artists[i].name || '';
             if (artist) {
@@ -377,7 +379,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     async copyState(src, dst) {
         const tmpSrc = cache.getValue(src);
-        if (tmpSrc) {
+        if (tmpSrc?.val !== undefined) {
             await cache.setValue(dst, tmpSrc.val);
         }
         this.log.debug('bei copyState: fehlerhafte Playlists-Daten src');
@@ -390,7 +392,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.log.debug('bei copyObjectStates: fehlerhafte Playlists-Daten src');
     }
     async createPlaybackInfo(data) {
-        data ||= {};
         const deviceId = data?.device?.id || '';
         const isDeviceActive = data?.device?.is_active || false;
         const isDeviceRestricted = data?.device?.is_restricted || false;
