@@ -1,0 +1,14 @@
+{
+  "Default Shuffle Mode": "Stato di riproduzione casuale predefinito",
+  "Delete Devices": "Elimina i dispositivi che non esistono più",
+  "Delete Playlists": "Elimina le playlist non più esistenti",
+  "Device Interval": "Intervallo di aggiornamento per le informazioni sul dispositivo",
+  "Device Interval_tooltip": "In minuti, consigliato 5, 0 = disabilitato",
+  "Keep Shuffle State": "Su alcuni dispositivi, la riproduzione casuale sarà sempre disattivata all'avvio di una playlist. Con questa opzione viene utilizzata una soluzione alternativa per evitare questo comportamento.",
+  "Off": "spento",
+  "On": "SU",
+  "Playlist Interval": "Intervallo di aggiornamento per le informazioni sulla playlist",
+  "Playlist Interval_tooltip": "In minuti, consigliato 15, 0 = disabilitato",
+  "Status Interval": "Intervallo di aggiornamento per le informazioni sullo stato",
+  "Status Interval_tooltip": "In secondi, consigliato 10, 0 = disabilitato. Necessario solo se controlli Spotify su dispositivi diversi dall'adattatore."
+}

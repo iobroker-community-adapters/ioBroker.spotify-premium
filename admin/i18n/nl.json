@@ -1,0 +1,14 @@
+{
+  "Default Shuffle Mode": "Standaard shuffle-status",
+  "Delete Devices": "Apparaten verwijderen die niet meer bestaan",
+  "Delete Playlists": "Verwijder afspeellijsten die niet meer bestaan",
+  "Device Interval": "Vernieuwingsinterval voor apparaatinformatie",
+  "Device Interval_tooltip": "In minuten, aanbevolen 5, 0 = uitgeschakeld",
+  "Keep Shuffle State": "Op sommige apparaten is shuffle altijd uitgeschakeld als een afspeellijst wordt gestart. Met deze optie wordt een tijdelijke oplossing gebruikt om dit probleem te voorkomen.",
+  "Off": "uit",
+  "On": "op",
+  "Playlist Interval": "Vernieuwingsinterval voor afspeellijstinformatie",
+  "Playlist Interval_tooltip": "In minuten, aanbevolen 15, 0 = uitgeschakeld",
+  "Status Interval": "Vernieuwingsinterval voor statusinformatie",
+  "Status Interval_tooltip": "In seconden, aanbevolen 10, 0 = uitgeschakeld. Alleen vereist als u Spotify bedient op andere apparaten dan de adapter."
+}

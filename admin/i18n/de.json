@@ -1,0 +1,14 @@
+{
+  "Default Shuffle Mode": "Standard-Shuffle-Status",
+  "Delete Devices": "Nicht mehr vorhandene Geräte löschen",
+  "Delete Playlists": "Nicht mehr vorhandene Playlists löschen",
+  "Device Interval": "Aktualisierungsintervall für Geräteinformationen",
+  "Device Interval_tooltip": "In Minuten, empfohlen 5, 0 = deaktiviert",
+  "Keep Shuffle State": "Auf manchen Geräten wird die Zufallswiedergabe beim Starten einer Playlist immer deaktiviert. Mit dieser Option wird ein Workaround verwendet, um dieses Verhalten zu vermeiden.",
+  "Off": "aus",
+  "On": "An",
+  "Playlist Interval": "Aktualisierungsintervall für Playlist-Informationen",
+  "Playlist Interval_tooltip": "In Minuten, empfohlen 15, 0 = deaktiviert",
+  "Status Interval": "Aktualisierungsintervall für Statusinformationen",
+  "Status Interval_tooltip": "In Sekunden, empfohlen 10, 0 = deaktiviert. Nur erforderlich, wenn Sie Spotify auf anderen Geräten als dem Adapter steuern"
+}

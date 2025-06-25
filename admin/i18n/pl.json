@@ -1,0 +1,14 @@
+{
+  "Default Shuffle Mode": "Domyślny stan losowania",
+  "Delete Devices": "Usuń urządzenia, które już nie istnieją",
+  "Delete Playlists": "Usuń nieistniejące już listy odtwarzania",
+  "Device Interval": "Interwał odświeżania informacji o urządzeniu",
+  "Device Interval_tooltip": "W minutach, zalecane 5, 0 = wyłączone",
+  "Keep Shuffle State": "Na niektórych urządzeniach losowe odtwarzanie zawsze będzie wyłączone, jeśli uruchomiona zostanie lista odtwarzania. Ta opcja umożliwia obejście tego zachowania",
+  "Off": "wyłączony",
+  "On": "NA",
+  "Playlist Interval": "Interwał odświeżania informacji o liście odtwarzania",
+  "Playlist Interval_tooltip": "W minutach, zalecane 15, 0 = wyłączone",
+  "Status Interval": "Interwał odświeżania informacji o stanie",
+  "Status Interval_tooltip": "W sekundach, zalecane 10, 0 = wyłączone. Wymagane tylko, jeśli kontrolujesz Spotify na urządzeniach innych niż adapter"
+}
