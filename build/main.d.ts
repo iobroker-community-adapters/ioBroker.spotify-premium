@@ -10,7 +10,7 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     private stopped;
     private tooManyRequests;
     constructor(options?: Partial<AdapterOptions>);
-    main(): void;
+    main(): Promise<void>;
     start(): Promise<void>;
     sendRequest<T = any>(endPoint: string, method: 'POST' | 'GET' | 'PUT', sendBody: string, delayAccepted?: boolean): Promise<T | null>;
     static loadOrDefault<T = any>(obj: Record<string, any> | null | undefined, name: string, defaultVal: T): T;
@@ -24,7 +24,7 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     createPlaybackInfo(data?: SpotifyPlaybackState | null): Promise<void>;
     static convertToDigiClock(ms: number | string): string;
     setUserInformation(data: SpotifyUser): void;
-    reloadUsersPlaylist: () => Promise<void>;
+    reloadUsersPlaylist(): Promise<void>;
     deleteUsersPlaylist(addedList: string[]): Promise<void>;
     createPlaylists(parseJson: SpotifyPlaylistList | null | undefined, autoContinue?: boolean, addedList?: string[]): Promise<string[]>;
     getUsersPlaylist(offset: number, addedList?: string[]): Promise<string[]>;
@@ -51,91 +51,91 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     increaseTime(durationMs: number, progressMs: number, startDate: number, count: number): Promise<void>;
     scheduleStatusInternalTimer(durationMs: number, progressMs: number, startDate: number, count: number): void;
     scheduleStatusPolling(): void;
-    pollStatusApi(noReschedule?: boolean): void;
+    pollStatusApi(noReschedule?: boolean): Promise<void>;
     scheduleDevicePolling(): void;
-    pollDeviceApi(): void;
+    pollDeviceApi(): Promise<void>;
     schedulePlaylistPolling(): void;
     pollPlaylistApi(): void;
     startPlaylist(playlist: string, owner: string, trackNo: number, keepTrack?: boolean): Promise<void>;
-    listenOnUseForPlayback: (options: {
+    listenOnUseForPlayback(options: {
         id: string;
         state?: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnTrackList: (options: {
+    }): Promise<void>;
+    listenOnTrackList(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnPlayThisList: (options: {
+    }): Promise<void>;
+    listenOnPlayThisList(options: {
         id: string;
         state?: ioBroker.State | null | undefined;
-    }, pos?: number) => Promise<void>;
-    listenOnDeviceList: (options: {
+    }, pos?: number): Promise<void>;
+    listenOnDeviceList(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnPlaylistList: (options: {
+    }): Promise<void>;
+    listenOnPlaylistList(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnPlayUri: (options: {
+    }): Promise<void>;
+    listenOnPlayUri(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnPlay: () => Promise<void>;
-    listenOnPause: () => Promise<void>;
-    listenOnSkipPlus: () => Promise<void>;
-    listenOnSkipMinus: () => Promise<void>;
-    listenOnRepeat: (options: {
+    }): Promise<void>;
+    listenOnPlay(): Promise<void>;
+    listenOnPause(): Promise<void>;
+    listenOnSkipPlus(): Promise<void>;
+    listenOnSkipMinus(): Promise<void>;
+    listenOnRepeat(options: {
         id: string;
         state: {
             val?: ioBroker.StateValue;
             ack?: boolean;
         } | null | undefined;
-    }) => Promise<void>;
-    listenOnRepeatTrack: () => Promise<void>;
-    listenOnRepeatContext: () => Promise<void>;
-    listenOnRepeatOff: () => Promise<void>;
-    listenOnVolume: (options: {
+    }): Promise<void>;
+    listenOnRepeatTrack(): Promise<void>;
+    listenOnRepeatContext(): Promise<void>;
+    listenOnRepeatOff(): Promise<void>;
+    listenOnVolume(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnProgressMs: (options: {
+    }): Promise<void>;
+    listenOnProgressMs(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnProgressPercentage: (options: {
+    }): Promise<void>;
+    listenOnProgressPercentage(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnShuffle: (options: {
+    }): Promise<void>;
+    listenOnShuffle(options: {
         id: string;
         state: {
             val: ioBroker.StateValue;
             ack: boolean;
         } | null | undefined;
-    }) => Promise<void>;
-    listenOnShuffleOff: () => Promise<void>;
-    listenOnShuffleOn: () => Promise<void>;
-    listenOnTrackId: (options: {
+    }): Promise<void>;
+    listenOnShuffleOff(): Promise<void>;
+    listenOnShuffleOn(): Promise<void>;
+    listenOnTrackId(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnPlaylistId: (options: {
+    }): Promise<void>;
+    listenOnPlaylistId(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnPlaylistOwner: (options: {
+    }): Promise<void>;
+    listenOnPlaylistOwner(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnPlaylistTrackNo: (options: {
+    }): Promise<void>;
+    listenOnPlaylistTrackNo(options: {
         id: string;
         state: ioBroker.State | null | undefined;
-    }) => Promise<void>;
-    listenOnGetPlaybackInfo: () => void;
-    listenOnGetDevices: () => Promise<void>;
+    }): Promise<void>;
+    listenOnGetPlaybackInfo(): Promise<void>;
+    listenOnGetDevices(): Promise<void>;
     clearCache(): void;
-    listenOnHtmlPlaylists: () => Promise<void>;
-    listenOnHtmlTracklist: () => Promise<void>;
-    listenOnHtmlDevices: () => Promise<void>;
+    listenOnHtmlPlaylists(): Promise<void>;
+    listenOnHtmlTracklist(): Promise<void>;
+    listenOnHtmlDevices(): Promise<void>;
 }
