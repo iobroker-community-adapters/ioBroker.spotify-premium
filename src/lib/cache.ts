@@ -189,19 +189,13 @@ export async function setValue(
 
         if (JSON.stringify(oldObj) !== JSON.stringify(newObj)) {
             path.obj = newObj as ioBroker.StateObject;
-            adapter.log.debug(`save object: ${name} -> ${JSON.stringify(path.obj)}`);
+            logJson(`save object: ${name} -> `, path.obj);
             await adapter.setObjectAsync(name, path.obj);
         }
     }
 
     if (stateChanged) {
-        if (adapter.log.level === 'silly' || adapter.log.level === 'debug') {
-            let str = JSON.stringify(path.state?.val);
-            if (adapter.log.level === 'debug' && str.length > 200) {
-                str = `${str.substring(0, 200)}...`;
-            }
-            adapter.log.debug(`save state: ${name} -> ${str}`);
-        }
+        logJson(`save state: ${name} -> `, path.state?.val);
 
         let val = path.state!.val;
         if (val !== null && typeof val === 'object') {
@@ -219,7 +213,6 @@ export async function setValue(
         }
     }
 
-    // this must be done serial
     return `${adapter.namespace}.${name}`;
 }
 
@@ -229,7 +222,7 @@ function trigger(state: ioBroker.State | null | undefined, name: string): void {
             return;
         }
         if ((value.name instanceof RegExp && value.name.test(name)) || value.name === name) {
-            adapter.log.debug(`trigger: ${value.name} -> ${JSON.stringify(state)}`);
+            logJson(`trigger: ${value.name} -> `, state);
             value.func({
                 id: name,
                 state,
@@ -318,4 +311,14 @@ export function on(
 
 export function setAdapter(a: ioBroker.Adapter): void {
     adapter = a;
+}
+
+export function logJson(message: string, obj: any): void {
+    if (adapter.log.level === 'silly' || adapter.log.level === 'debug') {
+        let str = JSON.stringify(obj);
+        if (adapter.log.level === 'debug' && str.length > 200) {
+            str = `${str.substring(0, 200)}...`;
+        }
+        adapter.log.debug(message + str);
+    }
 }

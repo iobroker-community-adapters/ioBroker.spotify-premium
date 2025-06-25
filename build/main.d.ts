@@ -12,7 +12,7 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     constructor(options?: Partial<AdapterOptions>);
     main(): Promise<void>;
     start(): Promise<void>;
-    sendRequest<T = any>(endPoint: string, method: 'POST' | 'GET' | 'PUT', sendBody: string, delayAccepted?: boolean): Promise<T | null>;
+    sendRequest<T = any>(endPoint: string, method: 'POST' | 'GET' | 'PUT', sendBody?: Record<string, any>, delayAccepted?: boolean): Promise<T | null>;
     loadOrDefault<T = any>(obj: Record<string, any> | null | undefined, name: string, defaultVal: T): T;
     createOrDefault(obj: Record<string, any>, name: string, state: string, defaultVal: ioBroker.StateValue, description: string, type: ioBroker.CommonType, states?: Record<string, string>): Promise<string>;
     setOrDefault(obj: Record<string, any> | null | undefined, name: string, state: string, defaultVal: ioBroker.StateValue): Promise<string>;
@@ -55,7 +55,7 @@ export declare class SpotifyPremiumAdapter extends Adapter {
     scheduleDevicePolling(): void;
     pollDeviceApi(): Promise<void>;
     schedulePlaylistPolling(): void;
-    pollPlaylistApi(): void;
+    pollPlaylistApi(): Promise<void>;
     startPlaylist(playlist: string, owner: string, trackNo: number, keepTrack?: boolean): Promise<void>;
     listenOnUseForPlayback(options: {
         id: string;

@@ -18,3 +18,4 @@ export declare function on(str: string | string[] | RegExp, func: (options: {
     state: ioBroker.State | null | undefined;
 }) => Promise<void> | void, triggeredByOtherService?: boolean): void;
 export declare function setAdapter(a: ioBroker.Adapter): void;
+export declare function logJson(message: string, obj: any): void;

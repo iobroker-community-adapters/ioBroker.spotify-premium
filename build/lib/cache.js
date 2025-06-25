@@ -11,6 +11,7 @@ exports.setExternalObj = setExternalObj;
 exports.delObject = delObject;
 exports.on = on;
 exports.setAdapter = setAdapter;
+exports.logJson = logJson;
 const listener = [];
 let adapter;
 const cache = { values: { children: [], nodes: {}, fullName: '', name: '' } };
@@ -149,18 +150,12 @@ async function setValue(name, state, obj) {
         }
         if (JSON.stringify(oldObj) !== JSON.stringify(newObj)) {
             path.obj = newObj;
-            adapter.log.debug(`save object: ${name} -> ${JSON.stringify(path.obj)}`);
+            logJson(`save object: ${name} -> `, path.obj);
             await adapter.setObjectAsync(name, path.obj);
         }
     }
     if (stateChanged) {
-        if (adapter.log.level === 'silly' || adapter.log.level === 'debug') {
-            let str = JSON.stringify(path.state?.val);
-            if (adapter.log.level === 'debug' && str.length > 200) {
-                str = `${str.substring(0, 200)}...`;
-            }
-            adapter.log.debug(`save state: ${name} -> ${str}`);
-        }
+        logJson(`save state: ${name} -> `, path.state?.val);
         let val = path.state.val;
         if (val !== null && typeof val === 'object') {
             val = JSON.stringify(val);
@@ -178,7 +173,6 @@ async function setValue(name, state, obj) {
             trigger(path.state, name);
         }
     }
-    // this must be done serial
     return `${adapter.namespace}.${name}`;
 }
 function trigger(state, name) {
@@ -187,7 +181,7 @@ function trigger(state, name) {
             return;
         }
         if ((value.name instanceof RegExp && value.name.test(name)) || value.name === name) {
-            adapter.log.debug(`trigger: ${value.name} -> ${JSON.stringify(state)}`);
+            logJson(`trigger: ${value.name} -> `, state);
             value.func({
                 id: name,
                 state,
@@ -259,5 +253,14 @@ function on(str, func, triggeredByOtherService) {
 }
 function setAdapter(a) {
     adapter = a;
+}
+function logJson(message, obj) {
+    if (adapter.log.level === 'silly' || adapter.log.level === 'debug') {
+        let str = JSON.stringify(obj);
+        if (adapter.log.level === 'debug' && str.length > 200) {
+            str = `${str.substring(0, 200)}...`;
+        }
+        adapter.log.debug(message + str);
+    }
 }
 //# sourceMappingURL=cache.js.map
