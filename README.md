@@ -102,6 +102,7 @@ Click for widget source.
 -->
 ### **WORK IN PROGRESS**
 - (aruttkamp) correct issues detected by repsoitory checker [#421]
+- (aruttkamp) changes redirect URI and docu
 
 ### 1.5.3 (2025-04-15)
 - (aruttkamp) redirect URI changed [#429]

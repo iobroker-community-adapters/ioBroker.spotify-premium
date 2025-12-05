@@ -17,7 +17,7 @@
   "manual11": "wartość 'spotify-premium.X.authorization.authorized' zmienia się na true, jeśli wszystko przebiegło pomyślnie",
   "manual12": "Instrukcja wideo",
   "manual2": "Utwórz aplikację, otrzymasz identyfikator klienta i klucz klienta",
-  "manual3": "ustaw przekierowania URI na http://127.0.0.1 w ustawieniach aplikacji w utworzonej aplikacji spotify",
+  "manual3": "ustaw przekierowania URI na http://127.0.0.1:80 w ustawieniach aplikacji w utworzonej aplikacji spotify",
   "manual4": "umieść Cliend ID i Secret klienta w polach poniżej",
   "manual5": "uruchom instancję",
   "manual6": "przejdź do zakładki obiektów i naciśnij przycisk getAuthorization na 'spotify-premium.X.authorization'",

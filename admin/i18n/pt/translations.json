@@ -17,7 +17,7 @@
   "manual11": "tudo está configurado corretamente se verdadeiro em 'spotify-premium.X.authorization.authorized'",
   "manual12": "Vídeo tutorial",
   "manual2": "Crie um aplicativo, obtenha um Client ID e um Client Secret",
-  "manual3": "nas configurações do aplicativo do seu aplicativo, digite 'http://127.0.0.1' no Redirect URIs",
+  "manual3": "nas configurações do aplicativo do seu aplicativo, digite 'http://127.0.0.1:80' no Redirect URIs",
   "manual4": "insira seu Cliend ID e Client Secret aqui",
   "manual5": "Comece a instância",
   "manual6": "mude para a guia Objetos e clique no botão getAuthorization em 'spotify-premium.X.authorization'",

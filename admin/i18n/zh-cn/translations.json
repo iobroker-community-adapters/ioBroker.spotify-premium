@@ -17,7 +17,7 @@
   "manual11": "如果一切顺利，'spotify-premium.X.authorization.authorized' 中的值变为 true",
   "manual12": "视频教程",
   "manual2": "创建一个应用程序，您将获得一个客户端 ID 和一个客户端密钥",
-  "manual3": "在您创建的 Spotify 应用程序的应用程序设置中将重定向 URI 设置为“http://127.0.0.1”",
+  "manual3": "在您创建的 Spotify 应用程序的应用程序设置中将重定向 URI 设置为“http://127.0.0.1:80”",
   "manual4": "在下方的字段中输入客户端 ID 和客户端密码",
   "manual5": "保存更改",
   "manual6": "切换到对象选项卡并在“spotify-premium.X.authorization”处按下按钮 getAuthorization",
