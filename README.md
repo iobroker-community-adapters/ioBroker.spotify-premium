@@ -100,6 +100,9 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+- (mcm1957) adapter reuires node.js 20 now
+  
 ### 1.5.4 (2025-12-05)
 - (aruttkamp) correct issues detected by repsoitory checker [#421]
 - (aruttkamp) changes redirect URI and docu
