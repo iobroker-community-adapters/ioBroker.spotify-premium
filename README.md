@@ -100,6 +100,8 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+- (aruttkamp) dev dependencies aktualisiert
 ### 1.5.5 (2025-12-07)
 - (mcm1957) adapter reuires node.js 20 now
 - (aruttkamp) dev dependencies aktualisiert
