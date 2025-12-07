@@ -1,4 +1,11 @@
 # Older changes
+## 1.5.0 (2024-04-18)
+- (N1tR0) A problem has been fixed which cause 'too many requests' errors [#241, #245, #311]. The recommended update interval for playlist information is now 60 minutes.
+- (N1tR0) A DNS cache has been added [#341].
+- (N1tR0) Potentially fix 'Current played track is not highlighted' [#283]
+- (N1tR0) Some state types have been fixed
+- (mcm1957) Dependencies have been updated
+
 ## 1.4.0 (2024-04-02)
 * (mcm1957) Adapter requires node.js 18 and js-controller >= 5 now
 * (N1tR0) A problem has been fixed that did not correctly update the progress of playing media [#339]

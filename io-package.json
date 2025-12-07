@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.5.4",
+    "version": "1.5.5",
     "news": {
+      "1.5.5": {
+        "en": "adapter reuires node.js 20 now\ndev dependencies aktualisiert",
+        "de": "adapter reuires node.js 20 jetzt\ndev abhängigkeiten aktualisiert",
+        "ru": "адаптер повторно использует node.js 20\ndev зависимостей aktualisiert",
+        "pt": "adaptador reuires node.js 20 agora\ndev dependências aktualisiert",
+        "nl": "adapter reuires node.js 20 nu\ndev afhankelijkheden aktualisiert",
+        "fr": "adaptateur reuires node.js 20 maintenant\ndev dépendances aktualisiert",
+        "it": "adattatore reuires node.js 20 ora\ndev dependencies aktualisiert",
+        "es": "adaptador reuires node.js 20 ahora\ndev dependencies aktualisiert",
+        "pl": "adapter reuires node.js 20 teraz\ndev zależności aktualisiert",
+        "uk": "адаптер reuires node.js 20 тепер\nсубтитри",
+        "zh-cn": "适配器 reuires 节点.js 20s 现在\n依赖关系"
+      },
       "1.5.4": {
         "en": "correct issues detected by repsoitory checker [#421]\nchanges redirect URI and docu",
         "de": "korrekte probleme, die vom resoitory-checker erkannt wurden [#421]\nänderungen umleiten URI und docu",
@@ -80,19 +93,6 @@
         "pl": "Problem został ustalony, co powoduje 'Error 400' z błędami gryUri (#259)",
         "uk": "Проблема була виправлена, яка спричиняє 'Error 400' з playUri error [#259]",
         "zh-cn": "已确定一个问题,造成400英勇的错误(第259号)"
-      },
-      "1.3.0": {
-        "en": "A problem has been fixed which cause 'too many requests' errors [#241, #245]\nAdapter requires nodejs 16 now\nTesting has been changed to support node 16, 18 and 20\nDependencies have been updated",
-        "de": "Es wurde ein Problem behoben, das 'zu viele Anfragen' Fehler verursacht [#241, #245]\nAdapter benötigt jetzt Nodejs 16\nDie Prüfung wurde auf node 16, 18 und 20 geändert\nAbhängigkeiten wurden aktualisiert",
-        "ru": "Проблема была исправлена, которая вызывает ошибки 'too many request' [#241, #245]\nАдаптер требует nodejs 16 сейчас\nИспытание было изменено для поддержки ноды 16, 18 и 20\nВ зависимости были обновлены",
-        "pt": "Um problema foi corrigido que causam erros de 'too muitos pedidos' [#241, #245]\nAdapter requer nodejs 16 agora\nOs testes foram alterados para suportar o nó 16, 18 e 20\nAs dependências foram atualizadas",
-        "nl": "Er is een probleem opgelost die te veel fouten veroorzaakt\nAdapter vereist nodej 16 nu\nDe test is veranderd om node 16 te ondersteunen, 18 en 20\nAfhankelijkheid",
-        "fr": "Un problème a été corrigé qui provoque des erreurs 'trop de requêtes' [#241, #245]\nAdaptateur nécessite nodejs 16 maintenant\nLes essais ont été modifiés pour soutenir les numéros 16, 18 et 20\nLes dépendances ont été mises à jour",
-        "it": "Un problema è stato risolto che causa 'troppe richieste' errori [#241, #245]\nAdattatore richiede nodejs 16 ora\nI test sono stati modificati per supportare il nodo 16, 18 e 20\nLe dipendenze sono state aggiornate",
-        "es": "Se ha solucionado un problema que causa \"demasiadas solicitudes\" errores [#241, #245]\nAdaptador requiere nodejs 16 ahora\nLos exámenes se han modificado para apoyar los nodos 16, 18 y 20\nSe han actualizado las dependencias",
-        "pl": "Problem został ustalony, co powoduje 'too many tasks' błędów #241, #245'\nAdapter wymaga już 16 węzłów\nTesty zostały zmienione na węzeł 16 i 20\nZależności zostały zaktualizowane",
-        "uk": "Проблема була виправлена, яка викликає помилки «до багатьох запитів» [#241, #245]\nАдаптер вимагає nodejs 16 тепер\nТестування було змінено для підтримки вузлів 16, 18 та 20\nОновлено залежність",
-        "zh-cn": "已确定一个问题,造成许多请求的错误[第241号、第245号]\n道歉现在需要16个不听众。\n试验已改变,以支持第16、18和20号。\n已更新了属地"
       }
     },
     "titleLang": {
