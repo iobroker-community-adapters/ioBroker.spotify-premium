@@ -102,6 +102,7 @@ Click for widget source.
 -->
 ### **WORK IN PROGRESS**
 - (mcm1957) adapter reuires node.js 20 now
+- (aruttkamp) dev dependencies aktualisiert
   
 ### 1.5.4 (2025-12-05)
 - (aruttkamp) correct issues detected by repsoitory checker [#421]
