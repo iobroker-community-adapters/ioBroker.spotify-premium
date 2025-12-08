@@ -1,6 +1,6 @@
 {
   "name": "iobroker.spotify-premium",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "description": "ioBroker spotify-premium Adapter",
   "author": {
     "name": "twonky4",
@@ -53,7 +53,7 @@
     "@iobroker/testing": "^5.2.2",
     "@tsconfig/node14": "^14.1.8",
     "@types/node": "^24.10.1",
-    "@types/mocha":"10.0.10",
+    "@types/mocha": "10.0.10",
     "mocha": "^11.7.5",
     "typescript": "~5.9.3"
   },

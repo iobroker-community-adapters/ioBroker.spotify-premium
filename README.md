@@ -100,8 +100,9 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.5.6 (2025-12-08)
 - (aruttkamp) dev dependencies aktualisiert
+
 ### 1.5.5 (2025-12-07)
 - (mcm1957) adapter reuires node.js 20 now
 - (aruttkamp) dev dependencies aktualisiert
@@ -115,9 +116,6 @@ Click for widget source.
 
 ### 1.5.2 (2024-12-16)
 - (aruttkamp) ESLint 9 implemented
-
-### 1.5.1 (2024-12-16)
-- (aruttkamp) Testing Node 22.x implemented
 
 ## License
 The MIT License (MIT)

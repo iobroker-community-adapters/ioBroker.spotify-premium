@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.5.5",
+    "version": "1.5.6",
     "news": {
+      "1.5.6": {
+        "en": "dev dependencies aktualisiert",
+        "de": "dev abhängigkeiten aktualisiert",
+        "ru": "dev зависимостей aktualisiert",
+        "pt": "dev dependências aktualisiert",
+        "nl": "dev afhankelijkheden aktualisiert",
+        "fr": "dev dépendances aktualisiert",
+        "it": "dev dependencies aktualisiert",
+        "es": "dev dependencies aktualisiert",
+        "pl": "dev zależności aktualisiert",
+        "uk": "субтитри",
+        "zh-cn": "依赖关系"
+      },
       "1.5.5": {
         "en": "adapter reuires node.js 20 now\ndev dependencies aktualisiert",
         "de": "adapter reuires node.js 20 jetzt\ndev abhängigkeiten aktualisiert",
@@ -80,19 +93,6 @@
         "pl": "Adapter wymaga node.js 18 i sterownika js- > = 5 teraz\nNaprawiono problem, który nie uaktualnił poprawnie postępów w odtwarzaniu mediów [# 339]\nUaktualniono zależności0",
         "uk": "Адаптер вимагає node.js 18 і js-controller >= 5 тепер\nПроблема була виправлена, що не вірно оновити прогрес ігрових медіа [#339]\nЗалежність було оновлено0",
         "zh-cn": "适配器需要节点.js 18和js控制器 QQ 现在5号\n一个问题已经解决, 无法正确更新播放媒体的进展 [# 339]\n依赖关系已更新0"
-      },
-      "1.3.1": {
-        "en": "A problem has been fixed which cause 'Error 400' with playUri errors [#259]",
-        "de": "Es wurde ein Problem behoben, das 'Error 400' mit playUri Fehlern verursacht [#259]",
-        "ru": "Проблема была исправлена, которая вызывает 'Error 400' с ошибками playUri [#259]",
-        "pt": "Um problema foi corrigido que causa 'Error 400' com erros playUri [#259]",
-        "nl": "Er is een probleem opgelost wat Err 400 veroorzaakt met speelUri fouten",
-        "fr": "Un problème a été corrigé qui cause 'Error 400' avec playUri erreurs [#259]",
-        "it": "Un problema è stato risolto che causa 'Error 400' con playUri errori [#259]",
-        "es": "Se ha solucionado un problema que causa 'Error 400' con errores playUri [#259]",
-        "pl": "Problem został ustalony, co powoduje 'Error 400' z błędami gryUri (#259)",
-        "uk": "Проблема була виправлена, яка спричиняє 'Error 400' з playUri error [#259]",
-        "zh-cn": "已确定一个问题,造成400英勇的错误(第259号)"
       }
     },
     "titleLang": {
