@@ -102,12 +102,8 @@ Click for widget source.
 -->
 ### 1.5.6 (2025-12-08)
 - (aruttkamp) dev dependencies aktualisiert
-
-### 1.5.5 (2025-12-07)
 - (mcm1957) adapter reuires node.js 20 now
 - (aruttkamp) dev dependencies aktualisiert
-
-### 1.5.4 (2025-12-05)
 - (aruttkamp) correct issues detected by repsoitory checker [#421]
 - (aruttkamp) changes redirect URI and docu
 
@@ -120,7 +116,7 @@ Click for widget source.
 ## License
 The MIT License (MIT)
 
-Copyright (c) 2024-2025 iobroker-community-adapters <iobroker-community-adapters@gmx.de>
+Copyright (c) 2024-2025 iobroker-community-adapters <iobroker-community-adapters@gmx.de>  
 Copyright (c) 2019-2023 twonky4 <twonky4@gmx.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
