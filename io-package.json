@@ -16,32 +16,6 @@
         "uk": "субтитри",
         "zh-cn": "依赖关系"
       },
-      "1.5.5": {
-        "en": "adapter reuires node.js 20 now\ndev dependencies aktualisiert",
-        "de": "adapter reuires node.js 20 jetzt\ndev abhängigkeiten aktualisiert",
-        "ru": "адаптер повторно использует node.js 20\ndev зависимостей aktualisiert",
-        "pt": "adaptador reuires node.js 20 agora\ndev dependências aktualisiert",
-        "nl": "adapter reuires node.js 20 nu\ndev afhankelijkheden aktualisiert",
-        "fr": "adaptateur reuires node.js 20 maintenant\ndev dépendances aktualisiert",
-        "it": "adattatore reuires node.js 20 ora\ndev dependencies aktualisiert",
-        "es": "adaptador reuires node.js 20 ahora\ndev dependencies aktualisiert",
-        "pl": "adapter reuires node.js 20 teraz\ndev zależności aktualisiert",
-        "uk": "адаптер reuires node.js 20 тепер\nсубтитри",
-        "zh-cn": "适配器 reuires 节点.js 20s 现在\n依赖关系"
-      },
-      "1.5.4": {
-        "en": "correct issues detected by repsoitory checker [#421]\nchanges redirect URI and docu",
-        "de": "korrekte probleme, die vom resoitory-checker erkannt wurden [#421]\nänderungen umleiten URI und docu",
-        "ru": "правильные проблемы, обнаруженные проверкой репозитория [#421]\nизменения перенаправления URI и docu",
-        "pt": "problemas corretos detectados pelo verificador de repsoitory [#421]\nalterações redirecionar URI e docu",
-        "nl": "correcte problemen gedetecteerd door repsotory checker [#421]\nwijzigt redirect URI en document",
-        "fr": "des problèmes corrects détectés par le vérificateur de la conformité [#421]\nchangements rediriger URI et docu",
-        "it": "problemi corretti rilevati da checker ripetitivo [#421]\nmodifiche reindirizzare URI e docu",
-        "es": "problemas correctos detectados por el corrector de repsoitorio [#421]\ncambios redirige URI y docu",
-        "pl": "prawidłowe kwestie wykryte przez kontroler repsoritory [# 421]\nzmiany przekierowania URI i doku",
-        "uk": "виправлено проблеми, виявлені резисторами [#421]\nперенаправлення URI та docu",
-        "zh-cn": "爬行检查器检测出的正确问题 [# 421]\n更改重定向 URI 和 docu"
-      },
       "1.5.3": {
         "en": "redirect URI changed [#429]",
         "de": "umleitung URI geändert [#429]",
@@ -152,12 +126,12 @@
     "tier": 2,
     "dependencies": [
       {
-        "js-controller": ">=5.0.19"
+        "js-controller": ">=6.0.11"
       }
     ],
     "globalDependencies": [
       {
-        "admin": ">=7.4.10"
+        "admin": ">=7.6.17"
       }
     ],
     "plugins": {
