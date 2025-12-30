@@ -2,26 +2,12 @@
   "name": "iobroker.spotify-premium",
   "version": "1.5.6",
   "description": "ioBroker spotify-premium Adapter",
-  "author": {
-    "name": "twonky4",
-    "email": "twonky4@gmx.de"
-  },
+  "author": "twonky4 <twonky4@gmx.de>",
   "contributors": [
-    {
-      "name": "iobroker-community-adapters",
-      "email": "mcm57@gmx.at"
-    },
-    {
-      "name": "Lucky"
-    },
-    {
-      "name": "twonky4",
-      "email": "twonky4@gmx.de"
-    },
-    {
-      "name": "N1tR0",
-      "email": "fabi@ihlecloud.de"
-    }
+    "iobroker-community-adapters <mcm57@gmx.at>",
+    "Lucky",
+    "twonky4 <twonky4@gmx.de>",
+    "N1tR0 <fabi@ihlecloud.de>"
   ],
   "homepage": "https://github.com/iobroker-community-adapters/ioBroker.spotify-premium",
   "license": "MIT",
