@@ -1726,7 +1726,7 @@ function getToken() {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
         headers: {
-            'Authorization': `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         data: tokenData.toString(),
@@ -1781,7 +1781,7 @@ function refreshToken() {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
         headers: {
-            'Authorization': `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         data: tokenData.toString(),
