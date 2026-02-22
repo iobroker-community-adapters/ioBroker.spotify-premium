@@ -1,20 +1,8 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.5.22",
+    "version": "1.5.6",
     "news": {
-      "1.5.7": {
-        "en": "Widget registration added to enable proper widget display in VIS",
-        "de": "Widget-Registrierung hinzugefügt, um ordnungsgemäße Widget-Anzeige in VIS zu ermöglichen",
-        "ru": "Добавлена регистрация виджета для правильного отображения виджета в VIS",
-        "pt": "Registro de widget adicionado para ativar a exibição adequada do widget no VIS",
-        "nl": "Widget-registratie toegevoegd om de juiste widgetweergave in VIS in te schakelen",
-        "fr": "Enregistrement du widget ajouté pour activer l'affichage correct du widget dans VIS",
-        "it": "Registrazione widget aggiunta per abilitare la corretta visualizzazione del widget in VIS",
-        "es": "Registro de widget añadido para habilitar la visualización adecuada del widget en VIS",
-        "pl": "Rejestracja widżetu dodana w celu umożliwienia prawidłowego wyświetlania widżetu w VIS",
-        "zh-cn": "添加了小部件注册以在VIS中启用正确的小部件显示"
-      },
       "1.5.6": {
         "en": "dev dependencies aktualisiert",
         "de": "dev abhängigkeiten aktualisiert",
