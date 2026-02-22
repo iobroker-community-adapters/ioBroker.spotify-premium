@@ -31,6 +31,50 @@ const removeNameSpace = ownUtils.removeNameSpace;
 let artistImageUrlCache = {};
 let playlistCache = {};
 
+// Request queue to prevent rate limiting (429 errors)
+const requestQueue = {
+    queue: [],
+    isProcessing: false,
+    minDelayMs: 2500, // Minimum delay between requests in milliseconds (~0.4 req/sec = ~24 req/min, ultra-conservative for Spotify)
+
+    add: function (fn) {
+        return new Promise((resolve, reject) => {
+            this.queue.push({ fn, resolve, reject });
+            this.process();
+        });
+    },
+
+    process: function () {
+        if (this.isProcessing || this.queue.length === 0) {
+            return;
+        }
+
+        this.isProcessing = true;
+        const { fn, resolve, reject } = this.queue.shift();
+
+        fn()
+            .then(result => {
+                resolve(result);
+                // Small delay to prevent rate limiting
+                setTimeout(() => {
+                    this.isProcessing = false;
+                    this.process();
+                }, this.minDelayMs);
+            })
+            .catch(error => {
+                reject(error);
+                // Small delay even on error to prevent rate limiting
+                setTimeout(() => {
+                    this.isProcessing = false;
+                    this.process();
+                }, this.minDelayMs);
+            });
+    },
+};
+
+const TOKEN_REFRESH_SKEW_MS = 10 * 60 * 1000; // Refresh 10 minutes before expiry
+const TOKEN_REFRESH_MIN_DELAY_MS = 30 * 1000; // Avoid immediate refresh loops
+
 const application = {
     userId: '',
     baseUrl: 'https://api.spotify.com',
@@ -45,15 +89,19 @@ const application = {
     code: '',
     statusInternalTimer: null,
     statusPollingHandle: null,
-    statusPollingDelaySeconds: 5,
+    statusPollingDelaySeconds: 10, // Reduced from 5s to 10s to prevent rate limiting (was too frequent with 3 concurrent polling operations)
     devicePollingHandle: null,
     devicePollingDelaySeconds: 300,
     playlistPollingHandle: null,
-    playlistPollingDelaySeconds: 900,
+    playlistPollingDelaySeconds: 1800, // Reduced from 900 (15 min) to 1800 (30 min) to minimize rate limiting risk
     error202shown: false,
     cacheClearHandle: null,
     callbackServer: null,
     callbackPort: 80,
+    lastTrackId: '', // Track last loaded Artist info for to avoid unnecessary artist requests
+    lastPlaylistId: '', // Track last loaded Playlist info to avoid unnecessary playlist detail requests
+    tokenRefreshTimer: null,
+    tokenExpiresAtMs: 0,
 };
 
 const deviceData = {
@@ -133,6 +181,9 @@ function startAdapter(options) {
             }
             if ('undefined' !== typeof application.cacheClearHandle) {
                 clearTimeout(application.cacheClearHandle);
+            }
+            if ('undefined' !== typeof application.tokenRefreshTimer) {
+                clearTimeout(application.tokenRefreshTimer);
             }
             Promise.all([
                 cache.setValue('authorization.authorizationUrl', ''),
@@ -342,6 +393,7 @@ function start() {
         .then(tokenObj => {
             application.token = tokenObj.accessToken;
             application.refreshToken = tokenObj.refreshToken;
+            scheduleTokenRefresh(getTokenExpiresAtMs(tokenObj), 'startup');
         })
         .then(() => sendRequest('/v1/me', 'GET', ''))
         .then(data => setUserInformation(data))
@@ -392,7 +444,46 @@ function readTokenStates() {
     // return getToken();
 }
 
+function getTokenExpiresAtMs(tokenObj) {
+    const expiresAtMs = loadOrDefault(tokenObj, 'expiresAtMs', 0);
+    if (expiresAtMs > 0) {
+        return expiresAtMs;
+    }
+    const expiresInSec = Number(loadOrDefault(tokenObj, 'expiresInSec', 0)) || 3600;
+    return Date.now() + expiresInSec * 1000;
+}
+
+function scheduleTokenRefresh(expiresAtMs, source) {
+    if (!expiresAtMs || !application.refreshToken) {
+        return;
+    }
+
+    clearTimeout(application.tokenRefreshTimer);
+
+    const now = Date.now();
+    const refreshAtMs = Math.max(expiresAtMs - TOKEN_REFRESH_SKEW_MS, now + TOKEN_REFRESH_MIN_DELAY_MS);
+    const delayMs = Math.max(refreshAtMs - now, TOKEN_REFRESH_MIN_DELAY_MS);
+
+    application.tokenExpiresAtMs = expiresAtMs;
+    adapter.log.debug(`Scheduling token refresh in ${Math.round(delayMs / 1000)}s (${source})`);
+
+    application.tokenRefreshTimer = setTimeout(() => {
+        if (stopped) {
+            return;
+        }
+        adapter.log.debug('Starting proactive token refresh...');
+        refreshToken()
+            .then(() => adapter.log.info('Proactive token refresh successful'))
+            .catch(err => adapter.log.error(`Proactive token refresh failed: ${err}`));
+    }, delayMs);
+}
+
 function sendRequest(endpoint, method, sendBody, delayAccepted, tokenRefreshAttempted) {
+    // Queue all requests to prevent Spotify rate limiting (429 errors)
+    return requestQueue.add(() => sendRequestDirect(endpoint, method, sendBody, delayAccepted, tokenRefreshAttempted));
+}
+
+function sendRequestDirect(endpoint, method, sendBody, delayAccepted, tokenRefreshAttempted) {
     const options = {
         url: application.baseUrl + endpoint,
         method,
@@ -412,167 +503,220 @@ function sendRequest(endpoint, method, sendBody, delayAccepted, tokenRefreshAtte
         return Promise.reject(429);
     }
 
-    return request(options).then(response => {
-        const body = typeof response.body !== 'undefined' ? response.body : response.data;
-        const statusCode = typeof response.statusCode !== 'undefined' ? response.statusCode : response.status;
-        const headers = response.headers || {};
-        let ret;
-        let parsedBody;
+    return request(options)
+        .then(response => {
+            const body = typeof response.body !== 'undefined' ? response.body : response.data;
+            const statusCode = typeof response.statusCode !== 'undefined' ? response.statusCode : response.status;
+            const headers = response.headers || {};
+            let ret;
+            let parsedBody;
 
-        if (body && typeof body === 'object') {
-            parsedBody = body;
-        } else {
-            try {
-                parsedBody = body ? JSON.parse(body) : { error: { message: 'no active device' } };
-            } catch (e) {
-                parsedBody = { error: { message: `no active device ${e && e.message ? `: ${  e.message}` : ''}` } };
-            }
-        }
-
-        switch (statusCode) {
-            case 200:
-                // OK
-                ret = parsedBody;
-                break;
-            case 202:
-                // Accepted, processing has not been completed.
-                adapter.log.debug(`http response: ${JSON.stringify(response)}`);
-                if (delayAccepted) {
-                    ret = null;
-                } else {
-                    ret = Promise.reject(statusCode);
-                }
-                break;
-            case 204:
-                // OK, No Content
-                ret = null;
-                break;
-            case 400: // Bad Request, message body will contain more information
-            case 500: // Server Error
-            case 503: // Service Unavailable
-            case 404: // Not Found
-            case 502:
-                // Bad Gateway
-                ret = Promise.reject(statusCode);
-                break;
-            case 403:
-            case 401:
-                // Unauthorized or Forbidden
-                // For 401 (Unauthorized), try to refresh token automatically (only once)
-                if (statusCode === 401 && !tokenRefreshAttempted) {
-                    adapter.log.warn(`Received 401 Unauthorized on ${endpoint} - attempting automatic token refresh`);
-                    ret = Promise.all([
-                        cache.setValue('authorization.authorized', false),
-                        cache.setValue('info.connection', false),
-                    ])
-                        .then(() => {
-                            adapter.log.debug('Starting token refresh...');
-                            return refreshToken();
-                        })
-                        .then(() => {
-                            adapter.log.info('Token refresh successful - reconnecting');
-                            return Promise.all([
-                                cache.setValue('authorization.authorized', true),
-                                cache.setValue('info.connection', true),
-                            ]);
-                        })
-                        .then(() => sendRequest(endpoint, method, sendBody, delayAccepted, true))
-                        .then(data => {
-                            adapter.log.info(`Request retry after token refresh successful for ${endpoint}`);
-                            return data;
-                        })
-                        .catch(err => {
-                            if (err === 202) {
-                                adapter.log.debug(`${err} request accepted but no data, try again`);
-                            } else {
-                                adapter.log.error(`Token refresh or retry failed for ${endpoint}: ${err}`);
-                            }
-                            return Promise.reject(err);
-                        });
-                } else if (statusCode === 403 && (parsedBody.error && parsedBody.error.message === 'The access token expired')) {
-                    // 403 - try refresh only if it looks like token expiration
-                    adapter.log.debug('access token expired (403)!');
-                    ret = Promise.all([
-                        cache.setValue('authorization.authorized', false),
-                        cache.setValue('info.connection', false),
-                    ])
-                        .then(() => refreshToken())
-                        .then(() =>
-                            Promise.all([
-                                cache.setValue('authorization.authorized', true),
-                                cache.setValue('info.connection', true),
-                            ]),
-                        )
-                        .then(() => sendRequest(endpoint, method, sendBody, delayAccepted, true))
-                        .then(data => {
-                            adapter.log.debug('data with new token');
-                            return data;
-                        })
-                        .catch(err => {
-                            if (err === 202) {
-                                adapter.log.debug(`${err} request accepted but no data, try again`);
-                            } else {
-                                adapter.log.error(`error on request data again. ${err}`);
-                            }
-                            return Promise.reject(err);
-                        });
-                } else {
-                    if (statusCode === 401 && tokenRefreshAttempted) {
-                        adapter.log.error(`Authentication failed (401) on endpoint: ${endpoint} - Token refresh did not resolve the issue`);
-                    } else if (statusCode === 403) {
-                        adapter.log.warn('Seems that the token is expired or permissions are insufficient!');
-                        adapter.log.warn(`status code: ${statusCode}`);
-                        adapter.log.warn(`endpoint: ${endpoint}`);
-                        adapter.log.warn(`error message: ${parsedBody.error && parsedBody.error.message ? parsedBody.error.message : 'unknown'}`);
-                        adapter.log.debug(`body: ${body}`);
-                    }
-
-                    ret = Promise.all([
-                        cache.setValue('authorization.authorized', false),
-                        cache.setValue('info.connection', false),
-                    ]).then(() => {
-                        adapter.log.error(`${statusCode} response: ${parsedBody.error && parsedBody.error.message ? parsedBody.error.message : 'unknown error'}`);
-                        return Promise.reject(statusCode);
-                    });
-                }
-                break;
-
-            case 429: {
-                // Too Many Requests
-                let wait = 1;
-                if (headers && headers['retry-after'] && Number(headers['retry-after']) > 0) {
-                    wait = Number(headers['retry-after']);
-                    tooManyRequests = true;
-                    adapter.log.warn(`too many requests, wait ${wait}s`);
-                }
-                ret = new Promise(resolve => setTimeout(() => !stopped && resolve(), wait * 1000))
-                    .then(() => {
-                        tooManyRequests = false;
-                        sendRequest(endpoint, method, sendBody, delayAccepted);
-                    })
-                    .catch(error => {
-                        adapter.log.debug(error);
-                    });
-                break;
-            }
-
-            default: {
-                adapter.log.warn('http request error not handled, please debug');
-                adapter.log.debug(`status code: ${statusCode}`);
-                adapter.log.warn(callStack);
-                adapter.log.warn(new Error().stack);
-                const safeBody = typeof body !== 'undefined' && body !== null ? body : (response && response.data ? JSON.stringify(response.data) : 'unknown error');
-                adapter.log.debug(`body: ${safeBody}`);
-                ret = Promise.reject(statusCode);
+            if (body && typeof body === 'object') {
+                parsedBody = body;
+            } else {
                 try {
-                    adapter.setState('authorization.error', safeBody, true);
+                    parsedBody = body ? JSON.parse(body) : { error: { message: 'no active device' } };
                 } catch (e) {
-                    adapter.log.warn(`Could not set authorization.error state: ${e && e.message ? e.message : e}`);
+                    parsedBody = { error: { message: `no active device ${e && e.message ? `: ${  e.message}` : ''}` } };
                 }
             }
-        }
-        return ret;
-    });
+
+            switch (statusCode) {
+                case 200:
+                    // OK
+                    ret = parsedBody;
+                    break;
+                case 202:
+                    // Accepted, processing has not been completed.
+                    adapter.log.debug(`http response: ${JSON.stringify(response)}`);
+                    if (delayAccepted) {
+                        ret = null;
+                    } else {
+                        ret = Promise.reject(statusCode);
+                    }
+                    break;
+                case 204:
+                    // OK, No Content
+                    ret = null;
+                    break;
+                case 400: // Bad Request, message body will contain more information
+                case 500: // Server Error
+                case 503: // Service Unavailable
+                case 404: // Not Found
+                case 502:
+                    // Bad Gateway
+                    ret = Promise.reject(statusCode);
+                    break;
+                case 403:
+                case 401:
+                    // Unauthorized or Forbidden
+                    // For 401 (Unauthorized), try to refresh token automatically (only once)
+                    if (statusCode === 401 && !tokenRefreshAttempted) {
+                        adapter.log.warn(`Received 401 Unauthorized on ${endpoint} - attempting automatic token refresh`);
+                        ret = Promise.all([
+                            cache.setValue('authorization.authorized', false),
+                            cache.setValue('info.connection', false),
+                        ])
+                            .then(() => {
+                                adapter.log.debug('Starting token refresh...');
+                                return refreshToken();
+                            })
+                            .then(() => {
+                                adapter.log.info('Token refresh successful - reconnecting');
+                                return Promise.all([
+                                    cache.setValue('authorization.authorized', true),
+                                    cache.setValue('info.connection', true),
+                                ]);
+                            })
+                            .then(() => sendRequest(endpoint, method, sendBody, delayAccepted, true))
+                            .then(data => {
+                                adapter.log.info(`Request retry after token refresh successful for ${endpoint}`);
+                                return data;
+                            })
+                            .catch(err => {
+                                if (err === 202) {
+                                    adapter.log.debug(`${err} request accepted but no data, try again`);
+                                } else {
+                                    adapter.log.error(`Token refresh or retry failed for ${endpoint}: ${err}`);
+                                }
+                                return Promise.reject(err);
+                            });
+                    } else if (statusCode === 403 && (parsedBody.error && parsedBody.error.message === 'The access token expired')) {
+                        // 403 - try refresh only if it looks like token expiration
+                        adapter.log.debug('access token expired (403)!');
+                        ret = Promise.all([
+                            cache.setValue('authorization.authorized', false),
+                            cache.setValue('info.connection', false),
+                        ])
+                            .then(() => refreshToken())
+                            .then(() =>
+                                Promise.all([
+                                    cache.setValue('authorization.authorized', true),
+                                    cache.setValue('info.connection', true),
+                                ]),
+                            )
+                            .then(() => sendRequest(endpoint, method, sendBody, delayAccepted, true))
+                            .then(data => {
+                                adapter.log.debug('data with new token');
+                                return data;
+                            })
+                            .catch(err => {
+                                if (err === 202) {
+                                    adapter.log.debug(`${err} request accepted but no data, try again`);
+                                } else {
+                                    adapter.log.error(`error on request data again. ${err}`);
+                                }
+                                return Promise.reject(err);
+                            });
+                    } else {
+                        if (statusCode === 401 && tokenRefreshAttempted) {
+                            adapter.log.error(`Authentication failed (401) on endpoint: ${endpoint} - Token refresh did not resolve the issue`);
+                        } else if (statusCode === 403) {
+                            adapter.log.warn('Seems that the token is expired or permissions are insufficient!');
+                            adapter.log.warn(`status code: ${statusCode}`);
+                            adapter.log.warn(`endpoint: ${endpoint}`);
+                            adapter.log.warn(`error message: ${parsedBody.error && parsedBody.error.message ? parsedBody.error.message : 'unknown'}`);
+                            adapter.log.debug(`body: ${body}`);
+                        }
+
+                        ret = Promise.all([
+                            cache.setValue('authorization.authorized', false),
+                            cache.setValue('info.connection', false),
+                        ]).then(() => {
+                            adapter.log.error(`${statusCode} response: ${parsedBody.error && parsedBody.error.message ? parsedBody.error.message : 'unknown error'}`);
+                            return Promise.reject(statusCode);
+                        });
+                    }
+                    break;
+
+                case 429: {
+                    // Too Many Requests
+                    let wait = 1;
+                    if (headers && headers['retry-after'] && Number(headers['retry-after']) > 0) {
+                        wait = Number(headers['retry-after']);
+                        tooManyRequests = true;
+                        adapter.log.warn(`too many requests, wait ${wait}s`);
+                    }
+                    ret = new Promise(resolve => setTimeout(() => !stopped && resolve(), wait * 1000))
+                        .then(() => {
+                            tooManyRequests = false;
+                            sendRequest(endpoint, method, sendBody, delayAccepted);
+                        })
+                        .catch(error => {
+                            adapter.log.debug(error);
+                        });
+                    break;
+                }
+
+                default: {
+                    adapter.log.warn('http request error not handled, please debug');
+                    adapter.log.debug(`status code: ${statusCode}`);
+                    adapter.log.warn(callStack);
+                    adapter.log.warn(new Error().stack);
+                    const safeBody = typeof body !== 'undefined' && body !== null ? body : (response && response.data ? JSON.stringify(response.data) : 'unknown error');
+                    adapter.log.debug(`body: ${safeBody}`);
+                    ret = Promise.reject(statusCode);
+                    try {
+                        adapter.setState('authorization.error', safeBody, true);
+                    } catch (e) {
+                        adapter.log.warn(`Could not set authorization.error state: ${e && e.message ? e.message : e}`);
+                    }
+                }
+            }
+            return ret;
+        })
+        .catch(axiosError => {
+            // Handle AxiosError - when axios throws an error with no response or error response
+            if (!axiosError.response) {
+                // Network error, DNS error, timeout, etc. - not Spotify's fault
+                adapter.log.error(`network request error on ${endpoint}: ${axiosError.message}`);
+                return Promise.reject(axiosError);
+            }
+
+            // AxiosError with response status - process like normal error
+            const statusCode = axiosError.response.status;
+            const body = axiosError.response.data;
+
+            adapter.log.debug(`spotify api error response: ${statusCode} on ${endpoint}`);
+
+            // Handle 401 specifically - try token refresh
+            if (statusCode === 401 && !tokenRefreshAttempted) {
+                adapter.log.warn(`Received 401 Unauthorized on ${endpoint} (via error) - attempting automatic token refresh`);
+                return Promise.all([
+                    cache.setValue('authorization.authorized', false),
+                    cache.setValue('info.connection', false),
+                ])
+                    .then(() => {
+                        adapter.log.debug('Starting token refresh (from error handler)...');
+                        return refreshToken();
+                    })
+                    .then(() => {
+                        adapter.log.info('Token refresh successful - reconnecting');
+                        return Promise.all([
+                            cache.setValue('authorization.authorized', true),
+                            cache.setValue('info.connection', true),
+                        ]);
+                    })
+                    .then(() => sendRequest(endpoint, method, sendBody, delayAccepted, true))
+                    .then(data => {
+                        adapter.log.info(`Request retry after token refresh successful for ${endpoint}`);
+                        return data;
+                    })
+                    .catch(err => {
+                        adapter.log.error(`Token refresh or retry failed for ${endpoint}: ${err}`);
+                        return Promise.reject(err);
+                    });
+            }
+
+            if (statusCode === 403 && endpoint.includes('/playlists/') && endpoint.includes('/tracks')) {
+                adapter.log.debug(`playlist tracks access denied (403) on ${endpoint}; skipping`);
+                return Promise.reject(statusCode);
+            }
+
+            // For other error codes - just reject
+            adapter.log.error(`request failed with status ${statusCode} on ${endpoint}: ${typeof body === 'string' ? body : JSON.stringify(body)}`);
+            return Promise.reject(statusCode);
+        });
 }
 
 function loadOrDefault(obj, name, defaultVal) {
@@ -831,36 +975,48 @@ function createPlaybackInfo(data) {
             }
         })
         .then(() => {
+            // Only load artist details if track has changed to avoid unnecessary API requests
+            const currentTrackId = loadOrDefault(data, 'item.id', '');
+            if (currentTrackId === application.lastTrackId && currentTrackId !== '') {
+                // Same track, skip artist loading
+                return Promise.resolve();
+            }
+            
+            // Track changed, update lastTrackId and load artist details
+            application.lastTrackId = currentTrackId;
+            
             //let album = loadOrDefault(data, 'item.album.name', '');
             const artists = [];
             for (let i = 0; i < 100; i++) {
                 const id = loadOrDefault(data, `item.artists[${i}].id`, '');
                 if (isEmpty(id)) {
                     break;
-                } else {
-                    artists.push(id);
                 }
+                artists.push(id);
             }
             const urls = [];
             const fn = function (artist) {
-                if (artistImageUrlCache.hasOwnProperty.call(artist)) {
+                if (artist in artistImageUrlCache) {
                     urls.push(artistImageUrlCache[artist]);
-                } else {
-                    return sendRequest(`/v1/artists/${artist}`, 'GET', '')
-                        .then(parseJson => {
-                            const url = loadOrDefault(parseJson, 'images[0].url', '');
-                            if (!isEmpty(url)) {
-                                artistImageUrlCache[artist] = url;
-                                urls.push(url);
-                            }
-                        })
-                        .catch(error => {
-                            adapter.log.debug(error);
-                        });
+                    return Promise.resolve();
                 }
+                return sendRequest(`/v1/artists/${artist}`, 'GET', '')
+                    .then(parseJson => {
+                        const url = loadOrDefault(parseJson, 'images[0].url', '');
+                        if (!isEmpty(url)) {
+                            artistImageUrlCache[artist] = url;
+                            urls.push(url);
+                        }
+                    })
+                    .catch(error => {
+                        adapter.log.debug(error);
+                    });
             };
 
-            return Promise.all(artists.map(fn)).then(() => {
+            // Process artists serially to avoid rate limiting (429 errors)
+            return artists.reduce((promise, artist) => 
+                promise.then(() => fn(artist))
+            , Promise.resolve()).then(() => {
                 let set = '';
                 if (urls.length !== 0) {
                     set = urls[0];
@@ -965,7 +1121,17 @@ function createPlaybackInfo(data) {
                             });
                     };
 
-                    if (playlistCache.hasOwnProperty.call(`${userId}-${playlistId}`)) {
+                    // Only load playlist details if playlist ID has changed (same logic as artist caching)
+                    if (playlistId === application.lastPlaylistId && playlistId !== '') {
+                        // Same playlist, skip loading playlist details
+                        return Promise.resolve();
+                    }
+                    
+                    // Playlist changed, update lastPlaylistId and load details
+                    application.lastPlaylistId = playlistId;
+                    
+                    // Check cache first using proper syntax
+                    if (`${userId}-${playlistId}` in playlistCache) {
                         return refreshPlaylist(playlistCache[`${userId}-${playlistId}`]);
                     }
                     return sendRequest(
@@ -1358,7 +1524,11 @@ async function getPlaylistTracks(owner, id) {
             }
             //.catch(err => adapter.log.warn('error on load tracks: ' + err));
         } catch (err) {
-            adapter.log.warn(`error on load tracks(getPlaylistTracks): ${err} owner: ${owner} id: ${id}`);
+            if (err === 403) {
+                adapter.log.debug(`playlist tracks access denied (403) owner: ${owner} id: ${id}`);
+            } else {
+                adapter.log.warn(`error on load tracks(getPlaylistTracks): ${err} owner: ${owner} id: ${id}`);
+            }
             break;
         }
     }
@@ -1744,6 +1914,7 @@ function getToken() {
         .then(() => {
             application.token = tokenObj.accessToken;
             application.refreshToken = tokenObj.refreshToken;
+            scheduleTokenRefresh(getTokenExpiresAtMs(tokenObj), 'getToken');
             return start();
         })
         .catch(err => {
@@ -1756,16 +1927,17 @@ function getToken() {
 
 function refreshToken() {
     adapter.log.debug('token is requested again');
+    const params = new URLSearchParams();
+    params.append('grant_type', 'refresh_token');
+    params.append('refresh_token', application.refreshToken);
     const options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
         headers: {
             Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        form: {
-            grant_type: 'refresh_token',
-            refresh_token: application.refreshToken,
-        },
+        data: params.toString(),
     };
 
     if (application.refreshToken !== '') {
@@ -1794,6 +1966,8 @@ function refreshToken() {
                 return saveToken(parsedJson)
                     .then(tokenObj => {
                         application.token = tokenObj.accessToken;
+                        application.refreshToken = tokenObj.refreshToken;
+                        scheduleTokenRefresh(getTokenExpiresAtMs(tokenObj), 'refreshToken');
                         adapter.log.debug('Token saved and updated in application state');
                         return tokenObj;
                     })
@@ -1806,6 +1980,12 @@ function refreshToken() {
             return Promise.reject(statusCode);
         }).catch(error => {
             adapter.log.error(`Token refresh request failed: ${error.message || error}`);
+            if (error && error.response) {
+                const responseData = error.response.data;
+                adapter.log.error(
+                    `Token refresh response: ${typeof responseData === 'string' ? responseData : JSON.stringify(responseData)}`,
+                );
+            }
             return Promise.reject(error);
         });
     }
@@ -1817,11 +1997,15 @@ function refreshToken() {
 function saveToken(data) {
     adapter.log.debug('saveToken');
     if ('undefined' !== typeof data.access_token && 'undefined' !== typeof data.refresh_token) {
+        const expiresInSec = Number(loadOrDefault(data, 'expires_in', 0)) || 3600;
+        const expiresAtMs = Date.now() + expiresInSec * 1000;
         const token = {
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
             clientId: application.clientId,
             clientSecret: application.clientSecret,
+            expiresInSec,
+            expiresAtMs,
         };
         return cache.setValue('authorization.token', token).then(() => token);
     }
@@ -1896,6 +2080,7 @@ function scheduleStatusInternalTimer(durationMs, progressMs, startDate, count) {
 function scheduleStatusPolling() {
     clearTimeout(application.statusPollingHandle);
     if (application.statusPollingDelaySeconds > 0) {
+        // Status polling has no offset (base timing)
         application.statusPollingHandle = setTimeout(
             () => !stopped && pollStatusApi(),
             application.statusPollingDelaySeconds * 1000,
@@ -1949,6 +2134,18 @@ function pollStatusApi(noReschedule) {
         });
 }
 
+function scheduleDevicePollingWithOffset() {
+    clearTimeout(application.devicePollingHandle);
+    if (application.devicePollingDelaySeconds > 0) {
+        // Device polling offset: 1/3 of status interval (stagger from status)
+        const offsetMs = (application.statusPollingDelaySeconds * 1000) / 3;
+        application.devicePollingHandle = setTimeout(
+            () => !stopped && pollDeviceApi(),
+            application.devicePollingDelaySeconds * 1000 + offsetMs,
+        );
+    }
+}
+
 function scheduleDevicePolling() {
     clearTimeout(application.devicePollingHandle);
     if (application.devicePollingDelaySeconds > 0) {
@@ -1965,7 +2162,7 @@ function pollDeviceApi() {
     sendRequest('/v1/me/player/devices', 'GET', '')
         .then(data => {
             reloadDevices(data);
-            scheduleDevicePolling();
+            scheduleDevicePollingWithOffset();
         })
         .catch(err => {
             if (err === 401 || err === 429 || err === 500 || err === 502 || err === 503) {
@@ -2102,9 +2299,15 @@ function listenOnGetAuthorization() {
 
 function listenOnAuthorized(obj) {
     if (obj.state.val === true) {
+        // Stagger initial poll schedules to prevent simultaneous requests from causing rate limiting
+        // Status polling starts immediately
         scheduleStatusPolling();
-        scheduleDevicePolling();
-        schedulePlaylistPolling();
+        // Device polling starts after small offset (~1/3 of status interval)  
+        const deviceOffset = (application.statusPollingDelaySeconds * 1000) / 3;
+        setTimeout(() => !stopped && scheduleDevicePolling(), deviceOffset);
+        // Playlist polling starts after larger offset (~2/3 of status interval)
+        const playlistOffset = (application.statusPollingDelaySeconds * 1000 * 2) / 3;
+        setTimeout(() => !stopped && schedulePlaylistPolling(), playlistOffset);
     }
 }
 
