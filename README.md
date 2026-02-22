@@ -101,11 +101,10 @@ Click for widget source.
     ### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
-- (aruttkamp) Merge pull request 522 from mightymurphy
-- (aruttkamp) Merge pull requests 521 from michiproep
-- (copilot) Improved error handling and logging for token refresh - adapter now provides clearer messages when token refresh is attempted or fails
-- (copilot) Device polling now continues during temporary authentication issues (401) instead of stopping completely
-- (copilot) Next Track Button widget name corrected (was incorrectly labeled as Previous Track Button)
+- (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep>
+- (copilot) Improved error handling and logging for token refresh
+- (copilot) Device polling now continues during temporary authentication issues (401) instead of stopping.
+- (copilot) Next Track button widget name corrected
 - (copilot) Widget image paths fixed to use `/vis/widgets/` instead of relative path for proper display in VIS
 
 ### 1.5.6 (2025-12-08)
