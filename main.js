@@ -15,9 +15,34 @@ const querystring = require('querystring');
 const axios = require('axios');
 
 function request(options) {
+    adapter.log.debug(`[HTTP Request] ${options.method} ${options.url}`);
+    if (options.headers) {
+        adapter.log.debug(`[HTTP Headers] ${JSON.stringify(options.headers)}`);
+    }
+    if (options.data) {
+        adapter.log.debug(`[HTTP Data] ${typeof options.data === 'string' ? options.data : JSON.stringify(options.data)}`);
+    }
+    
     return axios(options)
-        .then(response => response.status) // oder: response.data, je nach dem, was du brauchst
+        .then(response => {
+            adapter.log.debug(`[HTTP Response] Status ${response.status} from ${options.method} ${options.url}`);
+            if (response.data) {
+                const dataStr = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+                adapter.log.debug(`[HTTP Response Data] ${dataStr.substring(0, 500)}`);
+            }
+            return {
+                status: response.status,
+                statusCode: response.status,
+                body: typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
+                data: response.data
+            };
+        })
         .catch(error => {
+            adapter.log.error(`[HTTP Error] ${error.message} for ${options.method} ${options.url}`);
+            if (error.response) {
+                adapter.log.error(`[HTTP Error Status] ${error.response.status}`);
+                adapter.log.error(`[HTTP Error Data] ${typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)}`);
+            }
             throw error;
         });
 }
@@ -1496,17 +1521,19 @@ function generateRandomString(length) {
 }
 
 function getToken() {
+    const tokenData = new URLSearchParams();
+    tokenData.append('grant_type', 'authorization_code');
+    tokenData.append('code', application.code);
+    tokenData.append('redirect_uri', application.redirect_uri);
+
     const options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
         headers: {
-            Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Authorization': `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        form: {
-            grant_type: 'authorization_code',
-            code: application.code,
-            redirect_uri: application.redirect_uri,
-        },
+        data: tokenData.toString(),
     };
 
     let tokenObj;
@@ -1519,7 +1546,7 @@ function getToken() {
                 parsedBody = JSON.parse(body);
             } catch (e) {
                 parsedBody = {};
-                this.log.info(`Error: ${e}`);
+                adapter.log.info(`Error: ${e}`);
             }
             return saveToken(parsedBody);
         })
@@ -1542,16 +1569,18 @@ function getToken() {
 
 function refreshToken() {
     adapter.log.debug('token is requested again');
+    const tokenData = new URLSearchParams();
+    tokenData.append('grant_type', 'refresh_token');
+    tokenData.append('refresh_token', application.refreshToken);
+
     const options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
         headers: {
-            Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Authorization': `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        form: {
-            grant_type: 'refresh_token',
-            refresh_token: application.refreshToken,
-        },
+        data: tokenData.toString(),
     };
 
     if (application.refreshToken !== '') {
@@ -1566,7 +1595,7 @@ function refreshToken() {
                     parsedJson = JSON.parse(body);
                 } catch (e) {
                     parsedJson = {};
-                    this.log.info(`Error: ${e}`);
+                    adapter.log.info(`Error: ${e}`);
                 }
                 if (!parsedJson.hasOwnProperty.call('refresh_token')) {
                     parsedJson.refresh_token = application.refreshToken;
