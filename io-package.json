@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.5.6",
+    "version": "1.6.0-alpha.0",
     "news": {
+      "1.6.0-alpha.0": {
+        "en": "Merge pull request 522 from mightymurphy and 521 from michiproep>\nImproved error handling and logging for token refresh\nDevice polling now continues during temporary authentication issues (401) instead of stopping.\nNext Track button widget name corrected\nWidget image paths fixed to use `/vis/widgets/` instead of relative path for proper display in VIS",
+        "de": "Merge Pull Anfrage 522 von mayymurphy und 521 von michiproep>\nVerbesserte Fehlerbehandlung und Protokollierung für Token-Erfrischung\nDie Gerätebefragung erfolgt nun bei temporären Authentifizierungsproblemen (401) statt Stoppen.\nNächster Track Schaltfläche Widget Name korrigiert\nWidget-Bildpfade festgelegt, um `/vis/widgets/` anstelle des relativen Pfades für die richtige Anzeige in VIS zu verwenden",
+        "ru": "Запрос на слияние 522 от Mayymurphy и 521 от Michiproep\nУлучшенная обработка ошибок и регистрация для обновления токена\nОпрос устройств теперь продолжается во время временных проблем аутентификации (401) вместо остановки.\nНазвание виджета Track button исправлено\nПути изображения виджета, установленные для использования '/vis/widgets/' вместо относительного пути для правильного отображения в VIS",
+        "pt": "Mesclar pedido de puxar 522 de mowermurphy e 521 de michiproep>\nMelhor manipulação e registro de erros para atualização do token\nA votação de dispositivos agora continua durante questões temporárias de autenticação (401) em vez de parar.\nPróximo nome do widget do botão de faixa corrigido\nCaminhos de imagem do widget fixados para usar `/vis/widgets/` em vez de caminho relativo para exibição adequada no VIS",
+        "nl": "Samenvoegen trek verzoek 522 van machtige Murphy en 521 van michiproep>\nVerbeterde foutafhandeling en logging voor tokenverversing\nApparaatpeiling gaat nu door tijdens tijdelijke authenticatieproblemen (401) in plaats van stoppen.\nVolgende Track knop widget naam gecorrigeerd\nWidget-afbeeldingspaden die zijn vastgesteld om te gebruiken ",
+        "fr": "Demande d'extraction de fusion 522 de Powermurphy et 521 de michiproep>\nAmélioration de la gestion des erreurs et de l'enregistrement pour le rafraîchissement des jetons\nLe sondage se poursuit maintenant pendant les problèmes d'authentification temporaire (401) au lieu de s'arrêter.\nSuivant nom du widget bouton de piste corrigé\nChemins d'image Widget corrigés pour utiliser `/vis/widgets/` au lieu de chemin relatif pour l'affichage approprié dans VIS",
+        "it": "Unisci la richiesta di tiro 522 da potentemurfia e 521 da michiproep>\nMiglioramento della gestione degli errori e registrazione per il rinfrescamento dei gettoni\nLa sondaggio dei dispositivi ora continua durante i problemi di autenticazione temporanei (401) invece di fermarsi.\nSuccessivo Traccia pulsante widget nome corretto\nWidget percorsi di immagine fissati per l'uso `/vis/widgets/` invece di percorso relativo per un corretto display in VIS",
+        "es": "Merge pull request 522 de la poderosamurphy y 521 de michiproep confianza\nMejor manejo y registro de errores para refrescar token\nLa encuesta de dispositivos continúa durante cuestiones de autenticación temporal (401) en lugar de detenerse.\nSiguiente botón de pista nombre del widget corregido\nWidget rutas de imagen fijas para usar `/vis/widgets/` en lugar de ruta relativa para la visualización adecuada en VIS",
+        "pl": "Żądanie połączenia 522 z michiproep i 521 z michiproep >\nUlepszona obsługa błędów i logowanie dla odświeżania symboli\nSondaże urządzeń trwają teraz podczas tymczasowych kwestii uwierzytelniania (401) zamiast zatrzymywania.\nNastępny przycisk Track poprawiona nazwa\nWidget ścieżki obrazu ustawione w celu użycia '/ vis / widgets /' zamiast ścieżki względnej dla prawidłowego wyświetlania w VIS",
+        "uk": "Витяг за запитом 522 від могутності та 521 від michiproep>\nПокращувати обробку помилок і заправку для оновлення токени\nЗапилення пристроїв в даний час продовжується в процесі тимчасового автентифікації (401) замість зупинки.\nНаступна кнопка Відстежити назву віджета\nВіджети шляхи зображень фіксовані для використання `/vis/widgets/` замість відносного шляху до належного відображення в VIS",
+        "zh-cn": "合并来自weathermurphy的522和来自michiproep的521牵引请求 >\n改进对令牌刷新的错误处理和记录\n设备投票在临时核证问题(401次)期间继续进行,而不是停止.\n下一个音轨按钮部件名称已校正\n固定用于“/vis/widgets/”而不是用于在VIS中正确显示的相对路径的部件图像路径"
+      },
       "1.5.6": {
         "en": "dev dependencies aktualisiert",
         "de": "dev abhängigkeiten aktualisiert",
@@ -139,7 +152,9 @@
         "dsn": "https://df92a91a757f4325ab1ff04a0d17d4a4@sentry.iobroker.net/195"
       }
     },
-    "widgetSets": ["spotify-premium"]
+    "widgetSets": [
+      "spotify-premium"
+    ]
   },
   "native": {
     "client_id": "",

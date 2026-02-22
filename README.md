@@ -100,7 +100,7 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.6.0-alpha.0 (2026-02-22)
 - (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep>
 - (copilot) Improved error handling and logging for token refresh
 - (copilot) Device polling now continues during temporary authentication issues (401) instead of stopping.
