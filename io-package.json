@@ -666,7 +666,7 @@
         "name": "open this url to authorize",
         "type": "string",
         "read": true,
-        "write": false
+        "write": true
       },
       "native": {}
     },
@@ -690,7 +690,7 @@
         "name": "token",
         "type": "object",
         "read": true,
-        "write": false
+        "write": true
       },
       "native": {}
     },
@@ -701,7 +701,7 @@
         "role": "value",
         "name": "paste here the redirect url of the authorization url",
         "type": "string",
-        "read": false,
+        "read": true,
         "write": true
       },
       "native": {}
@@ -714,7 +714,7 @@
         "name": "user id",
         "type": "string",
         "read": true,
-        "write": false
+        "write": true
       },
       "native": {}
     },

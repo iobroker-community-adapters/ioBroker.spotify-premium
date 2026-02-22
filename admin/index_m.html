@@ -98,11 +98,11 @@
 
         $('#startAuth').on('click', function () {
             $('#authorizationReturnUri_div').hide();
-            socket.emit('setState', 'spotify-premium.' + instance + '.authorization.getAuthorization', true);
+            socket.emit('setState', 'spotify-premium.' + instance + '.authorization.getAuthorization', { val: true, ack: false });
         });
 
         $('#send').on('click', function () {
-            socket.emit('setState', 'spotify-premium.' + instance + '.authorization.authorizationReturnUri', $('#authorizationReturnUri').val());
+            socket.emit('setState', 'spotify-premium.' + instance + '.authorization.authorizationReturnUri', { val: $('#authorizationReturnUri').val(), ack: false });
         });
 
         onChange(false);
