@@ -100,7 +100,7 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.6.0-alpha.0 (2026-02-22)
 - (aruttkamp) Merge pull request #522 from mightymurphy
 - (aruttkamp) Merge pull request #521 from michiproep
 - (GitHub Copilot) **ENHANCED**: Improved error handling and logging for token refresh - adapter now provides clearer messages when token refresh is attempted or fails
