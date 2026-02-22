@@ -17,9 +17,34 @@ const url = require('url');
 const axios = require('axios');
 
 function request(options) {
+    adapter.log.debug(`[HTTP Request] ${options.method} ${options.url}`);
+    if (options.headers) {
+        adapter.log.debug(`[HTTP Headers] ${JSON.stringify(options.headers)}`);
+    }
+    if (options.data) {
+        adapter.log.debug(`[HTTP Data] ${typeof options.data === 'string' ? options.data : JSON.stringify(options.data)}`);
+    }
+    
     return axios(options)
-        .then(response => response) // Return full response, not just status
+        .then(response => {
+            adapter.log.debug(`[HTTP Response] Status ${response.status} from ${options.method} ${options.url}`);
+            if (response.data) {
+                const dataStr = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+                adapter.log.debug(`[HTTP Response Data] ${dataStr.substring(0, 500)}`);
+            }
+            return {
+                status: response.status,
+                statusCode: response.status,
+                body: typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
+                data: response.data
+            };
+        })
         .catch(error => {
+            adapter.log.error(`[HTTP Error] ${error.message} for ${options.method} ${options.url}`);
+            if (error.response) {
+                adapter.log.error(`[HTTP Error Status] ${error.response.status}`);
+                adapter.log.error(`[HTTP Error Data] ${typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)}`);
+            }
             throw error;
         });
 }
@@ -1862,18 +1887,10 @@ function generateRandomString(length) {
 }
 
 function getToken() {
-    // Normalize redirect_uri by removing :80 for HTTP or :443 for HTTPS to match Spotify's handling
-    let redirectUri = application.redirect_uri;
-    if (redirectUri.startsWith('http://') && redirectUri.endsWith(':80')) {
-        redirectUri = redirectUri.slice(0, -3); // Remove :80
-    } else if (redirectUri.startsWith('https://') && redirectUri.endsWith(':443')) {
-        redirectUri = redirectUri.slice(0, -4); // Remove :443
-    }
-
-    const params = new URLSearchParams();
-    params.append('grant_type', 'authorization_code');
-    params.append('code', application.code);
-    params.append('redirect_uri', redirectUri);
+    const tokenData = new URLSearchParams();
+    tokenData.append('grant_type', 'authorization_code');
+    tokenData.append('code', application.code);
+    tokenData.append('redirect_uri', application.redirect_uri);
 
     const options = {
         url: 'https://accounts.spotify.com/api/token',
@@ -1882,7 +1899,7 @@ function getToken() {
             Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        data: params.toString(),
+        data: tokenData.toString(),
     };
 
     adapter.log.debug(`Sending token request to Spotify with code: ${application.code.substring(0, 20)}...`);
@@ -1897,7 +1914,7 @@ function getToken() {
                 parsedBody = typeof data === 'string' ? JSON.parse(data) : data;
             } catch (e) {
                 parsedBody = {};
-                adapter.log.info(`Error parsing Spotify response: ${e}`);
+                adapter.log.info(`Error: ${e}`);
             }
             adapter.log.debug(`Spotify token response received`);
             return saveToken(parsedBody);
@@ -1927,9 +1944,10 @@ function getToken() {
 
 function refreshToken() {
     adapter.log.debug('token is requested again');
-    const params = new URLSearchParams();
-    params.append('grant_type', 'refresh_token');
-    params.append('refresh_token', application.refreshToken);
+    const tokenData = new URLSearchParams();
+    tokenData.append('grant_type', 'refresh_token');
+    tokenData.append('refresh_token', application.refreshToken);
+
     const options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
@@ -1937,7 +1955,7 @@ function refreshToken() {
             Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        data: params.toString(),
+        data: tokenData.toString(),
     };
 
     if (application.refreshToken !== '') {
@@ -1948,15 +1966,11 @@ function refreshToken() {
             if (statusCode === 200) {
                 adapter.log.debug('new token arrived');
                 let parsedJson;
-                if (body && typeof body === 'object') {
-                    parsedJson = body;
-                } else {
-                    try {
-                        parsedJson = body ? JSON.parse(body) : {};
-                    } catch (e) {
-                        adapter.log.error(`Error parsing token response: ${e}`);
-                        parsedJson = {};
-                    }
+                try {
+                    parsedJson = JSON.parse(body);
+                } catch (e) {
+                    parsedJson = {};
+                    adapter.log.info(`Error: ${e}`);
                 }
                 if (!parsedJson.hasOwnProperty.call(parsedJson, 'refresh_token')) {
                     parsedJson.refresh_token = application.refreshToken;
