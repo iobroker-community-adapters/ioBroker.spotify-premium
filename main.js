@@ -1496,17 +1496,19 @@ function generateRandomString(length) {
 }
 
 function getToken() {
+    const tokenData = new URLSearchParams();
+    tokenData.append('grant_type', 'authorization_code');
+    tokenData.append('code', application.code);
+    tokenData.append('redirect_uri', application.redirect_uri);
+
     const options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
         headers: {
-            Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Authorization': `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        form: {
-            grant_type: 'authorization_code',
-            code: application.code,
-            redirect_uri: application.redirect_uri,
-        },
+        data: tokenData.toString(),
     };
 
     let tokenObj;
@@ -1542,16 +1544,18 @@ function getToken() {
 
 function refreshToken() {
     adapter.log.debug('token is requested again');
+    const tokenData = new URLSearchParams();
+    tokenData.append('grant_type', 'refresh_token');
+    tokenData.append('refresh_token', application.refreshToken);
+
     const options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
         headers: {
-            Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Authorization': `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        form: {
-            grant_type: 'refresh_token',
-            refresh_token: application.refreshToken,
-        },
+        data: tokenData.toString(),
     };
 
     if (application.refreshToken !== '') {
