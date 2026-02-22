@@ -15,6 +15,12 @@
             "type": "password",
             "name": "client_secret",
             "label": "Client Secret"
+          },
+          {
+            "type": "text",
+            "name": "redirect_uri",
+            "label": "Redirect URI",
+            "placeholder": "http://127.0.0.1:80"
           }
         ]
       },

@@ -6,6 +6,7 @@
   "Send": "发送",
   "clientId": "客户编号",
   "clientSecret": "客户机密",
+  "redirectUri": "重定向 URI",
   "defaultShuffle": "默认随机状态",
   "deleteDevices": "删除不再存在的设备",
   "deletePlaylists": "删除不再存在的播放列表",

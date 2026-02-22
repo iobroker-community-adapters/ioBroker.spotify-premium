@@ -11,12 +11,14 @@ const ownUtils = require('./lib/utils');
 const { lookup } = require('dns-lookup-cache');
 
 const querystring = require('querystring');
+const http = require('http');
+const url = require('url');
 
 const axios = require('axios');
 
 function request(options) {
     return axios(options)
-        .then(response => response.status) // oder: response.data, je nach dem, was du brauchst
+        .then(response => response) // Return full response, not just status
         .catch(error => {
             throw error;
         });
@@ -37,7 +39,7 @@ const application = {
     deleteDevices: false,
     deletePlaylists: false,
     keepShuffleState: true,
-    redirect_uri: 'http://127.0.0.1:80',
+    redirect_uri: '',
     token: '',
     refreshToken: '',
     code: '',
@@ -50,6 +52,8 @@ const application = {
     playlistPollingDelaySeconds: 900,
     error202shown: false,
     cacheClearHandle: null,
+    callbackServer: null,
+    callbackPort: 80,
 };
 
 const deviceData = {
@@ -110,6 +114,13 @@ function startAdapter(options) {
         },
         unload: callback => {
             stopped = true;
+            
+            // Close the OAuth callback server
+            if (application.callbackServer) {
+                application.callbackServer.close();
+                adapter.log.debug('OAuth callback server closed');
+            }
+            
             if ('undefined' !== typeof application.statusPollingHandle) {
                 clearTimeout(application.statusPollingHandle);
                 clearTimeout(application.statusInternalTimer);
@@ -149,6 +160,7 @@ function startAdapter(options) {
 function main() {
     application.clientId = adapter.config.client_id;
     application.clientSecret = adapter.config.client_secret;
+    application.redirect_uri = adapter.config.redirect_uri || 'http://127.0.0.1:80';
     application.deleteDevices = adapter.config.delete_devices;
     application.deletePlaylists = adapter.config.delete_playlists;
     application.statusPollingDelaySeconds = adapter.config.status_interval;
@@ -190,7 +202,137 @@ function main() {
     application.devicePollingDelaySeconds = deviceInterval * 60;
     application.playlistPollingDelaySeconds = playlistInterval * 60;
     adapter.subscribeStates('*');
+    startCallbackServer();
     start();
+}
+
+function startCallbackServer() {
+    // Try to start the callback server on the configured port, or fallback to other ports
+    const portsToTry = [80, 8080, 8888];
+    let portIndex = 0;
+
+    const tryStartServer = () => {
+        if (portIndex >= portsToTry.length) {
+            adapter.log.error(`Could not start OAuth callback server on any port: ${  portsToTry.join(', ')}`);
+            return;
+        }
+
+        const currentPort = portsToTry[portIndex];
+        
+        // Create a fresh HTTP server for each port attempt
+        const server = http.createServer((req, res) => {
+            try {
+                const parsedUrl = url.parse(req.url, true);
+                const queryParams = parsedUrl.query;
+
+                adapter.log.debug(`OAuth callback received from Spotify: ${req.url}`);
+
+                // Extract code and state from query parameters
+                if (queryParams.code) {
+                    adapter.log.debug(`Authorization code received: ${queryParams.code.substring(0, 20)}...`);
+                    application.code = queryParams.code;
+
+                    // Simulate the trigger for listenOnAuthorizationReturnUri
+                    const callbackObj = {
+                        state: {
+                            val: req.url
+                        }
+                    };
+
+                    // Generate a proper response
+                    const responseHtml = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Spotify Authorization</title>
+                            <meta charset="utf-8">
+                            <style>
+                                body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1DB954; }
+                                .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+                                h1 { color: #1DB954; margin: 0; }
+                                p { color: #666; font-size: 16px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h1>✓ Spotify Authorization Successful!</h1>
+                                <p>You can now close this window and return to ioBroker.</p>
+                                <p>The adapter will process the authorization automatically.</p>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+
+                    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                    res.end(responseHtml);
+
+                    // Process the callback after a short delay to ensure response is sent
+                    setTimeout(() => {
+                        listenOnAuthorizationReturnUri(callbackObj);
+                    }, 100);
+                } else if (queryParams.error) {
+                    adapter.log.error(`Spotify OAuth error: ${queryParams.error}`);
+                    const errorHtml = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Spotify Authorization Error</title>
+                            <meta charset="utf-8">
+                            <style>
+                                body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #ff4444; }
+                                .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+                                h1 { color: #ff4444; margin: 0; }
+                                p { color: #666; font-size: 16px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h1>✗ Spotify Authorization Failed</h1>
+                                <p>Error: ${queryParams.error}</p>
+                                <p>Please try again.</p>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+                    res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
+                    res.end(errorHtml);
+                } else {
+                    res.writeHead(404, { 'Content-Type': 'text/plain' });
+                    res.end('Not Found');
+                }
+            } catch (error) {
+                adapter.log.error(`Error in OAuth callback handler: ${error.message}`);
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('Internal Server Error');
+            }
+        });
+        
+        server.listen(currentPort, '127.0.0.1', () => {
+            adapter.log.info(`OAuth callback server listening on http://127.0.0.1:${currentPort}`);
+            
+            // Store reference to the server
+            application.callbackServer = server;
+            // Update the port in application config
+            application.callbackPort = currentPort;
+            
+            // If port is not 80, warn user that redirect URI might need adjustment
+            if (currentPort !== 80) {
+                adapter.log.warn(`WARNING: OAuth callback server is running on port ${currentPort}, but configured URI may use port 80. Make sure your Spotify App is configured with the correct Redirect URI: http://127.0.0.1:${currentPort}`);
+            }
+        });
+
+        server.on('error', (error) => {
+            if (error.code === 'EADDRINUSE') {
+                adapter.log.debug(`Port ${currentPort} is in use, trying next port...`);
+                portIndex++;
+                tryStartServer();
+            } else {
+                adapter.log.error(`OAuth callback server error on port ${currentPort}: ${error.message}`);
+            }
+        });
+    };
+
+    tryStartServer();
 }
 
 function start() {
@@ -250,7 +392,7 @@ function readTokenStates() {
     // return getToken();
 }
 
-function sendRequest(endpoint, method, sendBody, delayAccepted) {
+function sendRequest(endpoint, method, sendBody, delayAccepted, tokenRefreshAttempted) {
     const options = {
         url: application.baseUrl + endpoint,
         method,
@@ -271,19 +413,23 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
     }
 
     return request(options).then(response => {
-        const body = response.body;
+        const body = typeof response.body !== 'undefined' ? response.body : response.data;
+        const statusCode = typeof response.statusCode !== 'undefined' ? response.statusCode : response.status;
+        const headers = response.headers || {};
         let ret;
         let parsedBody;
-        try {
-            parsedBody = JSON.parse(body);
-        } catch (e) {
-            parsedBody = {
-                error: {
-                    message: 'no active device' & e,
-                },
-            };
+
+        if (body && typeof body === 'object') {
+            parsedBody = body;
+        } else {
+            try {
+                parsedBody = body ? JSON.parse(body) : { error: { message: 'no active device' } };
+            } catch (e) {
+                parsedBody = { error: { message: `no active device ${e && e.message ? `: ${  e.message}` : ''}` } };
+            }
         }
-        switch (response.statusCode) {
+
+        switch (statusCode) {
             case 200:
                 // OK
                 ret = parsedBody;
@@ -294,7 +440,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                 if (delayAccepted) {
                     ret = null;
                 } else {
-                    ret = Promise.reject(response.statusCode);
+                    ret = Promise.reject(statusCode);
                 }
                 break;
             case 204:
@@ -307,13 +453,45 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
             case 404: // Not Found
             case 502:
                 // Bad Gateway
-                ret = Promise.reject(response.statusCode);
+                ret = Promise.reject(statusCode);
                 break;
             case 403:
             case 401:
-                // Unauthorized
-                if (parsedBody.error.message === 'The access token expired') {
-                    adapter.log.debug('access token expired!');
+                // Unauthorized or Forbidden
+                // For 401 (Unauthorized), try to refresh token automatically (only once)
+                if (statusCode === 401 && !tokenRefreshAttempted) {
+                    adapter.log.warn(`Received 401 Unauthorized on ${endpoint} - attempting automatic token refresh`);
+                    ret = Promise.all([
+                        cache.setValue('authorization.authorized', false),
+                        cache.setValue('info.connection', false),
+                    ])
+                        .then(() => {
+                            adapter.log.debug('Starting token refresh...');
+                            return refreshToken();
+                        })
+                        .then(() => {
+                            adapter.log.info('Token refresh successful - reconnecting');
+                            return Promise.all([
+                                cache.setValue('authorization.authorized', true),
+                                cache.setValue('info.connection', true),
+                            ]);
+                        })
+                        .then(() => sendRequest(endpoint, method, sendBody, delayAccepted, true))
+                        .then(data => {
+                            adapter.log.info(`Request retry after token refresh successful for ${endpoint}`);
+                            return data;
+                        })
+                        .catch(err => {
+                            if (err === 202) {
+                                adapter.log.debug(`${err} request accepted but no data, try again`);
+                            } else {
+                                adapter.log.error(`Token refresh or retry failed for ${endpoint}: ${err}`);
+                            }
+                            return Promise.reject(err);
+                        });
+                } else if (statusCode === 403 && (parsedBody.error && parsedBody.error.message === 'The access token expired')) {
+                    // 403 - try refresh only if it looks like token expiration
+                    adapter.log.debug('access token expired (403)!');
                     ret = Promise.all([
                         cache.setValue('authorization.authorized', false),
                         cache.setValue('info.connection', false),
@@ -325,9 +503,8 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                                 cache.setValue('info.connection', true),
                             ]),
                         )
-                        .then(() => sendRequest(endpoint, method, sendBody))
+                        .then(() => sendRequest(endpoint, method, sendBody, delayAccepted, true))
                         .then(data => {
-                            // this Request get the data which requested with the old token
                             adapter.log.debug('data with new token');
                             return data;
                         })
@@ -340,19 +517,22 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
                             return Promise.reject(err);
                         });
                 } else {
-                    if (response.statusCode === 403) {
-                        adapter.log.warn('Seems that the token is expired!');
-                        adapter.log.warn(`status code: ${response.statusCode}`);
-                        adapter.log.warn(`body: ${body}`);
+                    if (statusCode === 401 && tokenRefreshAttempted) {
+                        adapter.log.error(`Authentication failed (401) on endpoint: ${endpoint} - Token refresh did not resolve the issue`);
+                    } else if (statusCode === 403) {
+                        adapter.log.warn('Seems that the token is expired or permissions are insufficient!');
+                        adapter.log.warn(`status code: ${statusCode}`);
+                        adapter.log.warn(`endpoint: ${endpoint}`);
+                        adapter.log.warn(`error message: ${parsedBody.error && parsedBody.error.message ? parsedBody.error.message : 'unknown'}`);
+                        adapter.log.debug(`body: ${body}`);
                     }
 
-                    // if other error with code 401
                     ret = Promise.all([
                         cache.setValue('authorization.authorized', false),
                         cache.setValue('info.connection', false),
                     ]).then(() => {
-                        adapter.log.error(parsedBody.error.message);
-                        return Promise.reject(response.statusCode);
+                        adapter.log.error(`${statusCode} response: ${parsedBody.error && parsedBody.error.message ? parsedBody.error.message : 'unknown error'}`);
+                        return Promise.reject(statusCode);
                     });
                 }
                 break;
@@ -360,9 +540,9 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
             case 429:
                 // Too Many Requests
                 /* eslint-disable-next-line */ // TODO: Verify why eslint reports'Unexpected lexical declaration in case block'
-                    let wait = 1;
-                if (response.headers.hasOwnProperty.call('retry-after') && response.headers['retry-after'] > 0) {
-                    wait = response.headers['retry-after'];
+                let wait = 1;
+                if (headers && headers['retry-after'] && Number(headers['retry-after']) > 0) {
+                    wait = Number(headers['retry-after']);
                     tooManyRequests = true;
                     adapter.log.warn(`too many requests, wait ${wait}s`);
                 }
@@ -378,12 +558,17 @@ function sendRequest(endpoint, method, sendBody, delayAccepted) {
 
             default:
                 adapter.log.warn('http request error not handled, please debug');
-                adapter.log.debug(`status code: ${response.statusCode}`);
+                adapter.log.debug(`status code: ${statusCode}`);
                 adapter.log.warn(callStack);
                 adapter.log.warn(new Error().stack);
-                adapter.log.debug(`body: ${body}`);
-                ret = Promise.reject(response.statusCode);
-                adapter.setState('authorization.error', body, true);
+                const safeBody = typeof body !== 'undefined' && body !== null ? body : (response && response.data ? JSON.stringify(response.data) : 'unknown error');
+                adapter.log.debug(`body: ${safeBody}`);
+                ret = Promise.reject(statusCode);
+                try {
+                    adapter.setState('authorization.error', safeBody, true);
+                } catch (e) {
+                    adapter.log.warn(`Could not set authorization.error state: ${e && e.message ? e.message : e}`);
+                }
         }
         return ret;
     });
@@ -1052,17 +1237,27 @@ function createPlaylists(parseJson, autoContinue, addedList) {
 function getUsersPlaylist(offset, addedList) {
     addedList = addedList || [];
 
-    if (!isEmpty(application.userId)) {
-        const query = {
-            limit: 30,
-            offset: offset,
-        };
-        return sendRequest(`/v1/users/${application.userId}/playlists?${querystring.stringify(query)}`, 'GET', '')
+    const query = {
+        limit: 30,
+        offset: offset,
+    };
+    // Nutze /v1/me/playlists für alle Playlists, auf die der Nutzer Zugriff hat
+    return sendRequest(`/v1/me/playlists?${querystring.stringify(query)}`, 'GET', '')
             .then(parsedJson => createPlaylists(parsedJson, true, addedList))
-            .catch(err => adapter.log.error(`playlist error ${err}`));
-    }
-    adapter.log.warn('no userId');
-    return Promise.reject('no userId');
+            .catch(err => {
+                // Improved error handling with different status codes
+                if (err === 403) {
+                    adapter.log.error(`Playlist API returned 403 (Forbidden) at offset ${offset} - Token may be expired or insufficient permissions`);
+                } else if (err === 401) {
+                    adapter.log.warn(`Playlist API returned 401 (Unauthorized) at offset ${offset} - Token refresh should be in progress`);
+                } else if (err === 429) {
+                    adapter.log.debug(`Playlist API returned 429 (Too Many Requests) at offset ${offset} - Rate limited, will retry later`);
+                } else {
+                    adapter.log.error(`Playlist error: ${err} at offset ${offset}`);
+                }
+                // Do not reject, continue with existing data
+                return { items: [], next: null };
+            });
 }
 
 function getSelectedDevice(deviceData) {
@@ -1496,31 +1691,44 @@ function generateRandomString(length) {
 }
 
 function getToken() {
+    // Normalize redirect_uri by removing :80 for HTTP or :443 for HTTPS to match Spotify's handling
+    let redirectUri = application.redirect_uri;
+    if (redirectUri.startsWith('http://') && redirectUri.endsWith(':80')) {
+        redirectUri = redirectUri.slice(0, -3); // Remove :80
+    } else if (redirectUri.startsWith('https://') && redirectUri.endsWith(':443')) {
+        redirectUri = redirectUri.slice(0, -4); // Remove :443
+    }
+
+    const params = new URLSearchParams();
+    params.append('grant_type', 'authorization_code');
+    params.append('code', application.code);
+    params.append('redirect_uri', redirectUri);
+
     const options = {
         url: 'https://accounts.spotify.com/api/token',
         method: 'POST',
         headers: {
             Authorization: `Basic ${Buffer.from(`${application.clientId}:${application.clientSecret}`).toString('base64')}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        form: {
-            grant_type: 'authorization_code',
-            code: application.code,
-            redirect_uri: application.redirect_uri,
-        },
+        data: params.toString(),
     };
+
+    adapter.log.debug(`Sending token request to Spotify with code: ${application.code.substring(0, 20)}...`);
 
     let tokenObj;
 
     return request(options)
         .then(response => {
-            const body = response.body;
+            const data = response.data;
             let parsedBody;
             try {
-                parsedBody = JSON.parse(body);
+                parsedBody = typeof data === 'string' ? JSON.parse(data) : data;
             } catch (e) {
                 parsedBody = {};
-                this.log.info(`Error: ${e}`);
+                adapter.log.info(`Error parsing Spotify response: ${e}`);
             }
+            adapter.log.debug(`Spotify token response received`);
             return saveToken(parsedBody);
         })
         .then(_tokenObj => {
@@ -1537,7 +1745,12 @@ function getToken() {
             application.refreshToken = tokenObj.refreshToken;
             return start();
         })
-        .catch(err => adapter.log.debug(err));
+        .catch(err => {
+            adapter.log.error(`getToken error: ${err.message || err}`);
+            if (err.response && err.response.data) {
+                adapter.log.error(`Spotify API error: ${JSON.stringify(err.response.data)}`);
+            }
+        });
 }
 
 function refreshToken() {
@@ -1556,34 +1769,47 @@ function refreshToken() {
 
     if (application.refreshToken !== '') {
         return request(options).then(response => {
+            const statusCode = typeof response.statusCode !== 'undefined' ? response.statusCode : response.status;
+            const body = typeof response.body !== 'undefined' ? response.body : response.data;
             // this request gets the new token
-            if (response.statusCode === 200) {
-                const body = response.body;
+            if (statusCode === 200) {
                 adapter.log.debug('new token arrived');
-                adapter.log.debug(body);
                 let parsedJson;
-                try {
-                    parsedJson = JSON.parse(body);
-                } catch (e) {
-                    parsedJson = {};
-                    this.log.info(`Error: ${e}`);
+                if (body && typeof body === 'object') {
+                    parsedJson = body;
+                } else {
+                    try {
+                        parsedJson = body ? JSON.parse(body) : {};
+                    } catch (e) {
+                        adapter.log.error(`Error parsing token response: ${e}`);
+                        parsedJson = {};
+                    }
                 }
-                if (!parsedJson.hasOwnProperty.call('refresh_token')) {
+                if (!parsedJson.hasOwnProperty.call(parsedJson, 'refresh_token')) {
                     parsedJson.refresh_token = application.refreshToken;
                 }
-                adapter.log.debug(JSON.stringify(parsedJson));
+                adapter.log.debug('Token refresh successful');
 
                 return saveToken(parsedJson)
-                    .then(tokenObj => (application.token = tokenObj.accessToken))
+                    .then(tokenObj => {
+                        application.token = tokenObj.accessToken;
+                        adapter.log.debug('Token saved and updated in application state');
+                        return tokenObj;
+                    })
                     .catch(err => {
-                        adapter.log.debug(err);
+                        adapter.log.error(`Error saving token: ${err}`);
                         return Promise.reject(err);
                     });
             }
-            return Promise.reject(response.statusCode);
+            adapter.log.error(`Token refresh failed with status code: ${statusCode}`);
+            return Promise.reject(statusCode);
+        }).catch(error => {
+            adapter.log.error(`Token refresh request failed: ${error.message || error}`);
+            return Promise.reject(error);
         });
     }
 
+    adapter.log.warn('Cannot refresh token: no refresh token available');
     return Promise.reject('no refresh token');
 }
 
@@ -1608,11 +1834,43 @@ function increaseTime(durationMs, progressMs, startDate, count) {
     progressMs += now - startDate;
     const tDurationMs = cache.getValue('player.durationMs').val;
     const percentage = Math.floor((progressMs / tDurationMs) * 100);
-    return Promise.all([
-        cache.setValue('player.progress', convertToDigiClock(progressMs)),
-        cache.setValue('player.progressMs', progressMs),
-        cache.setValue('player.progressPercentage', percentage),
-    ]).then(() => {
+    
+    // Only update states if values have actually changed
+    const updates = [];
+    
+    const currentProgress = cache.getValue('player.progress').val;
+    const newProgress = convertToDigiClock(progressMs);
+    if (currentProgress !== newProgress) {
+        updates.push(cache.setValue('player.progress', newProgress));
+    }
+    
+    const currentProgressMs = cache.getValue('player.progressMs').val;
+    if (currentProgressMs !== progressMs) {
+        updates.push(cache.setValue('player.progressMs', progressMs));
+    }
+    
+    const currentPercentage = cache.getValue('player.progressPercentage').val;
+    if (currentPercentage !== percentage) {
+        updates.push(cache.setValue('player.progressPercentage', percentage));
+    }
+    
+    // If no updates needed, just schedule next update if playing
+    if (updates.length === 0) {
+        return Promise.resolve().then(() => {
+            if (count > 0) {
+                if (progressMs + 1000 > durationMs) {
+                    setTimeout(() => !stopped && pollStatusApi(), 1000);
+                } else {
+                    const state = cache.getValue('player.isPlaying');
+                    if (state && state.val) {
+                        scheduleStatusInternalTimer(durationMs, progressMs, now, count);
+                    }
+                }
+            }
+        });
+    }
+    
+    return Promise.all(updates).then(() => {
         if (count > 0) {
             if (progressMs + 1000 > durationMs) {
                 setTimeout(() => !stopped && pollStatusApi(), 1000);
@@ -1708,7 +1966,21 @@ function pollDeviceApi() {
             reloadDevices(data);
             scheduleDevicePolling();
         })
-        .catch(err => adapter.log.error(`spotify device polling stopped with error ${err}`));
+        .catch(err => {
+            if (err === 401 || err === 429 || err === 500 || err === 502 || err === 503) {
+                // Keep polling running for temporary errors
+                if (err === 401) {
+                    adapter.log.warn('Device polling: 401 Unauthorized - token refresh should be in progress, continuing polling');
+                } else if (err === 429) {
+                    adapter.log.debug('Device polling: Rate limited (429), will retry');
+                } else {
+                    adapter.log.warn(`Device polling: Temporary error ${err}, continuing polling`);
+                }
+                scheduleDevicePolling();
+            } else {
+                adapter.log.error(`spotify device polling stopped with error ${err}`);
+            }
+        });
 }
 
 function schedulePlaylistPolling() {
@@ -1786,7 +2058,7 @@ function startPlaylist(playlist, owner, trackNo, keepTrack) {
 
 function listenOnAuthorizationReturnUri(obj) {
     const state = cache.getValue('authorization.state');
-    const returnUri = querystring.parse(obj.state.val.slice(obj.state.val.search('[?]') + 1, obj.state.val.length));
+    const returnUri = querystring.parse(obj.state.val.slice(obj.state.val.search(/\?/) + 1, obj.state.val.length));
     if ('undefined' !== typeof returnUri.state) {
         returnUri.state = returnUri.state.replace(/#_=_$/g, '');
     }
@@ -1810,7 +2082,7 @@ function listenOnGetAuthorization() {
         response_type: 'code',
         redirect_uri: application.redirect_uri,
         state: state,
-        scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private',
+        scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative',
     };
 
     const options = {
