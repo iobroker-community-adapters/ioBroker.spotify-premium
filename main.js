@@ -537,9 +537,8 @@ function sendRequest(endpoint, method, sendBody, delayAccepted, tokenRefreshAtte
                 }
                 break;
 
-            case 429:
+            case 429: {
                 // Too Many Requests
-                /* eslint-disable-next-line */ // TODO: Verify why eslint reports'Unexpected lexical declaration in case block'
                 let wait = 1;
                 if (headers && headers['retry-after'] && Number(headers['retry-after']) > 0) {
                     wait = Number(headers['retry-after']);
@@ -555,8 +554,9 @@ function sendRequest(endpoint, method, sendBody, delayAccepted, tokenRefreshAtte
                         adapter.log.debug(error);
                     });
                 break;
+            }
 
-            default:
+            default: {
                 adapter.log.warn('http request error not handled, please debug');
                 adapter.log.debug(`status code: ${statusCode}`);
                 adapter.log.warn(callStack);
@@ -569,6 +569,7 @@ function sendRequest(endpoint, method, sendBody, delayAccepted, tokenRefreshAtte
                 } catch (e) {
                     adapter.log.warn(`Could not set authorization.error state: ${e && e.message ? e.message : e}`);
                 }
+            }
         }
         return ret;
     });
