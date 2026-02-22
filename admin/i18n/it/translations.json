@@ -6,6 +6,7 @@
   "Send": "Spedire",
   "clientId": "Client ID",
   "clientSecret": "Client Secret",
+  "redirectUri": "Redirect URI",
   "defaultShuffle": "Stato di riproduzione casuale predefinito",
   "deleteDevices": "Elimina i dispositivi che non esistono più",
   "deletePlaylists": "Elimina playlist non più esistenti",

@@ -6,6 +6,7 @@
   "Send": "Sturen",
   "clientId": "Client ID",
   "clientSecret": "Client Secret",
+  "redirectUri": "Redirect URI",
   "defaultShuffle": "Standaard shuffle-status",
   "deleteDevices": "Verwijder apparaten die niet meer bestaan",
   "deletePlaylists": "Verwijder niet langer bestaande afspeellijsten",

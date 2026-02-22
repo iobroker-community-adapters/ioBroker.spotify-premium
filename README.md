@@ -99,7 +99,11 @@ Click for widget source.
 <!--
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
--->
+-->### **WORK IN PROGRESS**
+- (GitHub Copilot) **ENHANCED**: Improved error handling and logging for token refresh - adapter now provides clearer messages when token refresh is attempted or fails
+- (GitHub Copilot) **ENHANCED**: Device polling now continues during temporary authentication issues (401) instead of stopping completely
+- (GitHub Copilot) **FIXED**: Next Track Button widget name corrected (was incorrectly labeled as Previous Track Button)
+- (GitHub Copilot) **FIXED**: Widget image paths fixed to use `/vis/widgets/` instead of relative path for proper display in VIS
 ### 1.5.6 (2025-12-08)
 - (aruttkamp) dev dependencies aktualisiert
 - (mcm1957) adapter reuires node.js 20 now

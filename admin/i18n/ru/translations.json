@@ -6,6 +6,7 @@
   "Send": "послать",
   "clientId": "Client ID",
   "clientSecret": "Client Secret",
+  "redirectUri": "Redirect URI",
   "defaultShuffle": "Состояние перемешивания по умолчанию",
   "deleteDevices": "Удалить устройства, которые больше не существуют",
   "deletePlaylists": "Удалить уже существующие плейлисты",

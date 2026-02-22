@@ -138,11 +138,13 @@
       "sentry": {
         "dsn": "https://df92a91a757f4325ab1ff04a0d17d4a4@sentry.iobroker.net/195"
       }
-    }
+    },
+    "widgetSets": ["spotify-premium"]
   },
   "native": {
     "client_id": "",
     "client_secret": "",
+    "redirect_uri": "http://127.0.0.1:80",
     "delete_devices": false,
     "delete_playlists": false,
     "keep_shuffle_state": false,
