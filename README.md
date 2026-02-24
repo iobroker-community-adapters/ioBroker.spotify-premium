@@ -102,9 +102,8 @@ Click for widget source.
 -->
 
 ### **WORK IN PROGRESS**
+- (mightymurphy) stabilized token refresh and improved widget behavior
 - (copilot) Adapter requires admin >= 7.7.22 now
-
-### 1.6.0-alpha.0 (2026-02-22)
 - (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep>
 - (copilot) Improved error handling and logging for token refresh
 - (copilot) Device polling now continues during temporary authentication issues (401) instead of stopping.
