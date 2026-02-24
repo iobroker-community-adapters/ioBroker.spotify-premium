@@ -1,6 +1,6 @@
 {
   "name": "iobroker.spotify-premium",
-  "version": "1.6.0-alpha.0",
+  "version": "1.6.0-alpha.1",
   "description": "ioBroker spotify-premium Adapter",
   "author": "twonky4 <twonky4@gmx.de>",
   "contributors": [
