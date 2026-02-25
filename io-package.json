@@ -4,19 +4,6 @@
     "version": "1.6.0-alpha.2",
     "news": {
       "1.6.0-alpha.2": {
-        "en": "stabilized token refresh and improved widget behavior",
-        "de": "stabilisiertes token-erfrischung und verbessertes widget-verhalten",
-        "ru": "стабилизированное обновление токенов и улучшенное поведение виджетов",
-        "pt": "atualizar token estabilizado e melhorar o comportamento do widget",
-        "nl": "gestabiliseerd token te vernieuwen en verbeterde widget gedrag",
-        "fr": "jeton stabilisé rafraîchissement et amélioration du comportement du widget",
-        "it": "token stabilizzato rinfrescare e migliorato comportamento widget",
-        "es": "actualización de token estabilizada y comportamiento mejorado del widget",
-        "pl": "stabilizowany token odświeżanie i ulepszone zachowanie widget",
-        "uk": "стабілізовані токенові оновлення та поліпшення поведінки віджету",
-        "zh-cn": "稳定符号刷新和改进的部件行为"
-      },
-      "1.6.0-alpha.1": {
         "en": "stabilized token refresh and improved widget behavior\nAdapter requires admin >= 7.7.22 now\nMerge pull request 522 from mightymurphy and 521 from michiproep>\nImproved error handling and logging for token refresh\nDevice polling now continues during temporary authentication issues (401) instead of stopping.\nNext Track button widget name corrected\nWidget image paths fixed to use `/vis/widgets/` instead of relative path for proper display in VIS",
         "de": "stabilisiertes token-erfrischung und verbessertes widget-verhalten\nAdapter benötigt admin >= 7.7.22 jetzt\nMerge Pull Anfrage 522 von mayymurphy und 521 von michiproep>\nVerbesserte Fehlerbehandlung und Protokollierung für Token-Erfrischung\nDie Gerätebefragung erfolgt nun bei temporären Authentifizierungsproblemen (401) statt Stoppen.\nNächster Track Schaltfläche Widget Name korrigiert\nWidget-Bildpfade festgelegt, um `/vis/widgets/` anstelle des relativen Pfades für die richtige Anzeige in VIS zu verwenden",
         "ru": "стабилизированное обновление токенов и улучшенное поведение виджетов\nАдаптер требует администратора >= 7.7.22\nЗапрос на слияние 522 от Mayymurphy и 521 от Michiproep\nУлучшенная обработка ошибок и регистрация для обновления токена\nОпрос устройств теперь продолжается во время временных проблем аутентификации (401) вместо остановки.\nНазвание виджета Track button исправлено\nПути изображения виджета, установленные для использования '/vis/widgets/' вместо относительного пути для правильного отображения в VIS",
