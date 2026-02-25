@@ -99,6 +99,56 @@ const requestQueue = {
 
 const TOKEN_REFRESH_SKEW_MS = 10 * 60 * 1000; // Refresh 10 minutes before expiry
 const TOKEN_REFRESH_MIN_DELAY_MS = 30 * 1000; // Avoid immediate refresh loops
+const TOKEN_REFRESH_RETRY_DELAY_MS = 60 * 1000; // Retry quickly on transient network failures
+
+let refreshTokenInFlight = null;
+
+function getErrorMessage(error) {
+    if (!error) {
+        return '';
+    }
+    if (typeof error === 'string') {
+        return error;
+    }
+    if (error.message) {
+        return error.message;
+    }
+    return `${error}`;
+}
+
+function isTransientNetworkError(error) {
+    if (!error) {
+        return false;
+    }
+
+    const code = error.code || (error.cause && error.cause.code);
+    const message = getErrorMessage(error).toUpperCase();
+    const transientCodes = new Set([
+        'EAI_AGAIN',
+        'ECONNREFUSED',
+        'ECONNRESET',
+        'ETIMEDOUT',
+        'ENOTFOUND',
+        'EHOSTUNREACH',
+        'ENETUNREACH',
+    ]);
+
+    if (code && transientCodes.has(code)) {
+        return true;
+    }
+
+    return (
+        message.includes('EAI_AGAIN') ||
+        message.includes('ECONNREFUSED') ||
+        message.includes('ECONNRESET') ||
+        message.includes('ETIMEDOUT') ||
+        message.includes('ENOTFOUND') ||
+        message.includes('EHOSTUNREACH') ||
+        message.includes('ENETUNREACH') ||
+        message.includes('SOCKET HANG UP') ||
+        message.includes('TIMEOUT')
+    );
+}
 
 const application = {
     userId: '',
@@ -499,7 +549,27 @@ function scheduleTokenRefresh(expiresAtMs, source) {
         adapter.log.debug('Starting proactive token refresh...');
         refreshToken()
             .then(() => adapter.log.info('Proactive token refresh successful'))
-            .catch(err => adapter.log.error(`Proactive token refresh failed: ${err}`));
+            .catch(err => {
+                adapter.log.error(`Proactive token refresh failed: ${err}`);
+
+                if (isTransientNetworkError(err)) {
+                    adapter.log.warn(
+                        `Proactive token refresh failed due temporary network issue; retrying in ${Math.round(TOKEN_REFRESH_RETRY_DELAY_MS / 1000)}s`,
+                    );
+                    clearTimeout(application.tokenRefreshTimer);
+                    application.tokenRefreshTimer = setTimeout(() => {
+                        if (stopped) {
+                            return;
+                        }
+                        adapter.log.debug('Retrying proactive token refresh after transient network error...');
+                        refreshToken()
+                            .then(() => adapter.log.info('Proactive token refresh retry successful'))
+                            .catch(retryErr =>
+                                adapter.log.error(`Proactive token refresh retry failed: ${retryErr}`),
+                            );
+                    }, TOKEN_REFRESH_RETRY_DELAY_MS);
+                }
+            });
     }, delayMs);
 }
 
@@ -695,6 +765,9 @@ function sendRequestDirect(endpoint, method, sendBody, delayAccepted, tokenRefre
             if (!axiosError.response) {
                 // Network error, DNS error, timeout, etc. - not Spotify's fault
                 adapter.log.error(`network request error on ${endpoint}: ${axiosError.message}`);
+                if (isTransientNetworkError(axiosError)) {
+                    return Promise.reject(503);
+                }
                 return Promise.reject(axiosError);
             }
 
@@ -1943,6 +2016,11 @@ function getToken() {
 }
 
 function refreshToken() {
+    if (refreshTokenInFlight) {
+        adapter.log.debug('Token refresh already running - reusing in-flight refresh request');
+        return refreshTokenInFlight;
+    }
+
     adapter.log.debug('token is requested again');
     const tokenData = new URLSearchParams();
     tokenData.append('grant_type', 'refresh_token');
@@ -1959,49 +2037,60 @@ function refreshToken() {
     };
 
     if (application.refreshToken !== '') {
-        return request(options).then(response => {
-            const statusCode = typeof response.statusCode !== 'undefined' ? response.statusCode : response.status;
-            const body = typeof response.body !== 'undefined' ? response.body : response.data;
-            // this request gets the new token
-            if (statusCode === 200) {
-                adapter.log.debug('new token arrived');
-                let parsedJson;
-                try {
-                    parsedJson = JSON.parse(body);
-                } catch (e) {
-                    parsedJson = {};
-                    adapter.log.info(`Error: ${e}`);
-                }
-                if (!parsedJson.hasOwnProperty.call(parsedJson, 'refresh_token')) {
-                    parsedJson.refresh_token = application.refreshToken;
-                }
-                adapter.log.debug('Token refresh successful');
+        refreshTokenInFlight = request(options)
+            .then(response => {
+                const statusCode = typeof response.statusCode !== 'undefined' ? response.statusCode : response.status;
+                const body = typeof response.body !== 'undefined' ? response.body : response.data;
+                // this request gets the new token
+                if (statusCode === 200) {
+                    adapter.log.debug('new token arrived');
+                    let parsedJson;
+                    if (body && typeof body === 'object') {
+                        parsedJson = body;
+                    } else {
+                        try {
+                            parsedJson = body ? JSON.parse(body) : {};
+                        } catch (e) {
+                            adapter.log.error(`Error parsing token response: ${e}`);
+                            parsedJson = {};
+                        }
+                    }
+                    if (!parsedJson.hasOwnProperty.call(parsedJson, 'refresh_token')) {
+                        parsedJson.refresh_token = application.refreshToken;
+                    }
+                    adapter.log.debug('Token refresh successful');
 
-                return saveToken(parsedJson)
-                    .then(tokenObj => {
-                        application.token = tokenObj.accessToken;
-                        application.refreshToken = tokenObj.refreshToken;
-                        scheduleTokenRefresh(getTokenExpiresAtMs(tokenObj), 'refreshToken');
-                        adapter.log.debug('Token saved and updated in application state');
-                        return tokenObj;
-                    })
-                    .catch(err => {
-                        adapter.log.error(`Error saving token: ${err}`);
-                        return Promise.reject(err);
-                    });
-            }
-            adapter.log.error(`Token refresh failed with status code: ${statusCode}`);
-            return Promise.reject(statusCode);
-        }).catch(error => {
-            adapter.log.error(`Token refresh request failed: ${error.message || error}`);
-            if (error && error.response) {
-                const responseData = error.response.data;
-                adapter.log.error(
-                    `Token refresh response: ${typeof responseData === 'string' ? responseData : JSON.stringify(responseData)}`,
-                );
-            }
-            return Promise.reject(error);
-        });
+                    return saveToken(parsedJson)
+                        .then(tokenObj => {
+                            application.token = tokenObj.accessToken;
+                            application.refreshToken = tokenObj.refreshToken;
+                            scheduleTokenRefresh(getTokenExpiresAtMs(tokenObj), 'refreshToken');
+                            adapter.log.debug('Token saved and updated in application state');
+                            return tokenObj;
+                        })
+                        .catch(err => {
+                            adapter.log.error(`Error saving token: ${err}`);
+                            return Promise.reject(err);
+                        });
+                }
+                adapter.log.error(`Token refresh failed with status code: ${statusCode}`);
+                return Promise.reject(statusCode);
+            })
+            .catch(error => {
+                adapter.log.error(`Token refresh request failed: ${error.message || error}`);
+                if (error && error.response) {
+                    const responseData = error.response.data;
+                    adapter.log.error(
+                        `Token refresh response: ${typeof responseData === 'string' ? responseData : JSON.stringify(responseData)}`,
+                    );
+                }
+                return Promise.reject(error);
+            })
+            .finally(() => {
+                refreshTokenInFlight = null;
+            });
+
+        return refreshTokenInFlight;
     }
 
     adapter.log.warn('Cannot refresh token: no refresh token available');
@@ -2179,7 +2268,7 @@ function pollDeviceApi() {
             scheduleDevicePollingWithOffset();
         })
         .catch(err => {
-            if (err === 401 || err === 429 || err === 500 || err === 502 || err === 503) {
+            if (err === 401 || err === 429 || err === 500 || err === 502 || err === 503 || err === 504) {
                 // Keep polling running for temporary errors
                 if (err === 401) {
                     adapter.log.warn('Device polling: 401 Unauthorized - token refresh should be in progress, continuing polling');
@@ -2816,6 +2905,10 @@ function listenOnHtmlDevices() {
 //If started as allInOne/compact mode => return function to create instance
 if (module && module.parent) {
     module.exports = startAdapter;
+    module.exports.__test = {
+        getErrorMessage,
+        isTransientNetworkError,
+    };
 } else {
     // or start the instance directly
     startAdapter();
