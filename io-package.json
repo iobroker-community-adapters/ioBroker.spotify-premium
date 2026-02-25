@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.6.0-alpha.1",
+    "version": "1.6.0-alpha.2",
     "news": {
+      "1.6.0-alpha.2": {
+        "en": "stabilized token refresh and improved widget behavior",
+        "de": "stabilisiertes token-erfrischung und verbessertes widget-verhalten",
+        "ru": "стабилизированное обновление токенов и улучшенное поведение виджетов",
+        "pt": "atualizar token estabilizado e melhorar o comportamento do widget",
+        "nl": "gestabiliseerd token te vernieuwen en verbeterde widget gedrag",
+        "fr": "jeton stabilisé rafraîchissement et amélioration du comportement du widget",
+        "it": "token stabilizzato rinfrescare e migliorato comportamento widget",
+        "es": "actualización de token estabilizada y comportamiento mejorado del widget",
+        "pl": "stabilizowany token odświeżanie i ulepszone zachowanie widget",
+        "uk": "стабілізовані токенові оновлення та поліпшення поведінки віджету",
+        "zh-cn": "稳定符号刷新和改进的部件行为"
+      },
       "1.6.0-alpha.1": {
         "en": "stabilized token refresh and improved widget behavior\nAdapter requires admin >= 7.7.22 now\nMerge pull request 522 from mightymurphy and 521 from michiproep>\nImproved error handling and logging for token refresh\nDevice polling now continues during temporary authentication issues (401) instead of stopping.\nNext Track button widget name corrected\nWidget image paths fixed to use `/vis/widgets/` instead of relative path for proper display in VIS",
         "de": "stabilisiertes token-erfrischung und verbessertes widget-verhalten\nAdapter benötigt admin >= 7.7.22 jetzt\nMerge Pull Anfrage 522 von mayymurphy und 521 von michiproep>\nVerbesserte Fehlerbehandlung und Protokollierung für Token-Erfrischung\nDie Gerätebefragung erfolgt nun bei temporären Authentifizierungsproblemen (401) statt Stoppen.\nNächster Track Schaltfläche Widget Name korrigiert\nWidget-Bildpfade festgelegt, um `/vis/widgets/` anstelle des relativen Pfades für die richtige Anzeige in VIS zu verwenden",
@@ -80,19 +93,6 @@
         "pl": "Problem został rozwiązany, co powoduje błędy 'zbyt wielu żądań' [# 241, # 245, # 311]. Zalecany interwał aktualizacji informacji o playlist wynosi teraz 60 minut.\nDodano pamięci podręcznej DNS [# 341].\nPotencjalnie naprawić 'Bieżący odtwarzany utwór nie jest podświetlony' [# 283]\nNiektóre rodzaje stanu zostały ustalone\nZaktualizowano zależności",
         "uk": "Проблема була виправлена, яка викликає помилки «до багатьох запитів» [#241, #245, #311]. Рекомендований інтервал оновлення для отримання інформації про списки відтворення тепер 60 хвилин.\nДодано кеш DNS [#341].\nПотенціално зафіксувати 'Current грали доріжки не виділено' [#283]\nДеякі державні типи були виправлені\nЗалежність було оновлено",
         "zh-cn": "问题已经解决, 导致“ 太多请求” 错误 [# 241, # 245, # 311] 。 播放列表信息建议更新间隔为60分钟.\n添加了一个 DNS 缓存 [# 341].\n可能修补“ 当前播放的音轨没有突出显示 ” [# 283]\n一些状态类型已经固定\n依赖关系已更新"
-      },
-      "1.4.0": {
-        "en": "Adapter requires node.js 18 and js-controller >= 5 now\nA problem has been fixed that did not correctly update the progress of playing media [#339]\nDependencies have been updated0",
-        "de": "Adapter benötigt node.js 18 und js-controller >= 5 jetzt\nEs wurde ein Problem behoben, das den Fortschritt der Wiedergabe von Medien nicht korrekt aktualisierte [#339]\nAbhängigkeiten wurden aktualisiert0",
-        "ru": "Адаптер требует node.js 18 и js-controller >= 5 сейчас\nБыла исправлена проблема, которая некорректно обновила ход игры в медиа [#339]\nЗависимость обновлена0",
-        "pt": "Adapter requer node.js 18 e js-controller >= 5 agora\nUm problema foi corrigido que não atualizou corretamente o progresso da mídia de jogo [#339]\nAs dependências foram atualizadas0",
-        "nl": "Adapter vereist node.js 18 en js-controller Nu 5\nEr is een probleem opgelost dat de voortgang van het afspelen van media niet correct heeft bijgewerkt [#339]\nAfhankelijkheden zijn bijgewerkt0",
-        "fr": "Adaptateur nécessite node.js 18 et js-controller >= 5 maintenant\nUn problème a été corrigé qui n'a pas correctement mis à jour la progression de la lecture des médias [#339]\nLes dépendances ont été mises à jour0",
-        "it": "Adattatore richiede node.js 18 e js-controller >= 5 ora\nUn problema è stato risolto che non ha correttamente aggiornato il progresso della riproduzione dei supporti [#339]\nLe dipendenze sono state aggiornate0",
-        "es": "Adaptador requiere node.js 18 y js-controller √= 5 ahora\nSe ha fijado un problema que no actualizó correctamente el progreso de los medios de comunicación [#339]\nSe han actualizado las dependencias0",
-        "pl": "Adapter wymaga node.js 18 i sterownika js- > = 5 teraz\nNaprawiono problem, który nie uaktualnił poprawnie postępów w odtwarzaniu mediów [# 339]\nUaktualniono zależności0",
-        "uk": "Адаптер вимагає node.js 18 і js-controller >= 5 тепер\nПроблема була виправлена, що не вірно оновити прогрес ігрових медіа [#339]\nЗалежність було оновлено0",
-        "zh-cn": "适配器需要节点.js 18和js控制器 QQ 现在5号\n一个问题已经解决, 无法正确更新播放媒体的进展 [# 339]\n依赖关系已更新0"
       }
     },
     "titleLang": {

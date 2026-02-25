@@ -1,4 +1,7 @@
 # Older changes
+## 1.5.1 (2024-12-16)
+- (aruttkamp) Testing Node 22.x implemented
+
 ## 1.5.0 (2024-04-18)
 - (N1tR0) A problem has been fixed which cause 'too many requests' errors [#241, #245, #311]. The recommended update interval for playlist information is now 60 minutes.
 - (N1tR0) A DNS cache has been added [#341].
