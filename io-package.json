@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.6.0-alpha.2",
+    "version": "1.5.6",
     "news": {
       "1.5.6": {
         "en": "dev dependencies aktualisiert",
