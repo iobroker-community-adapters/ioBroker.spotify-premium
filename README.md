@@ -100,9 +100,10 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
+### 1.6.0-alpha.2 (2026-02-25)
 - (mightymurphy) stabilized token refresh and improved widget behavior
+
+### 1.6.0-alpha.1 (2026-02-24)
 - (copilot) Adapter requires admin >= 7.7.22 now
 - (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep>
 - (copilot) Improved error handling and logging for token refresh
