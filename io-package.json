@@ -138,10 +138,7 @@
       "sentry": {
         "dsn": "https://df92a91a757f4325ab1ff04a0d17d4a4@sentry.iobroker.net/195"
       }
-    },
-    "widgetSets": [
-      "spotify-premium"
-    ]
+    }
   },
   "native": {
     "client_id": "",
