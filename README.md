@@ -100,7 +100,8 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### 1.6.0-alpha.2 (2026-02-25)
+### **WORK IN PROGRESS**
+- (mcm1957) Issues reported by repository checker have been fixed
 - (mightymurphy) stabilized token refresh and improved widget behavior
 - (copilot) Adapter requires admin >= 7.7.22 now
 - (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep>
@@ -108,6 +109,7 @@ Click for widget source.
 - (copilot) Device polling now continues during temporary authentication issues (401) instead of stopping.
 - (copilot) Next Track button widget name corrected
 - (copilot) Widget image paths fixed to use `/vis/widgets/` instead of relative path for proper display in VIS
+- (mcm1957) Dependencies have been updated
 
 ### 1.5.6 (2025-12-08)
 - (aruttkamp) dev dependencies aktualisiert
