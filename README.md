@@ -100,7 +100,7 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 1.6.0 (2026-02-28)
 - (mcm1957) Issues reported by repository checker have been fixed
 - (mightymurphy) stabilized token refresh and improved widget behavior
 - (copilot) Adapter requires admin >= 7.7.22 now

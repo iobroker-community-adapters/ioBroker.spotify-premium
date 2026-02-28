@@ -1,9 +1,9 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "1.6.0-alpha.3",
+    "version": "1.6.0",
     "news": {
-      "1.6.0-alpha.3": {
+      "1.6.0": {
         "en": "Issues reported by repository checker have been fixed\nstabilized token refresh and improved widget behavior\nAdapter requires admin >= 7.7.22 now\nMerge pull request 522 from mightymurphy and 521 from michiproep>\nImproved error handling and logging for token refresh\nDevice polling now continues during temporary authentication issues (401) instead of stopping.\nNext Track button widget name corrected\nWidget image paths fixed to use `/vis/widgets/` instead of relative path for proper display in VIS\nDependencies have been updated",
         "de": "Vom Repository-Checker gemeldete Probleme wurden behoben\nstabilisiertes token-erfrischung und verbessertes widget-verhalten\nAdapter benötigt admin >= 7.7.22 jetzt\nMerge Pull Anfrage 522 von mayymurphy und 521 von michiproep>\nVerbesserte Fehlerbehandlung und Protokollierung für Token-Erfrischung\nDie Gerätebefragung erfolgt nun bei temporären Authentifizierungsproblemen (401) statt Stoppen.\nNächster Track Schaltfläche Widget Name korrigiert\nWidget-Bildpfade festgelegt, um `/vis/widgets/` anstelle des relativen Pfades für die richtige Anzeige in VIS zu verwenden\nAbhängigkeiten wurden aktualisiert",
         "ru": "Проблемы, сообщенные проверкой репозитория, были исправлены\nстабилизированное обновление токенов и улучшенное поведение виджетов\nАдаптер требует администратора >= 7.7.22\nЗапрос на слияние 522 от Mayymurphy и 521 от Michiproep\nУлучшенная обработка ошибок и регистрация для обновления токена\nОпрос устройств теперь продолжается во время временных проблем аутентификации (401) вместо остановки.\nНазвание виджета Track button исправлено\nПути изображения виджета, установленные для использования '/vis/widgets/' вместо относительного пути для правильного отображения в VIS\nЗависимости были обновлены",
@@ -16,7 +16,7 @@
         "uk": "Зафіксовано питання, що повідомляються репозиторійним чекером\nстабілізовані токенові оновлення та поліпшення поведінки віджету\nАдаптер вимагає адмін >= 7.7.22 тепер\nВитяг за запитом 522 від могутності та 521 від michiproep>\nПокращувати обробку помилок і заправку для оновлення токени\nЗапилення пристроїв в даний час продовжується в процесі тимчасового автентифікації (401) замість зупинки.\nНаступна кнопка Відстежити назву віджета\nВіджети шляхи зображень фіксовані для використання `/vis/widgets/` замість відносного шляху до належного відображення в VIS\nЗалежність було оновлено",
         "zh-cn": "储存库检查员报告的问题已经解决\n稳定符号刷新和改进的部件行为\n适任者需要管理员 \\ 7.7.22 现在\n合并来自weathermurphy的522和来自michiproep的521牵引请求 >\n改进对令牌刷新的错误处理和记录\n设备投票在临时核证问题(401次)期间继续进行,而不是停止.\n下一个音轨按钮部件名称已校正\n固定用于“/vis/widgets/”而不是用于在VIS中正确显示的相对路径的部件图像路径\n依赖关系已更新"
       },
-      "1.5.6": {
+     "1.5.6": {
         "en": "dev dependencies aktualisiert",
         "de": "dev abhängigkeiten aktualisiert",
         "ru": "dev зависимостей aktualisiert",
