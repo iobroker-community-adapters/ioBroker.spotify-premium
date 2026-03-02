@@ -1,6 +1,6 @@
 # ioBroker Adapter Development with GitHub Copilot
 
-**Version:** 0.5.6  
+**Version:** 0.5.7  
 **Template Source:** https://github.com/DrozmotiX/ioBroker-Copilot-Instructions
 
 This file contains instructions and best practices for GitHub Copilot when working on ioBroker adapter development.
@@ -102,18 +102,19 @@ npm install --save-dev eslint @iobroker/eslint-config
 ```json
 {
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint --max-warnings 0 .",
     "lint:fix": "eslint . --fix"
   }
 }
 ```
 
 #### Best Practices
-1. ✅ Run ESLint before committing
+1. ✅ Run ESLint before committing — fix ALL warnings, not just errors
 2. ✅ Use `lint:fix` for auto-fixable issues
 3. ✅ Don't disable rules without documentation
 4. ✅ Lint all relevant files (main code, tests, build scripts)
 5. ✅ Keep `@iobroker/eslint-config` up to date
+6. ✅ **ESLint warnings are treated as errors in CI** (`--max-warnings 0`). The `lint` script above already includes this flag — run `npm run lint` to match CI behavior locally
 
 #### Common Issues
 - **Unused variables**: Remove or prefix with underscore (`_variable`)
@@ -426,7 +427,7 @@ try {
 - Include code examples for configuration
 - Add screenshots for admin interface when applicable
 - Maintain multilingual support (minimum English and German)
-- When creating PRs, add entries to README under "## **WORK IN PROGRESS**" section
+- Always reference issues in commits and PRs (e.g., "fixes #xx")
 
 #### Mandatory README Updates for PRs
 
@@ -436,13 +437,12 @@ For **every PR or new feature**, always add a user-friendly entry to README.md:
 - Use format: `* (author) **TYPE**: Description of user-visible change`
 - Types: **NEW** (features), **FIXED** (bugs), **ENHANCED** (improvements), **TESTING** (test additions), **CI/CD** (automation)
 - Focus on user impact, not technical details
-- **IMPORTANT:** When referencing issues in PRs or commit messages, use `refs #XX` or `see #XX` — **NEVER** use keywords that auto-close issues (`fixes`, `closes`, `resolves`). Issues must be closed manually by the developer or user.
 
 **Example:**
 ```markdown
 ## **WORK IN PROGRESS**
 
-* (DutchmanNL) **FIXED**: Adapter now properly validates login credentials (refs #25)
+* (DutchmanNL) **FIXED**: Adapter now properly validates login credentials (fixes #25)
 * (DutchmanNL) **NEW**: Added device discovery to simplify initial setup
 ```
 
@@ -463,7 +463,7 @@ Follow the [AlCalzone release-script](https://github.com/AlCalzone/release-scrip
 ## **WORK IN PROGRESS**
 
 - (author) **NEW**: Added new feature X
-- (author) **FIXED**: Fixed bug Y (refs #25)
+- (author) **FIXED**: Fixed bug Y (fixes #25)
 
 ## v0.1.0 (2023-01-01)
 Initial release
@@ -479,7 +479,7 @@ Initial release
 - Format: `- (author) **TYPE**: User-friendly description`
 - Types: **NEW**, **FIXED**, **ENHANCED**
 - Focus on user impact, not technical implementation
-- Reference issues with `refs #XX` or `see #XX` — **do not** use `fixes`/`closes`/`resolves` as these auto-close issues
+- Reference issues with "fixes #XX" or "solves #XX"
 
 ---
 
@@ -584,6 +584,18 @@ process.exit(hasErrors ? 1 : 0);
 5. Remove orphaned keys manually from all translation files
 6. Add missing translations in native languages
 7. Run: `npm run lint && npm run test`
+
+#### Add Validation to package.json
+
+```json
+{
+  "scripts": {
+    "translate": "translate-adapter",
+    "validate:translations": "node scripts/validate-translations.js",
+    "pretest": "npm run lint && npm run validate:translations"
+  }
+}
+```
 
 #### Translation Checklist
 
