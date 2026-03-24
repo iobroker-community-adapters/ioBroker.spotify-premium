@@ -6,7 +6,6 @@
   "Send": "Send",
   "clientId": "Client ID",
   "clientSecret": "Client Secret",
-  "redirectUri": "Redirect URI",
   "defaultShuffle": "Default shuffle state",
   "deleteDevices": "Delete devices that no longer exist",
   "deletePlaylists": "Delete no longer existing playlists",
@@ -20,7 +19,7 @@
   "manual2": "2. Create an application — you will get a Client ID and a Client Secret",
   "manual3": "3. In the app settings, add the redirect URI: <b>https://oauth2.iobroker.in/spotify</b>",
   "manual4": "4. Enter the Client ID and Client Secret in the fields below",
-  "manual5": "5. Save the settings and click \"Get Spotify access\" button above",
+  "manual5": "5. Save the settings and click \"Get Spotify access\" button",
   "manual6": "Switch to objects tab and push the button getAuthorization at 'spotify-premium.X.authorization'",
   "manual6.5": "6. Follow the OAuth2 authorization flow in the popup window",
   "manual7": "Copy the appearing URL from 'spotify-premium.X.authorization.authorizationUrl' to your webbrowser and call it",
@@ -31,6 +30,7 @@
   "on": "on",
   "on save adapter restarts with new config immediately": "on save adapter restarts with new config immediately",
   "playlistInterval": "Refresh interval for playlist information. (in minutes, recommended 15, 0 = disabled)",
+  "redirectUri": "Redirect URI",
   "sendLabel": "Copy here the link from other window. Starts with \"http://127.0.0.1/?code=...\" and press \"Send\"",
   "statusInterval": "Refresh interval for status information. (in seconds, recommended 10, 0 = disabled). Only required if you control Spotify on devices apart from the adapter."
 }

@@ -6,7 +6,6 @@
   "Send": "послать",
   "clientId": "Client ID",
   "clientSecret": "Client Secret",
-  "redirectUri": "Redirect URI",
   "defaultShuffle": "Состояние перемешивания по умолчанию",
   "deleteDevices": "Удалить устройства, которые больше не существуют",
   "deletePlaylists": "Удалить уже существующие плейлисты",
@@ -20,7 +19,7 @@
   "manual2": "2. Создайте приложение — вы получите Client ID и Client Secret",
   "manual3": "3. В настройках приложения добавьте Redirect URI: <b>https://oauth2.iobroker.in/spotify</b>",
   "manual4": "4. Введите Client ID и Client Secret в поля ниже",
-  "manual5": "5. Сохраните настройки и нажмите кнопку «Get Spotify access»",
+  "manual5": "5. Сохраните настройки и нажмите кнопку «Получить доступ к Spotify»",
   "manual6": "перейдите на вкладку Объекты и нажмите кнопку getAuthorization в разделе 'spotify-premium.X.authorization'",
   "manual6.5": "6. Следуйте процедуре OAuth2-авторизации во всплывающем окне",
   "manual7": "Скопируйте URL-адрес, отображаемый в разделе 'spotify-premium.X.authorization.authorizationUrl' в веб-браузер и перейдите к нему.",
@@ -31,6 +30,7 @@
   "on": "вкл",
   "on save adapter restarts with new config immediately": "При сохранении настроек адаптера он сразу же перезапускается",
   "playlistInterval": "Интервал обновления для информации о плейлисте. (в минутах, рекомендуется 15, 0 = отключено)",
+  "redirectUri": "Redirect URI",
   "sendLabel": "Скопируйте сюда ссылку из другого окна. Начинается с http://127.0.0.1/?Code=... и нажимается \"Отправить\".",
   "statusInterval": "Интервал обновления для информации о состоянии. (в секундах, рекомендуется 10, 0 = отключено). Требуется только если вы управляете Spotify на устройствах, кроме адаптера."
 }

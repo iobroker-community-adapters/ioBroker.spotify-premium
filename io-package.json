@@ -123,7 +123,7 @@
         ],
         "globalDependencies": [
             {
-                "admin": ">=7.8.7"
+                "admin": ">=7.8.8"
             }
         ],
         "plugins": {

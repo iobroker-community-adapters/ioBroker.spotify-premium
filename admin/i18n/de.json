@@ -6,7 +6,6 @@
   "Send": "Senden",
   "clientId": "Client ID",
   "clientSecret": "Client Secret",
-  "redirectUri": "Redirect URI",
   "defaultShuffle": "Standard-\"Shuffle\"-status",
   "deleteDevices": "Nicht mehr vorhandene Geräte löschen",
   "deletePlaylists": "Nicht mehr vorhandene Playlisten löschen",
@@ -20,7 +19,7 @@
   "manual2": "2. Erstelle eine Application — du erhältst eine Client ID und ein Client Secret",
   "manual3": "3. Trage in den App Settings bei Redirect URIs <b>https://oauth2.iobroker.in/spotify</b> ein",
   "manual4": "4. Trage die Client ID und das Client Secret in die Felder unten ein",
-  "manual5": "5. Speichere die Einstellungen und klicke auf \"Get Spotify access\"",
+  "manual5": "5. Speichere die Einstellungen und klicke auf \"Spotify Zugriff bekommen\"",
   "manual6": "Wechsle zum Tab Objekte und klicke unter 'spotify-premium.X.authorization' auf den Button 'getAuthorization'",
   "manual6.5": "6. Folge dem OAuth2-Autorisierungsablauf im Popup-Fenster",
   "manual7": "Kopiere die unter 'spotify-premium.X.authorization.authorizationUrl' angezeigte URL in einen Webbrowser und rufe sie auf.",
@@ -31,6 +30,7 @@
   "on": "an",
   "on save adapter restarts with new config immediately": "Beim Speichern von Einstellungen der Adapter wird sofort neu gestartet.",
   "playlistInterval": "Aktualisierungsintervall für Playlisteninformationen. (in Minuten; empfohlen 15; 0 = deaktiviert)",
+  "redirectUri": "Redirect URI",
   "sendLabel": "Kopieren Sie hier den Link aus dem anderen Fenster. Beginnt mit \"http://127.0.0.1/?code=...\" und drücke auf \"Senden\"",
   "statusInterval": "Aktualisierungsintervall für Statusinformationen. (in Sekunden; empfohlen 10; 0 = deaktiviert). Nur erforderlich, wenn Sie Spotify auf anderen Geräten als dem Adapter steuern."
 }

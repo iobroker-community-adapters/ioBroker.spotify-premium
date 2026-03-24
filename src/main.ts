@@ -1,6 +1,3 @@
-// import http from 'node:http';
-// import url from 'node:url';
-
 import axios from 'axios';
 import { lookup } from 'dns-lookup-cache';
 import { readFileSync } from 'node:fs';
@@ -552,12 +549,6 @@ export class SpotifyPremiumAdapter extends Adapter {
             objectChange: (id: string, obj: ioBroker.Object | null | undefined) =>
                 this.cache.setExternalObj(id, obj as ioBroker.StateObject),
             ready: () => {
-                // this.cache.on(
-                //     'authorization.authorizationReturnUri',
-                //     (obj: any) => this.listenOnAuthorizationReturnUri(obj),
-                //     true,
-                // );
-                // this.cache.on('authorization.getAuthorization', () => this.listenOnGetAuthorization());
                 this.cache.on('authorization.oauth2Tokens', (obj: any) => this.listenOnAuthorized(obj));
                 this.cache.on(/\.useForPlayback$/, (obj: any) => this.listenOnUseForPlayback(obj));
                 this.cache.on(/\.trackList$/, (obj: any) => this.listenOnTrackList(obj), true);
@@ -607,12 +598,6 @@ export class SpotifyPremiumAdapter extends Adapter {
             },
             unload: callback => {
                 this.stopped = true;
-
-                // Close the OAuth callback server
-                // if (this.application.callbackServer) {
-                //     this.application.callbackServer.close();
-                //     this.log.debug('OAuth callback server closed');
-                // }
 
                 if (this.application.statusPollingHandle) {
                     clearTimeout(this.application.statusPollingHandle);
@@ -1285,7 +1270,6 @@ export class SpotifyPremiumAdapter extends Adapter {
     }
 
     copyState(src: string, dst: string): Promise<void> {
-        // return this.cache.setValue(dst, this.cache.getValue(src).val);
         const tmp_src = this.cache.getValue(src);
         if (tmp_src) {
             return this.cache.setValue(dst, tmp_src.val);
@@ -1295,7 +1279,6 @@ export class SpotifyPremiumAdapter extends Adapter {
     }
 
     copyObjectStates(src: string, dst: string): Promise<void> {
-        // return setObjectStatesIfChanged(dst, this.cache.getObj(src).common.states);
         const tmpSrc = this.cache.getObj(src);
         if (tmpSrc?.common) {
             return this.setObjectStatesIfChanged(dst, tmpSrc.common.states);
@@ -1479,13 +1462,11 @@ export class SpotifyPremiumAdapter extends Adapter {
             await this.cache.setValue('player.artistImageUrl', set);
         }
         const uri = data.context?.uri || '';
-        this.log.debug(`context uri: "${uri}", type: "${type}"`);
         if (type === 'playlist' && uri) {
             const indexOfPlaylistId = uri.indexOf('playlist:') + 9;
             const playlistId = uri.slice(indexOfPlaylistId);
             const userMatch = uri.match(/user:([^:]+)/);
             const userId = userMatch ? userMatch[1] : '';
-            this.log.debug(`parsed playlistId: "${playlistId}", userId: "${userId}"`);
             const query: Record<string, string> = {
                 fields: 'name,id,owner(id),tracks(total),images',
             };
@@ -2029,7 +2010,6 @@ export class SpotifyPremiumAdapter extends Adapter {
                 } else {
                     break;
                 }
-                //.catch(err => this.log.warn('error on load tracks: ' + err));
             } catch (err) {
                 if (err.toString().includes('403')) {
                     this.log.debug(`playlist tracks access denied (403) owner: ${owner} id: ${id}`);
