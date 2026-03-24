@@ -558,6 +558,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 this.cache.on('player.play', () => this.listenOnPlay());
                 this.cache.on('player.playUri', (obj: any) => this.listenOnPlayUri(obj));
                 this.cache.on('player.pause', () => this.listenOnPause());
+                this.cache.on('player.state', (obj: any) => this.listenOnState(obj), true);
                 this.cache.on('player.skipPlus', () => this.listenOnSkipPlus());
                 this.cache.on('player.skipMinus', () => this.listenOnSkipMinus());
                 this.cache.on('player.repeat', (obj: any) => this.listenOnRepeat(obj), true);
@@ -1343,6 +1344,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 native: {},
             }),
             this.cache.setValue('player.isPlaying', isPlaying),
+            this.cache.setValue('player.state', isPlaying),
             this.setOrDefault(data, 'item.id', 'player.trackId', ''),
             this.cache.setValue('player.artistName', artist),
             this.cache.setValue('player.album', album),
@@ -2866,6 +2868,14 @@ export class SpotifyPremiumAdapter extends Adapter {
         void this.sendRequest(`/v1/me/player/pause?${querystring.stringify(query)}`, 'PUT', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+    }
+
+    listenOnState(obj: any): void {
+        if (obj.state.val) {
+            this.listenOnPlay();
+        } else {
+            this.listenOnPause();
+        }
     }
 
     listenOnSkipPlus(): void {

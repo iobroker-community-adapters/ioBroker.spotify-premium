@@ -836,11 +836,24 @@
             "_id": "player.isPlaying",
             "type": "state",
             "common": {
-                "role": "media.state",
+                "role": "value",
                 "name": "is playing",
                 "type": "boolean",
                 "read": true,
                 "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "player.state",
+            "type": "state",
+            "common": {
+                "role": "media.state",
+                "name": "playback state: true = play, false = pause",
+                "type": "boolean",
+                "read": true,
+                "write": true,
+                "def": false
             },
             "native": {}
         },
