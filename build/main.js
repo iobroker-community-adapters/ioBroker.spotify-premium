@@ -1,49 +1,16 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+// import http from 'node:http';
+// import url from 'node:url';
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SpotifyPremiumAdapter = void 0;
-const node_http_1 = __importDefault(require("node:http"));
-const node_url_1 = __importDefault(require("node:url"));
 const axios_1 = __importDefault(require("axios"));
 const dns_lookup_cache_1 = require("dns-lookup-cache");
 const node_querystring_1 = __importDefault(require("node:querystring"));
 const adapter_core_1 = require("@iobroker/adapter-core");
-const cache = __importStar(require("./lib/cache"));
+const cache_1 = __importDefault(require("./lib/cache"));
 const utils_1 = require("./lib/utils");
 // Request queue to prevent rate limiting (429 errors)
 class RequestQueue {
@@ -134,7 +101,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         deleteDevices: false,
         deletePlaylists: false,
         keepShuffleState: true,
-        redirect_uri: '',
+        redirect_uri: 'https://oauth2.iobroker.in/spotify',
         token: '',
         refreshToken: '',
         code: '',
@@ -142,15 +109,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         statusPollingHandle: undefined,
         statusPollingDelaySeconds: 10,
         devicePollingHandle: undefined,
-        deviceInternalTimer: undefined,
         devicePollingDelaySeconds: 300,
         playlistPollingHandle: undefined,
-        playlistInternalTimer: undefined,
         playlistPollingDelaySeconds: 1800,
         error202shown: false,
         cacheClearHandle: undefined,
-        callbackServer: null,
-        callbackPort: 80,
+        // callbackServer: null,
+        // callbackPort: 80,
         lastTrackId: '',
         lastPlaylistId: '',
         tokenRefreshTimer: undefined,
@@ -166,86 +131,93 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     tooManyRequests = false;
     refreshTokenInFlight = null;
     requestQueue = new RequestQueue();
+    cache = new cache_1.default(this);
     constructor(options = {}) {
         super({
             ...options,
             name: 'spotify-premium',
-            stateChange: (id, state) => cache.setExternal(id, state),
-            objectChange: (id, obj) => cache.setExternalObj(id, obj),
+            stateChange: (id, state) => this.cache.setExternal(id, state),
+            objectChange: (id, obj) => this.cache.setExternalObj(id, obj),
             ready: () => {
-                cache.on('authorization.authorizationReturnUri', (obj) => this.listenOnAuthorizationReturnUri(obj), true);
-                cache.on('authorization.getAuthorization', () => this.listenOnGetAuthorization());
-                cache.on('authorization.authorized', (obj) => this.listenOnAuthorized(obj));
-                cache.on(/\.useForPlayback$/, (obj) => this.listenOnUseForPlayback(obj));
-                cache.on(/\.trackList$/, (obj) => this.listenOnTrackList(obj), true);
-                cache.on(/\.playThisList$/, (obj) => this.listenOnPlayThisList(obj));
-                cache.on('devices.deviceList', (obj) => this.listenOnDeviceList(obj), true);
-                cache.on('playlists.playlistList', (obj) => this.listenOnPlaylistList(obj), true);
-                cache.on('player.play', () => this.listenOnPlay());
-                cache.on('player.playUri', (obj) => this.listenOnPlayUri(obj));
-                cache.on('player.pause', () => this.listenOnPause());
-                cache.on('player.skipPlus', () => this.listenOnSkipPlus());
-                cache.on('player.skipMinus', () => this.listenOnSkipMinus());
-                cache.on('player.repeat', (obj) => this.listenOnRepeat(obj), true);
-                cache.on('player.repeatTrack', () => this.listenOnRepeatTrack());
-                cache.on('player.repeatContext', () => this.listenOnRepeatContext());
-                cache.on('player.repeatOff', () => this.listenOnRepeatOff());
-                cache.on('player.volume', (obj) => this.listenOnVolume(obj), true);
-                cache.on('player.progressMs', (obj) => this.listenOnProgressMs(obj), true);
-                cache.on('player.progressPercentage', (obj) => this.listenOnProgressPercentage(obj), true);
-                cache.on('player.shuffle', (obj) => this.listenOnShuffle(obj), this.config.defaultShuffle || 'on');
-                cache.on('player.shuffleOff', () => this.listenOnShuffleOff());
-                cache.on('player.shuffleOn', () => this.listenOnShuffleOn());
-                cache.on('player.trackId', (obj) => this.listenOnTrackId(obj), true);
-                cache.on('player.playlist.id', (obj) => this.listenOnPlaylistId(obj), true);
-                cache.on('player.playlist.owner', (obj) => this.listenOnPlaylistOwner(obj), true);
-                cache.on('player.playlist.trackNo', (obj) => this.listenOnPlaylistTrackNo(obj), true);
-                cache.on('getPlaylists', () => this.reloadUsersPlaylist());
-                cache.on('getPlaybackInfo', () => this.listenOnGetPlaybackInfo());
-                cache.on('getDevices', () => this.listenOnGetDevices());
-                cache.on(['playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString'], () => this.listenOnHtmlPlaylists());
-                cache.on(['player.playlist.trackList', 'player.playlist.trackListArray'], () => this.listenOnHtmlTracklist());
-                cache.on(['devices.deviceList', 'devices.deviceListIds', 'devices.availableDeviceListString'], () => this.listenOnHtmlDevices());
-                void cache.init().then(() => this.main());
+                // this.cache.on(
+                //     'authorization.authorizationReturnUri',
+                //     (obj: any) => this.listenOnAuthorizationReturnUri(obj),
+                //     true,
+                // );
+                // this.cache.on('authorization.getAuthorization', () => this.listenOnGetAuthorization());
+                this.cache.on('authorization.oauth2Tokens', (obj) => this.listenOnAuthorized(obj));
+                this.cache.on(/\.useForPlayback$/, (obj) => this.listenOnUseForPlayback(obj));
+                this.cache.on(/\.trackList$/, (obj) => this.listenOnTrackList(obj), true);
+                this.cache.on(/\.playThisList$/, (obj) => this.listenOnPlayThisList(obj));
+                this.cache.on('devices.deviceList', (obj) => this.listenOnDeviceList(obj), true);
+                this.cache.on('playlists.playlistList', (obj) => this.listenOnPlaylistList(obj), true);
+                this.cache.on('player.play', () => this.listenOnPlay());
+                this.cache.on('player.playUri', (obj) => this.listenOnPlayUri(obj));
+                this.cache.on('player.pause', () => this.listenOnPause());
+                this.cache.on('player.skipPlus', () => this.listenOnSkipPlus());
+                this.cache.on('player.skipMinus', () => this.listenOnSkipMinus());
+                this.cache.on('player.repeat', (obj) => this.listenOnRepeat(obj), true);
+                this.cache.on('player.repeatTrack', () => this.listenOnRepeatTrack());
+                this.cache.on('player.repeatContext', () => this.listenOnRepeatContext());
+                this.cache.on('player.repeatOff', () => this.listenOnRepeatOff());
+                this.cache.on('player.volume', (obj) => this.listenOnVolume(obj), true);
+                this.cache.on('player.progressMs', (obj) => this.listenOnProgressMs(obj), true);
+                this.cache.on('player.progressPercentage', (obj) => this.listenOnProgressPercentage(obj), true);
+                this.cache.on('player.shuffle', (obj) => this.listenOnShuffle(obj), this.config.defaultShuffle || 'on');
+                this.cache.on('player.shuffleOff', () => this.listenOnShuffleOff());
+                this.cache.on('player.shuffleOn', () => this.listenOnShuffleOn());
+                this.cache.on('player.trackId', (obj) => this.listenOnTrackId(obj), true);
+                this.cache.on('player.playlist.id', (obj) => this.listenOnPlaylistId(obj), true);
+                this.cache.on('player.playlist.owner', (obj) => this.listenOnPlaylistOwner(obj), true);
+                this.cache.on('player.playlist.trackNo', (obj) => this.listenOnPlaylistTrackNo(obj), true);
+                this.cache.on('getPlaylists', () => this.reloadUsersPlaylist());
+                this.cache.on('getPlaybackInfo', () => this.listenOnGetPlaybackInfo());
+                this.cache.on('getDevices', () => this.listenOnGetDevices());
+                this.cache.on(['playlists.playlistList', 'playlists.playlistListIds', 'playlists.playlistListString'], () => this.listenOnHtmlPlaylists());
+                this.cache.on(['player.playlist.trackList', 'player.playlist.trackListArray'], () => this.listenOnHtmlTracklist());
+                this.cache.on(['devices.deviceList', 'devices.deviceListIds', 'devices.availableDeviceListString'], () => this.listenOnHtmlDevices());
+                void this.cache.init().then(() => this.main());
             },
             unload: callback => {
                 this.stopped = true;
                 // Close the OAuth callback server
-                if (this.application.callbackServer) {
-                    this.application.callbackServer.close();
-                    this.log.debug('OAuth callback server closed');
-                }
+                // if (this.application.callbackServer) {
+                //     this.application.callbackServer.close();
+                //     this.log.debug('OAuth callback server closed');
+                // }
                 if (this.application.statusPollingHandle) {
                     clearTimeout(this.application.statusPollingHandle);
+                    this.application.statusPollingHandle = undefined;
                 }
                 if (this.application.statusInternalTimer) {
                     clearTimeout(this.application.statusInternalTimer);
+                    this.application.statusInternalTimer = undefined;
                 }
                 if (this.application.devicePollingHandle) {
                     clearTimeout(this.application.devicePollingHandle);
+                    this.application.devicePollingHandle = undefined;
                 }
                 if (this.application.playlistPollingHandle) {
                     clearTimeout(this.application.playlistPollingHandle);
+                    this.application.playlistPollingHandle = undefined;
                 }
                 if (this.application.cacheClearHandle) {
                     clearTimeout(this.application.cacheClearHandle);
+                    this.application.cacheClearHandle = undefined;
                 }
                 if (this.application.tokenRefreshTimer) {
                     clearTimeout(this.application.tokenRefreshTimer);
+                    this.application.tokenRefreshTimer = undefined;
                 }
                 void Promise.all([
-                    cache.setValue('authorization.authorizationUrl', ''),
-                    cache.setValue('authorization.authorizationReturnUri', ''),
-                    cache.setValue('authorization.userId', ''),
-                    cache.setValue('player.trackId', ''),
-                    cache.setValue('player.playlist.id', ''),
-                    cache.setValue('player.playlist.trackNo', 0),
-                    cache.setValue('player.playlist.owner', ''),
-                    cache.setValue('authorization.authorized', false),
-                    cache.setValue('info.connection', false),
-                ]).then(() => {
-                    callback();
-                });
+                    this.cache.setValue('authorization.userId', ''),
+                    this.cache.setValue('player.trackId', ''),
+                    this.cache.setValue('player.playlist.id', ''),
+                    this.cache.setValue('player.playlist.trackNo', 0),
+                    this.cache.setValue('player.playlist.owner', ''),
+                    this.cache.setValue('authorization.authorized', false),
+                    this.cache.setValue('info.connection', false),
+                ]).then(() => callback?.());
             },
         });
     }
@@ -283,7 +255,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     main() {
         this.application.clientId = this.config.client_id;
         this.application.clientSecret = this.config.client_secret;
-        this.application.redirect_uri ||= 'http://127.0.0.1:80';
+        this.application.redirect_uri ||= 'https://oauth2.iobroker.in/spotify';
         this.application.deleteDevices = this.config.delete_devices;
         this.application.deletePlaylists = this.config.delete_playlists;
         this.application.statusPollingDelaySeconds = parseInt(this.config.status_interval, 10);
@@ -320,140 +292,20 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.application.devicePollingDelaySeconds = deviceInterval * 60;
         this.application.playlistPollingDelaySeconds = playlistInterval * 60;
         this.subscribeStates('*');
-        this.startCallbackServer();
         void this.start();
-    }
-    startCallbackServer() {
-        // Try to start the callback server on the configured port or fallback to other ports
-        const portsToTry = [80, 8080, 8888];
-        let portIndex = 0;
-        const tryStartServer = () => {
-            if (portIndex >= portsToTry.length) {
-                this.log.error(`Could not start OAuth callback server on any port: ${portsToTry.join(', ')}`);
-                return;
-            }
-            const currentPort = portsToTry[portIndex];
-            // Create a fresh HTTP server for each port attempt
-            const server = node_http_1.default.createServer((req, res) => {
-                try {
-                    const parsedUrl = node_url_1.default.parse(req.url || '', true);
-                    const queryParams = parsedUrl.query;
-                    this.log.debug(`OAuth callback received from Spotify: ${req.url}`);
-                    // Extract code and state from query parameters
-                    if (queryParams.code) {
-                        const code = Array.isArray(queryParams.code) ? queryParams.code[0] : queryParams.code;
-                        this.log.debug(`Authorization code received: ${code.substring(0, 20)}...`);
-                        this.application.code = code;
-                        // Simulate the trigger for listenOnAuthorizationReturnUri
-                        const callbackObj = {
-                            state: {
-                                val: req.url,
-                            },
-                        };
-                        // Generate a proper response
-                        const responseHtml = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <title>Spotify Authorization</title>
-                            <meta charset="utf-8">
-                            <style>
-                                body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1DB954; }
-                                .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-                                h1 { color: #1DB954; margin: 0; }
-                                p { color: #666; font-size: 16px; }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <h1>✓ Spotify Authorization Successful!</h1>
-                                <p>You can now close this window and return to ioBroker.</p>
-                                <p>The adapter will process the authorization automatically.</p>
-                            </div>
-                        </body>
-                        </html>
-                    `;
-                        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-                        res.end(responseHtml);
-                        // Process the callback after a short delay to ensure a response is sent
-                        setTimeout(() => {
-                            void this.listenOnAuthorizationReturnUri(callbackObj);
-                        }, 100);
-                    }
-                    else if (queryParams.error) {
-                        this.log.error(`Spotify OAuth error: ${queryParams.error.toString()}`);
-                        const errorHtml = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <title>Spotify Authorization Error</title>
-                            <meta charset="utf-8">
-                            <style>
-                                body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #ff4444; }
-                                .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-                                h1 { color: #ff4444; margin: 0; }
-                                p { color: #666; font-size: 16px; }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <h1>✗ Spotify Authorization Failed</h1>
-                                <p>Error: ${queryParams.error.toString()}</p>
-                                <p>Please try again.</p>
-                            </div>
-                        </body>
-                        </html>
-                    `;
-                        res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-                        res.end(errorHtml);
-                    }
-                    else {
-                        res.writeHead(404, { 'Content-Type': 'text/plain' });
-                        res.end('Not Found');
-                    }
-                }
-                catch (error) {
-                    this.log.error(`Error in OAuth callback handler: ${error.message}`);
-                    res.writeHead(500, { 'Content-Type': 'text/plain' });
-                    res.end('Internal Server Error');
-                }
-            });
-            server.listen(currentPort, '127.0.0.1', () => {
-                this.log.info(`OAuth callback server listening on http://127.0.0.1:${currentPort}`);
-                // Store reference to the server
-                this.application.callbackServer = server;
-                // Update the port in application config
-                this.application.callbackPort = currentPort;
-                // If port is not 80, warn the user that redirect URI might need adjustment
-                if (currentPort !== 80) {
-                    this.log.warn(`WARNING: OAuth callback server is running on port ${currentPort}, but configured URI may use port 80. Make sure your Spotify App is configured with the correct Redirect URI: http://127.0.0.1:${currentPort}`);
-                }
-            });
-            server.on('error', (error) => {
-                if (error.code === 'EADDRINUSE') {
-                    this.log.debug(`Port ${currentPort} is in use, trying next port...`);
-                    portIndex++;
-                    tryStartServer();
-                }
-                else {
-                    this.log.error(`OAuth callback server error on port ${currentPort}: ${error.message}`);
-                }
-            });
-        };
-        tryStartServer();
     }
     async start() {
         this.clearCache();
         try {
             const tokenObj = this.readTokenStates();
-            this.application.token = tokenObj.accessToken;
-            this.application.refreshToken = tokenObj.refreshToken;
+            this.application.token = tokenObj.access_token;
+            this.application.refreshToken = tokenObj.refresh_token;
             this.scheduleTokenRefresh(this.getTokenExpiresAtMs(tokenObj), 'startup');
             const data = await this.sendRequest('/v1/me', 'GET', '');
             await this.setUserInformation(data);
             await Promise.all([
-                cache.setValue('authorization.authorized', true),
-                cache.setValue('info.connection', true),
+                this.cache.setValue('authorization.authorized', true),
+                this.cache.setValue('info.connection', true),
             ]);
             try {
                 await this.listenOnGetPlaybackInfo();
@@ -477,13 +329,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         catch (err) {
             this.log.warn(err);
             await Promise.all([
-                cache.setValue('authorization.authorized', false),
-                cache.setValue('info.connection', false),
+                this.cache.setValue('authorization.authorized', false),
+                this.cache.setValue('info.connection', false),
             ]);
         }
     }
     readTokenStates() {
-        const state = cache.getValue('authorization.token');
+        const state = this.cache.getValue('authorization.oauth2Tokens');
         if (state) {
             let tokenObj = {};
             if (typeof state.val === 'string') {
@@ -495,13 +347,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     this.log.info(`Error: ${e}`);
                 }
             }
-            const validAccessToken = !(0, utils_1.isEmpty)(this.loadOrDefault(tokenObj, 'accessToken', ''));
-            const validRefreshToken = !(0, utils_1.isEmpty)(this.loadOrDefault(tokenObj, 'refreshToken', ''));
-            const validClientId = !(0, utils_1.isEmpty)(this.loadOrDefault(tokenObj, 'clientId', '')) &&
-                tokenObj.clientId === this.application.clientId;
-            const validClientSecret = !(0, utils_1.isEmpty)(this.loadOrDefault(tokenObj, 'clientSecret', '')) &&
-                tokenObj.clientSecret === this.application.clientSecret;
-            if (validAccessToken && validRefreshToken && validClientId && validClientSecret) {
+            const validAccessToken = tokenObj.access_token;
+            const validRefreshToken = tokenObj.refresh_token;
+            const validClientId = tokenObj.client_id && tokenObj.client_id === this.application.clientId;
+            if (validAccessToken && validRefreshToken && validClientId) {
                 this.log.debug('spotify token read');
                 return tokenObj;
             }
@@ -510,24 +359,28 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         throw new Error('invalid or no spotify token');
     }
     getTokenExpiresAtMs(tokenObj) {
-        const expiresAtMs = this.loadOrDefault(tokenObj, 'expiresAtMs', 0);
-        if (expiresAtMs > 0) {
-            return expiresAtMs;
+        const expiresAtMs = tokenObj.access_token_expires_on || '';
+        if (expiresAtMs) {
+            return new Date(expiresAtMs).getTime();
         }
-        const expiresInSec = Number(this.loadOrDefault(tokenObj, 'expiresInSec', 0)) || 3600;
+        const expiresInSec = tokenObj.expires_in || 3600;
         return Date.now() + expiresInSec * 1000;
     }
     scheduleTokenRefresh(expiresAtMs, source) {
+        if (this.application.tokenRefreshTimer) {
+            clearTimeout(this.application.tokenRefreshTimer);
+            this.application.tokenRefreshTimer = undefined;
+        }
         if (!expiresAtMs || !this.application.refreshToken) {
             return;
         }
-        clearTimeout(this.application.tokenRefreshTimer);
         const now = Date.now();
         const refreshAtMs = Math.max(expiresAtMs - TOKEN_REFRESH_SKEW_MS, now + TOKEN_REFRESH_MIN_DELAY_MS);
         const delayMs = Math.max(refreshAtMs - now, TOKEN_REFRESH_MIN_DELAY_MS);
         this.application.tokenExpiresAtMs = expiresAtMs;
         this.log.debug(`Scheduling token refresh in ${Math.round(delayMs / 1000)}s (${source})`);
         this.application.tokenRefreshTimer = setTimeout(() => {
+            this.application.tokenRefreshTimer = undefined;
             if (this.stopped) {
                 return;
             }
@@ -538,8 +391,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.log.error(`Proactive token refresh failed: ${err}`);
                 if (isTransientNetworkError(err)) {
                     this.log.warn(`Proactive token refresh failed due temporary network issue; retrying in ${Math.round(TOKEN_REFRESH_RETRY_DELAY_MS / 1000)}s`);
-                    clearTimeout(this.application.tokenRefreshTimer);
+                    if (this.application.tokenRefreshTimer) {
+                        clearTimeout(this.application.tokenRefreshTimer);
+                    }
                     this.application.tokenRefreshTimer = setTimeout(() => {
+                        this.application.tokenRefreshTimer = undefined;
                         if (this.stopped) {
                             return;
                         }
@@ -628,15 +484,15 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         this.log.warn(`Received 401 Unauthorized on ${endpoint} - attempting automatic token refresh`);
                         try {
                             await Promise.all([
-                                cache.setValue('authorization.authorized', false),
-                                cache.setValue('info.connection', false),
+                                this.cache.setValue('authorization.authorized', false),
+                                this.cache.setValue('info.connection', false),
                             ]);
                             this.log.debug('Starting token refresh...');
                             await this.refreshToken();
                             this.log.info('Token refresh successful - reconnecting');
                             await Promise.all([
-                                cache.setValue('authorization.authorized', true),
-                                cache.setValue('info.connection', true),
+                                this.cache.setValue('authorization.authorized', true),
+                                this.cache.setValue('info.connection', true),
                             ]);
                             const data = await this.sendRequest(endpoint, method, sendBody, delayAccepted, true);
                             this.log.info(`Request retry after token refresh successful for ${endpoint}`);
@@ -659,13 +515,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         this.log.debug('access token expired (403)!');
                         try {
                             await Promise.all([
-                                cache.setValue('authorization.authorized', false),
-                                cache.setValue('info.connection', false),
+                                this.cache.setValue('authorization.authorized', false),
+                                this.cache.setValue('info.connection', false),
                             ]);
                             await this.refreshToken();
                             await Promise.all([
-                                cache.setValue('authorization.authorized', true),
-                                cache.setValue('info.connection', true),
+                                this.cache.setValue('authorization.authorized', true),
+                                this.cache.setValue('info.connection', true),
                             ]);
                             const result = await this.sendRequest(endpoint, method, sendBody, delayAccepted, true);
                             this.log.debug('data with new token');
@@ -693,8 +549,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             this.log.debug(`body: ${body}`);
                         }
                         await Promise.all([
-                            cache.setValue('authorization.authorized', false),
-                            cache.setValue('info.connection', false),
+                            this.cache.setValue('authorization.authorized', false),
+                            this.cache.setValue('info.connection', false),
                         ]);
                         this.log.error(`${statusCode} response: ${parsedBody.error?.message || 'unknown error'}`);
                         throw new Error(statusCode.toString());
@@ -758,15 +614,15 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.log.warn(`Received 401 Unauthorized on ${endpoint} (via error) - attempting automatic token refresh`);
                 try {
                     await Promise.all([
-                        cache.setValue('authorization.authorized', false),
-                        cache.setValue('info.connection', false),
+                        this.cache.setValue('authorization.authorized', false),
+                        this.cache.setValue('info.connection', false),
                     ]);
                     this.log.debug('Starting token refresh (from error handler)...');
                     await this.refreshToken();
                     this.log.info('Token refresh successful - reconnecting');
                     await Promise.all([
-                        cache.setValue('authorization.authorized', true),
-                        cache.setValue('info.connection', true),
+                        this.cache.setValue('authorization.authorized', true),
+                        this.cache.setValue('info.connection', true),
                     ]);
                     const result = await this.sendRequest(endpoint, method, sendBody, delayAccepted, true);
                     this.log.info(`Request retry after token refresh successful for ${endpoint}`);
@@ -819,11 +675,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         if (states) {
             object.common.states = states;
         }
-        return cache.setValue(stateId, t, object);
+        return this.cache.setValue(stateId, t, object);
     }
     setOrDefault(obj, name, state, defaultVal) {
         const t = this.loadOrDefault(obj, name, defaultVal);
-        return cache.setValue(state, t);
+        return this.cache.setValue(state, t);
     }
     shrinkStateName(v) {
         let n = v.replace(/[\s."`'*,\\?<>[\];:]+/g, '');
@@ -863,7 +719,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         return ret;
     }
     setObjectStatesIfChanged(id, states) {
-        let obj = cache.getObj(id);
+        let obj = this.cache.getObj(id);
         if (obj == null) {
             obj = {
                 common: {
@@ -877,7 +733,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 type: 'state',
             };
         }
-        return cache.setValue(id, null, {
+        return this.cache.setValue(id, null, {
             _id: `${this.namespace}.${id}`,
             type: obj.type,
             common: {
@@ -892,17 +748,17 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         });
     }
     copyState(src, dst) {
-        // return cache.setValue(dst, cache.getValue(src).val);
-        const tmp_src = cache.getValue(src);
+        // return this.cache.setValue(dst, this.cache.getValue(src).val);
+        const tmp_src = this.cache.getValue(src);
         if (tmp_src) {
-            return cache.setValue(dst, tmp_src.val);
+            return this.cache.setValue(dst, tmp_src.val);
         }
         this.log.debug('bei copyState: fehlerhafte Playlists-Daten src');
         return Promise.resolve();
     }
     copyObjectStates(src, dst) {
-        // return setObjectStatesIfChanged(dst, cache.getObj(src).common.states);
-        const tmpSrc = cache.getObj(src);
+        // return setObjectStatesIfChanged(dst, this.cache.getObj(src).common.states);
+        const tmpSrc = this.cache.getObj(src);
         if (tmpSrc?.common) {
             return this.setObjectStatesIfChanged(dst, tmpSrc.common.states);
         }
@@ -911,27 +767,27 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     async createPlaybackInfo(data) {
         data ||= {};
-        const deviceId = this.loadOrDefault(data, 'device.id', '');
-        const isDeviceActive = this.loadOrDefault(data, 'device.is_active', false);
-        const isDeviceRestricted = this.loadOrDefault(data, 'device.is_restricted', false);
-        const deviceName = this.loadOrDefault(data, 'device.name', '');
-        const deviceType = this.loadOrDefault(data, 'device.type', '');
-        const deviceVolume = this.loadOrDefault(data, 'device.volume_percent', 100);
-        const isPlaying = this.loadOrDefault(data, 'is_playing', false);
-        const duration = this.loadOrDefault(data, 'item.duration_ms', 0);
-        let type = this.loadOrDefault(data, 'context.type', '');
+        const deviceId = data.device?.id || '';
+        const isDeviceActive = data.device?.is_active || false;
+        const isDeviceRestricted = data.device?.is_restricted || false;
+        const deviceName = data.device?.name || '';
+        const deviceType = data.device?.type || '';
+        const deviceVolume = data.device?.volume_percent || 100;
+        const isPlaying = data.is_playing || false;
+        const duration = data.item?.duration_ms || 0;
+        let type = data.context?.type || '';
         if (!type) {
-            type = this.loadOrDefault(data, 'item.type', '');
+            type = data.item?.type || '';
         }
-        const progress = this.loadOrDefault(data, 'progress_ms', 0);
+        const progress = parseInt(data.progress_ms, 10) || 0;
         let progressPercentage = 0;
         if (duration > 0) {
             progressPercentage = Math.floor((progress / duration) * 100);
         }
         let contextDescription = '';
         let contextImage = '';
-        const album = this.loadOrDefault(data, 'item.album.name', '');
-        const albumUrl = this.loadOrDefault(data, 'item.album.images[0].url', '');
+        const album = data.item?.album?.name || '';
+        const albumUrl = data.item?.album?.images?.[0]?.url || '';
         const artist = this.getArtistNamesOrDefault(data, 'item.artists');
         if (type === 'album') {
             contextDescription = `Album: ${album}`;
@@ -945,16 +801,16 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             // tracks has no images
             contextImage = albumUrl;
         }
-        const shuffle = this.loadOrDefault(data, 'shuffle_state', false);
+        const shuffle = data.shuffle_state || false;
         await Promise.all([
-            cache.setValue('player.device.id', deviceId),
-            cache.setValue('player.device.isActive', isDeviceActive),
-            cache.setValue('player.device.isRestricted', isDeviceRestricted),
-            cache.setValue('player.device.name', deviceName),
-            cache.setValue('player.device.type', deviceType),
-            cache.setValue('player.device.volume', { val: deviceVolume, ack: true }),
-            cache.setValue('player.device.isAvailable', !(0, utils_1.isEmpty)(deviceName)),
-            cache.setValue('player.device', null, {
+            this.cache.setValue('player.device.id', deviceId),
+            this.cache.setValue('player.device.isActive', isDeviceActive),
+            this.cache.setValue('player.device.isRestricted', isDeviceRestricted),
+            this.cache.setValue('player.device.name', deviceName),
+            this.cache.setValue('player.device.type', deviceType),
+            this.cache.setValue('player.device.volume', { val: deviceVolume, ack: true }),
+            this.cache.setValue('player.device.isAvailable', !(0, utils_1.isEmpty)(deviceName)),
+            this.cache.setValue('player.device', null, {
                 _id: `${this.namespace}.player.device`,
                 type: 'device',
                 common: {
@@ -965,25 +821,25 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 },
                 native: {},
             }),
-            cache.setValue('player.isPlaying', isPlaying),
+            this.cache.setValue('player.isPlaying', isPlaying),
             this.setOrDefault(data, 'item.id', 'player.trackId', ''),
-            cache.setValue('player.artistName', artist),
-            cache.setValue('player.album', album),
-            cache.setValue('player.albumImageUrl', albumUrl),
+            this.cache.setValue('player.artistName', artist),
+            this.cache.setValue('player.album', album),
+            this.cache.setValue('player.albumImageUrl', albumUrl),
             this.setOrDefault(data, 'item.name', 'player.trackName', ''),
-            cache.setValue('player.durationMs', duration),
-            cache.setValue('player.duration', this.convertToDigiClock(duration)),
-            cache.setValue('player.type', type),
-            cache.setValue('player.progressMs', progress),
-            cache.setValue('player.progressPercentage', progressPercentage),
-            cache.setValue('player.progress', this.convertToDigiClock(progress)),
-            cache.setValue('player.shuffle', shuffle ? 'on' : 'off'),
+            this.cache.setValue('player.durationMs', duration),
+            this.cache.setValue('player.duration', this.convertToDigiClock(duration)),
+            this.cache.setValue('player.type', type),
+            this.cache.setValue('player.progressMs', progress),
+            this.cache.setValue('player.progressPercentage', progressPercentage),
+            this.cache.setValue('player.progress', this.convertToDigiClock(progress)),
+            this.cache.setValue('player.shuffle', shuffle ? 'on' : 'off'),
             this.setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
             this.setOrDefault(data, 'device.volume_percent', 'player.device.volume', 100),
         ]);
         if (deviceName) {
             this.deviceData.lastActiveDeviceId = deviceId;
-            const states = cache.getValues('devices.*');
+            const states = this.cache.getValues('devices.*');
             const keys = Object.keys(states);
             const fn1 = async (key) => {
                 if (!key.endsWith('.isActive')) {
@@ -998,7 +854,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     name = this.shrinkStateName(deviceName);
                 }
                 if (key !== `devices.${name}.isActive`) {
-                    await cache.setValue(key, false);
+                    await this.cache.setValue(key, false);
                 }
             };
             await Promise.all(keys.map(fn1));
@@ -1016,20 +872,20 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             });
             await this.refreshDeviceList();
         }
-        const states = cache.getValues('devices.*');
+        const states = this.cache.getValues('devices.*');
         const keys = Object.keys(states);
         const fn2 = async (key) => {
             if (!key.endsWith('.isActive')) {
                 return;
             }
             key = (0, utils_1.removeNameSpace)(key);
-            await cache.setValue(key, false);
+            await this.cache.setValue(key, false);
         };
         await Promise.all(keys.map(fn2).filter((p) => p !== undefined));
         if (progress && isPlaying && this.application.statusPollingDelaySeconds > 0) {
             this.scheduleStatusInternalTimer(duration, progress, Date.now(), this.application.statusPollingDelaySeconds - 1);
         }
-        const currentTrackId = this.loadOrDefault(data, 'item.id', '');
+        const currentTrackId = data.item?.id || '';
         if (currentTrackId === this.application.lastTrackId && currentTrackId !== '') {
             // Same track, skip artist loading
             await Promise.resolve();
@@ -1037,7 +893,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.application.lastTrackId = currentTrackId;
         const artists = [];
         for (let i = 0; i < 100; i++) {
-            const id = this.loadOrDefault(data, `item.artists[${i}].id`, '');
+            const id = data.item?.artists?.[i]?.id || '';
             if ((0, utils_1.isEmpty)(id)) {
                 break;
             }
@@ -1051,7 +907,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             try {
                 const parseJson = await this.sendRequest(`/v1/artists/${artist}`, 'GET', '');
-                const artistUrl = this.loadOrDefault(parseJson, 'images[0].url', '');
+                const artistUrl = parseJson.images?.[0]?.url || '';
                 if (!(0, utils_1.isEmpty)(artistUrl)) {
                     this.artistImageUrlCache[artist] = artistUrl;
                     urls.push(artistUrl);
@@ -1069,8 +925,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         if (type === 'artist') {
             contextImage = set;
         }
-        await cache.setValue('player.artistImageUrl', set);
-        const uri = this.loadOrDefault(data, 'context.uri', '');
+        await this.cache.setValue('player.artistImageUrl', set);
+        const uri = data.context?.uri || '';
         if (type === 'playlist' && uri) {
             const indexOfUser = uri.indexOf('user:') + 5;
             const endIndexOfUser = uri.indexOf(':', indexOfUser);
@@ -1080,15 +936,15 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             const query = {
                 fields: 'name,id,owner.id,tracks.total,images',
             };
-            await cache.setValue('player.playlist.id', playlistId);
+            await this.cache.setValue('player.playlist.id', playlistId);
             const refreshPlaylist = async (parseJson) => {
-                const playlistName = this.loadOrDefault(parseJson, 'name', '');
+                const playlistName = parseJson?.name || '';
                 contextDescription = `Playlist: ${playlistName}`;
-                const songId = this.loadOrDefault(data, 'item.id', '');
-                const playlistImage = this.loadOrDefault(parseJson, 'images[0].url', '');
+                const songId = data.item?.id || '';
+                const playlistImage = parseJson?.images?.[0]?.url || '';
                 contextImage = playlistImage;
-                const ownerId = this.loadOrDefault(parseJson, 'owner.id', '');
-                const trackCount = this.loadOrDefault(parseJson, 'tracks.total', '');
+                const ownerId = parseJson?.owner?.id || '';
+                const trackCount = parseJson?.tracks?.total || 0;
                 const prefix = this.shrinkStateName(`${ownerId}-${playlistId}`);
                 this.playlistCache[`${ownerId}-${playlistId}`] = {
                     id: playlistId,
@@ -1097,13 +953,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     owner: { id: ownerId },
                     tracks: { total: trackCount },
                 };
-                const trackList = cache.getValue(`playlists.${prefix}.trackList`);
+                const trackList = this.cache.getValue(`playlists.${prefix}.trackList`);
                 await Promise.all([
-                    cache.setValue('player.playlist.owner', ownerId),
-                    cache.setValue('player.playlist.tracksTotal', parseInt(trackCount, 10)),
-                    cache.setValue('player.playlist.imageUrl', playlistImage),
-                    cache.setValue('player.playlist.name', playlistName),
-                    cache.setValue('player.playlist', null, {
+                    this.cache.setValue('player.playlist.owner', ownerId),
+                    this.cache.setValue('player.playlist.tracksTotal', trackCount),
+                    this.cache.setValue('player.playlist.imageUrl', playlistImage),
+                    this.cache.setValue('player.playlist.name', playlistName),
+                    this.cache.setValue('player.playlist', null, {
                         _id: `${this.namespace}.player.playlist`,
                         type: 'channel',
                         common: {
@@ -1114,7 +970,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         native: {},
                     }),
                 ]);
-                if (cache.getValue(`playlists.${prefix}.trackListIds`) === null) {
+                if (this.cache.getValue(`playlists.${prefix}.trackListIds`) === null) {
                     await this.createPlaylists({
                         items: [parseJson],
                     });
@@ -1130,11 +986,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     this.copyState(`playlists.${prefix}.trackListArray`, 'player.playlist.trackListArray'),
                 ];
                 if (trackList) {
-                    promises.push(cache.setValue('player.playlist.trackNo', parseInt(trackList.val, 10) + 1));
+                    promises.push(this.cache.setValue('player.playlist.trackNo', parseInt(trackList.val, 10) + 1));
                 }
                 await Promise.all(promises);
-                const state = cache.getValue(`playlists.${prefix}.trackListIds`);
-                const ids = this.loadOrDefault(state, 'val', '');
+                const state = this.cache.getValue(`playlists.${prefix}.trackListIds`);
+                const ids = state?.val || '';
                 if ((0, utils_1.isEmpty)(ids)) {
                     return Promise.reject(new Error('no ids in trackListIds'));
                 }
@@ -1147,9 +1003,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 if (stateArr[songId] !== '' && stateArr[songId] !== null) {
                     const no = stateArr[songId];
                     await Promise.all([
-                        cache.setValue(`playlists.${prefix}.trackList`, no),
-                        cache.setValue('player.playlist.trackList', no),
-                        cache.setValue('player.playlist.trackNo', parseInt(no, 10) + 1),
+                        this.cache.setValue(`playlists.${prefix}.trackList`, no),
+                        this.cache.setValue('player.playlist.trackList', no),
+                        this.cache.setValue('player.playlist.trackNo', parseInt(no, 10) + 1),
                     ]);
                     return;
                 }
@@ -1175,21 +1031,21 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         this.log.debug(`context type: "${type}"`);
         await Promise.all([
-            cache.setValue('player.playlist.id', ''),
-            cache.setValue('player.playlist.name', ''),
-            cache.setValue('player.playlist.owner', ''),
-            cache.setValue('player.playlist.tracksTotal', 0),
-            cache.setValue('player.playlist.imageUrl', ''),
-            cache.setValue('player.playlist.trackList', ''),
-            cache.setValue('player.playlist.trackListNumber', ''),
-            cache.setValue('player.playlist.trackListString', ''),
-            cache.setValue('player.playlist.trackListStates', ''),
-            cache.setValue('player.playlist.trackListIdMap', ''),
-            cache.setValue('player.playlist.trackListIds', ''),
-            cache.setValue('player.playlist.trackListArray', ''),
-            cache.setValue('player.playlist.trackNo', 0),
-            cache.setValue('playlists.playlistList', ''),
-            cache.setValue('player.playlist', null, {
+            this.cache.setValue('player.playlist.id', ''),
+            this.cache.setValue('player.playlist.name', ''),
+            this.cache.setValue('player.playlist.owner', ''),
+            this.cache.setValue('player.playlist.tracksTotal', 0),
+            this.cache.setValue('player.playlist.imageUrl', ''),
+            this.cache.setValue('player.playlist.trackList', ''),
+            this.cache.setValue('player.playlist.trackListNumber', ''),
+            this.cache.setValue('player.playlist.trackListString', ''),
+            this.cache.setValue('player.playlist.trackListStates', ''),
+            this.cache.setValue('player.playlist.trackListIdMap', ''),
+            this.cache.setValue('player.playlist.trackListIds', ''),
+            this.cache.setValue('player.playlist.trackListArray', ''),
+            this.cache.setValue('player.playlist.trackNo', 0),
+            this.cache.setValue('playlists.playlistList', ''),
+            this.cache.setValue('player.playlist', null, {
                 _id: `${this.namespace}.player.playlist`,
                 type: 'channel',
                 common: {
@@ -1201,8 +1057,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.listenOnHtmlTracklist();
         await this.listenOnHtmlPlaylists();
         await Promise.all([
-            cache.setValue('player.contextImageUrl', contextImage),
-            cache.setValue('player.contextDescription', contextDescription),
+            this.cache.setValue('player.contextImageUrl', contextImage),
+            this.cache.setValue('player.contextDescription', contextDescription),
         ]);
     }
     convertToDigiClock(ms) {
@@ -1214,7 +1070,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     async setUserInformation(data) {
         this.application.userId = data.id;
-        await cache.setValue('authorization.userId', data.id);
+        await this.cache.setValue('authorization.userId', data.id);
     }
     async reloadUsersPlaylist() {
         const addedList = await this.getUsersPlaylist(0);
@@ -1224,7 +1080,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         await this.refreshPlaylistList();
     }
     deleteUsersPlaylist(addedList) {
-        const states = cache.getValues('playlists.*');
+        const states = this.cache.getValues('playlists.*');
         const keys = Object.keys(states);
         const fn = (key) => {
             key = (0, utils_1.removeNameSpace)(key);
@@ -1243,9 +1099,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 key !== 'playlists.playlistListString' &&
                 key !== 'playlists.yourPlaylistListIds' &&
                 key !== 'playlists.yourPlaylistListString') {
-                return cache.delObject(key).then(() => {
+                return this.cache.delObject(key).then(() => {
                     if (key.endsWith('.id')) {
-                        return cache.delObject(key.substring(0, key.length - 3));
+                        return this.cache.delObject(key.substring(0, key.length - 3));
                     }
                 });
             }
@@ -1258,15 +1114,15 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return Promise.reject(new Error('no playlist content'));
         }
         const fn = async (item) => {
-            const playlistName = this.loadOrDefault(item, 'name', '');
+            const playlistName = item.name || '';
             if ((0, utils_1.isEmpty)(playlistName)) {
                 this.log.warn('empty playlist name');
                 throw new Error('empty playlist name');
             }
-            const playlistId = this.loadOrDefault(item, 'id', '');
-            const ownerId = this.loadOrDefault(item, 'owner.id', '');
-            const trackCount = this.loadOrDefault(item, 'tracks.total', '');
-            const imageUrl = this.loadOrDefault(item, 'images[0].url', '');
+            const playlistId = item.id || '';
+            const ownerId = item.owner?.id || '';
+            const trackCount = item.tracks?.total || 0;
+            const imageUrl = item.images?.[0]?.url || '';
             this.playlistCache[`${ownerId}-${playlistId}`] = {
                 id: playlistId,
                 name: playlistName,
@@ -1278,13 +1134,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             addedList ||= [];
             addedList.push(prefix);
             await Promise.all([
-                cache.setValue(prefix, null, {
+                this.cache.setValue(prefix, null, {
                     _id: `${this.namespace}.${prefix}`,
                     type: 'channel',
                     common: { name: playlistName },
                     native: {},
                 }),
-                cache.setValue(`${prefix}.playThisList`, false, {
+                this.cache.setValue(`${prefix}.playThisList`, false, {
                     _id: `${this.namespace}.${prefix}.playThisList`,
                     type: 'state',
                     common: {
@@ -1305,9 +1161,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             ]);
             const playlistObject = await this.getPlaylistTracks(ownerId, playlistId);
             let trackListValue = '';
-            const currentPlaylistId = cache.getValue('player.playlist.id')?.val;
-            const currentPlaylistOwnerId = cache.getValue('player.playlist.owner')?.val;
-            const songId = cache.getValue('player.trackId')?.val;
+            const currentPlaylistId = this.cache.getValue('player.playlist.id')?.val;
+            const currentPlaylistOwnerId = this.cache.getValue('player.playlist.owner')?.val;
+            const songId = this.cache.getValue('player.trackId')?.val;
             if (`${ownerId}-${playlistId}` === `${currentPlaylistOwnerId}-${currentPlaylistId}`) {
                 const stateName = playlistObject.trackIds.split(';');
                 const stateArr = {};
@@ -1328,7 +1184,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 }
             });
             await Promise.all([
-                cache.setValue(`${prefix}.trackList`, trackListValue, {
+                this.cache.setValue(`${prefix}.trackList`, trackListValue, {
                     _id: `${this.namespace}.${prefix}.trackList`,
                     type: 'state',
                     common: {
@@ -1353,7 +1209,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             await new Promise(resolve => setTimeout(() => !this.stopped && resolve(), 1000));
             await fn(parseJson.items[i]);
         }
-        if (autoContinue && parseJson.items.length !== 0 && parseJson.next !== null) {
+        if (autoContinue && parseJson.items.length && parseJson.next !== null) {
             return this.getUsersPlaylist(parseJson.offset + parseJson.limit, addedList);
         }
         return addedList;
@@ -1426,22 +1282,22 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 let i = offset;
                 const no = i.toString();
                 data.items.forEach((item) => {
-                    const trackId = this.loadOrDefault(item, 'track.id', '');
+                    const trackId = item.track?.id || '';
                     if ((0, utils_1.isEmpty)(trackId)) {
                         return this.log.debug(`There was a playlist track ignored because of missing id; playlist: ${id}; track no: ${no}`);
                     }
                     const artist = this.getArtistNamesOrDefault(item, 'track.artists');
                     const artistArray = this.getArtistArrayOrDefault(item, 'track.artists');
-                    const trackName = this.loadOrDefault(item, 'track.name', '');
-                    const trackDuration = this.loadOrDefault(item, 'track.duration_ms', '');
-                    const addedAt = this.loadOrDefault(item, 'addedAt', '');
-                    const addedBy = this.loadOrDefault(item, 'addedBy', '');
-                    const trackAlbumId = this.loadOrDefault(item, 'track.album.id', '');
-                    const trackAlbumName = this.loadOrDefault(item, 'track.album.name', '');
-                    const trackDiscNumber = this.loadOrDefault(item, 'track.disc_number', 1);
-                    const trackEpisode = this.loadOrDefault(item, 'track.episode', false);
-                    const trackExplicit = this.loadOrDefault(item, 'track.explicit', false);
-                    const trackPopularity = this.loadOrDefault(item, 'track.popularity', 0);
+                    const trackName = item.track?.name || '';
+                    const trackDuration = item.track?.duration_ms || 0;
+                    const addedAt = item.addedAt || '';
+                    const addedBy = item.addedBy || '';
+                    const trackAlbumId = item.track?.album.id || '';
+                    const trackAlbumName = item.track?.album.name || '';
+                    const trackDiscNumber = item.track?.disc_number || 1;
+                    const trackEpisode = item.track?.episode || false;
+                    const trackExplicit = item.track?.explicit || false;
+                    const trackPopularity = item.track?.popularity || 0;
                     if (playlistObject.songs.length > 0) {
                         playlistObject.stateString += ';';
                         playlistObject.listString += ';';
@@ -1461,9 +1317,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         artistArray: artistArray,
                         album: { id: trackAlbumId, name: trackAlbumName },
                         durationMs: trackDuration,
-                        duration: this.convertToDigiClock(parseFloat(trackDuration)),
-                        addedAt: addedAt,
-                        addedBy: addedBy,
+                        duration: this.convertToDigiClock(trackDuration),
+                        addedAt,
+                        addedBy,
                         discNumber: trackDiscNumber,
                         episode: trackEpisode,
                         explicit: trackExplicit,
@@ -1503,7 +1359,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         await this.refreshDeviceList();
     }
     disableDevices(addedList) {
-        const states = cache.getValues('devices.*');
+        const states = this.cache.getValues('devices.*');
         const keys = Object.keys(states);
         const fn = (key) => {
             key = (0, utils_1.removeNameSpace)(key);
@@ -1517,13 +1373,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 }
             }
             if (!found && key.endsWith('.isAvailable')) {
-                return cache.setValue(key, false);
+                return this.cache.setValue(key, false);
             }
         };
         return Promise.all(keys.map(fn).filter((p) => p !== undefined));
     }
     deleteDevices(addedList) {
-        const states = cache.getValues('devices.*');
+        const states = this.cache.getValues('devices.*');
         const keys = Object.keys(states);
         const fn = (key) => {
             key = (0, utils_1.removeNameSpace)(key);
@@ -1542,9 +1398,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 key !== 'devices.deviceListString' &&
                 key !== 'devices.availableDeviceListIds' &&
                 key !== 'devices.availableDeviceListString') {
-                return cache.delObject(key).then(() => {
+                return this.cache.delObject(key).then(() => {
                     if (key.endsWith('.id')) {
-                        return cache.delObject(key.substring(0, key.length - 3));
+                        return this.cache.delObject(key.substring(0, key.length - 3));
                     }
                 });
             }
@@ -1585,7 +1441,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             const isRestricted = this.loadOrDefault(device, 'is_restricted', false);
             let useForPlayback;
             if (!isRestricted) {
-                useForPlayback = cache.setValue(`${prefix}.useForPlayback`, false, {
+                useForPlayback = this.cache.setValue(`${prefix}.useForPlayback`, false, {
                     _id: `${this.namespace}.${prefix}.useForPlayback`,
                     type: 'state',
                     common: {
@@ -1600,10 +1456,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 });
             }
             else {
-                useForPlayback = cache.delObject(`${prefix}.useForPlayback`);
+                useForPlayback = this.cache.delObject(`${prefix}.useForPlayback`);
             }
             await Promise.all([
-                cache.setValue(prefix, null, {
+                this.cache.setValue(prefix, null, {
                     _id: `${this.namespace}.${prefix}`,
                     type: 'device',
                     common: {
@@ -1622,7 +1478,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     Speaker: 'Speaker',
                 }),
                 this.createOrDefault(device, 'volume_percent', `${prefix}.volume`, '', 'volume in percent', 'number'),
-                cache.setValue(`${prefix}.isAvailable`, true, {
+                this.cache.setValue(`${prefix}.isAvailable`, true, {
                     _id: `${this.namespace}.${prefix}.isAvailable`,
                     type: 'state',
                     common: {
@@ -1642,7 +1498,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     async refreshPlaylistList() {
         const a = [];
-        const states = cache.getValues('playlists.*');
+        const states = this.cache.getValues('playlists.*');
         const keys = Object.keys(states);
         const fn = (key) => {
             if (!states[key] || !key.endsWith('.name')) {
@@ -1650,7 +1506,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             const normKey = (0, utils_1.removeNameSpace)(key);
             const id = normKey.substring(10, normKey.length - 5);
-            const owner = cache.getValue(`playlists.${id}.owner`);
+            const owner = this.cache.getValue(`playlists.${id}.owner`);
             a.push({
                 id: id,
                 name: states[key].val,
@@ -1685,22 +1541,22 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         await Promise.all([
             this.setObjectStatesIfChanged('playlists.playlistList', stateList),
-            cache.setValue('playlists.playlistListIds', listIds),
-            cache.setValue('playlists.playlistListString', listString),
-            cache.setValue('playlists.yourPlaylistListIds', yourIds),
-            cache.setValue('playlists.yourPlaylistListString', yourString),
+            this.cache.setValue('playlists.playlistListIds', listIds),
+            this.cache.setValue('playlists.playlistListString', listString),
+            this.cache.setValue('playlists.yourPlaylistListIds', yourIds),
+            this.cache.setValue('playlists.yourPlaylistListString', yourString),
         ]);
-        const id = cache.getValue('player.playlist.id')?.val;
+        const id = this.cache.getValue('player.playlist.id')?.val;
         if (id) {
-            const owner = cache.getValue('player.playlist.owner')?.val;
+            const owner = this.cache.getValue('player.playlist.owner')?.val;
             if (owner) {
-                await cache.setValue('playlists.playlistList', `${owner}-${id}`);
+                await this.cache.setValue('playlists.playlistList', `${owner}-${id}`);
             }
         }
     }
     async refreshDeviceList() {
         const a = [];
-        const states = cache.getValues('devices.*');
+        const states = this.cache.getValues('devices.*');
         const keys = Object.keys(states);
         const fn = (key) => {
             if (!states[key] || !key.endsWith('.name')) {
@@ -1708,7 +1564,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             const normKey = (0, utils_1.removeNameSpace)(key);
             const id = normKey.substring(8, normKey.length - 5);
-            const available = cache.getValue(`devices.${id}.isAvailable`);
+            const available = this.cache.getValue(`devices.${id}.isAvailable`);
             a.push({
                 id,
                 name: states[key].val,
@@ -1744,12 +1600,12 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         await Promise.all([
             this.setObjectStatesIfChanged('devices.deviceList', stateList),
-            cache.setValue('devices.deviceListIds', listIds),
-            cache.setValue('devices.deviceListString', listString),
-            cache.setValue('devices.availableDeviceListIds', availableIds),
-            cache.setValue('devices.availableDeviceListString', availableString),
+            this.cache.setValue('devices.deviceListIds', listIds),
+            this.cache.setValue('devices.deviceListString', listString),
+            this.cache.setValue('devices.availableDeviceListIds', availableIds),
+            this.cache.setValue('devices.availableDeviceListString', availableString),
         ]);
-        const states1 = cache.getValues('devices.*');
+        const states1 = this.cache.getValues('devices.*');
         const keys1 = Object.keys(states1);
         const fn1 = (key) => {
             if (!key.endsWith('.isActive')) {
@@ -1760,21 +1616,21 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 key = (0, utils_1.removeNameSpace)(key);
                 const id = key.substring(8, key.length - 9);
                 activeDevice = true;
-                return cache.setValue('devices.deviceList', id);
+                return this.cache.setValue('devices.deviceList', id);
             }
         };
         await Promise.all(keys1.map(fn1).filter((p) => p !== undefined));
         if (!activeDevice) {
             await Promise.all([
-                cache.setValue('devices.deviceList', ''),
-                cache.setValue('player.device.id', ''),
-                cache.setValue('player.device.name', ''),
-                cache.setValue('player.device.type', ''),
-                cache.setValue('player.device.volume', 100),
-                cache.setValue('player.device.isActive', false),
-                cache.setValue('player.device.isAvailable', false),
-                cache.setValue('player.device.isRestricted', false),
-                cache.setValue('player.device', null, {
+                this.cache.setValue('devices.deviceList', ''),
+                this.cache.setValue('player.device.id', ''),
+                this.cache.setValue('player.device.name', ''),
+                this.cache.setValue('player.device.type', ''),
+                this.cache.setValue('player.device.volume', 100),
+                this.cache.setValue('player.device.isActive', false),
+                this.cache.setValue('player.device.isAvailable', false),
+                this.cache.setValue('player.device.isRestricted', false),
+                this.cache.setValue('player.device', null, {
                     _id: `${this.namespace}.player.device`,
                     type: 'device',
                     common: {
@@ -1787,19 +1643,20 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         await this.listenOnHtmlDevices();
     }
-    generateRandomString(length) {
+    /*generateRandomString(length: number): string {
         let text = '';
         const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         for (let i = 0; i < length; i++) {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         }
         return text;
-    }
-    async getToken() {
+    }*/
+    /*async getToken(): Promise<void> {
         const tokenData = new URLSearchParams();
         tokenData.append('grant_type', 'authorization_code');
         tokenData.append('code', this.application.code);
         tokenData.append('redirect_uri', this.application.redirect_uri);
+
         const options = {
             url: 'https://accounts.spotify.com/api/token',
             method: 'POST',
@@ -1809,39 +1666,40 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             },
             data: tokenData.toString(),
         };
+
         this.log.debug(`Sending token request to Spotify with code: ${this.application.code.substring(0, 20)}...`);
-        let tokenObj;
+
+        let tokenObj: AccessTokens;
+
         try {
             const response = await this.request(options);
             const data = response.data;
-            let parsedBody;
+            let parsedBody: AccessTokens;
             try {
                 parsedBody = typeof data === 'string' ? JSON.parse(data) : data;
-            }
-            catch (e) {
-                parsedBody = {};
+            } catch (e) {
+                parsedBody = {} as AccessTokens;
                 this.log.info(`Error: ${e}`);
             }
             this.log.debug(`Spotify token response received`);
+            parsedBody.client_id = this.application.clientId;
             tokenObj = await this.saveToken(parsedBody);
             await Promise.all([
-                cache.setValue('authorization.authorizationUrl', ''),
-                cache.setValue('authorization.authorizationReturnUri', ''),
-                cache.setValue('authorization.authorized', true),
-                cache.setValue('info.connection', true),
+                this.cache.setValue('authorization.authorized', true),
+                this.cache.setValue('info.connection', true),
             ]);
-            this.application.token = tokenObj.accessToken;
-            this.application.refreshToken = tokenObj.refreshToken;
+            this.application.token = tokenObj.access_token;
+            this.application.refreshToken = tokenObj.refresh_token;
             this.scheduleTokenRefresh(this.getTokenExpiresAtMs(tokenObj), 'getToken');
             return await this.start();
-        }
-        catch (err) {
+        } catch (err) {
             this.log.error(`getToken error: ${err.message || err}`);
             if (err.response && err.response.data) {
                 this.log.error(`Spotify API error: ${JSON.stringify(err.response.data)}`);
             }
         }
     }
+    */
     refreshToken() {
         if (this.refreshTokenInFlight) {
             this.log.debug('Token refresh already running - reusing in-flight refresh request');
@@ -1881,14 +1739,12 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             parsedJson = {};
                         }
                     }
-                    if (!parsedJson.hasOwnProperty.call(parsedJson, 'refresh_token')) {
-                        parsedJson.refresh_token = this.application.refreshToken;
-                    }
+                    parsedJson.refresh_token ||= this.application.refreshToken;
                     this.log.debug('Token refresh successful');
                     try {
                         const tokenObj = await this.saveToken(parsedJson);
-                        this.application.token = tokenObj.accessToken;
-                        this.application.refreshToken = tokenObj.refreshToken;
+                        this.application.token = tokenObj.access_token;
+                        this.application.refreshToken = tokenObj.refresh_token;
                         this.scheduleTokenRefresh(this.getTokenExpiresAtMs(tokenObj), 'refreshToken');
                         this.log.debug('Token saved and updated in application state');
                         return tokenObj;
@@ -1919,19 +1775,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     async saveToken(data) {
         this.log.debug('saveToken');
-        if ('undefined' !== typeof data.access_token && 'undefined' !== typeof data.refresh_token) {
-            const expiresInSec = Number(this.loadOrDefault(data, 'expires_in', 0)) || 3600;
-            const expiresAtMs = Date.now() + expiresInSec * 1000;
-            const token = {
-                accessToken: data.access_token,
-                refreshToken: data.refresh_token,
-                clientId: this.application.clientId,
-                clientSecret: this.application.clientSecret,
-                expiresInSec,
-                expiresAtMs,
-            };
-            await cache.setValue('authorization.token', JSON.stringify(token));
-            return token;
+        if (data.access_token && data.refresh_token) {
+            await this.cache.setValue('authorization.oauth2Tokens', JSON.stringify(data));
+            return data;
         }
         this.log.error(JSON.stringify(data));
         return Promise.reject(new Error('no tokens found in server response'));
@@ -1940,22 +1786,22 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const now = Date.now();
         count--;
         progressMs += now - startDate;
-        const tDurationMs = cache.getValue('player.durationMs')?.val;
+        const tDurationMs = this.cache.getValue('player.durationMs')?.val;
         const percentage = Math.floor((progressMs / (tDurationMs || 1)) * 100);
         // Only update states if values have actually changed
         const updates = [];
-        const currentProgress = cache.getValue('player.progress')?.val;
+        const currentProgress = this.cache.getValue('player.progress')?.val;
         const newProgress = this.convertToDigiClock(progressMs);
         if (currentProgress !== newProgress) {
-            updates.push(cache.setValue('player.progress', newProgress));
+            updates.push(this.cache.setValue('player.progress', newProgress));
         }
-        const currentProgressMs = cache.getValue('player.progressMs')?.val;
+        const currentProgressMs = this.cache.getValue('player.progressMs')?.val;
         if (currentProgressMs !== progressMs) {
-            updates.push(cache.setValue('player.progressMs', progressMs));
+            updates.push(this.cache.setValue('player.progressMs', progressMs));
         }
-        const currentPercentage = cache.getValue('player.progressPercentage')?.val;
+        const currentPercentage = this.cache.getValue('player.progressPercentage')?.val;
         if (currentPercentage !== percentage) {
-            updates.push(cache.setValue('player.progressPercentage', percentage));
+            updates.push(this.cache.setValue('player.progressPercentage', percentage));
         }
         // If no updates needed, just schedule next update if playing
         if (!updates.length) {
@@ -1965,7 +1811,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
                 }
                 else {
-                    const state = cache.getValue('player.isPlaying');
+                    const state = this.cache.getValue('player.isPlaying');
                     if (state?.val) {
                         this.scheduleStatusInternalTimer(durationMs, progressMs, now, count);
                     }
@@ -1978,7 +1824,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
             }
             else {
-                const state = cache.getValue('player.isPlaying');
+                const state = this.cache.getValue('player.isPlaying');
                 if (state?.val) {
                     this.scheduleStatusInternalTimer(durationMs, progressMs, now, count);
                 }
@@ -1986,19 +1832,35 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
     }
     scheduleStatusInternalTimer(durationMs, progressMs, startDate, count) {
-        clearTimeout(this.application.statusInternalTimer);
-        this.application.statusInternalTimer = setTimeout(() => !this.stopped && this.increaseTime(durationMs, progressMs, startDate, count), 1000);
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+        }
+        this.application.statusInternalTimer = setTimeout(() => {
+            this.application.statusInternalTimer = undefined;
+            if (!this.stopped) {
+                this.increaseTime(durationMs, progressMs, startDate, count).catch(err => this.log.error(JSON.stringify(err)));
+            }
+        }, 1000);
     }
     scheduleStatusPolling() {
-        clearTimeout(this.application.statusPollingHandle);
+        if (this.application.statusPollingHandle) {
+            clearTimeout(this.application.statusPollingHandle);
+            this.application.statusPollingHandle = undefined;
+        }
         if (this.application.statusPollingDelaySeconds > 0) {
             // Status polling has no offset (base timing)
-            this.application.statusPollingHandle = setTimeout(() => !this.stopped && this.pollStatusApi(), this.application.statusPollingDelaySeconds * 1000);
+            this.application.statusPollingHandle = setTimeout(() => {
+                this.application.statusPollingHandle = undefined;
+                if (!this.stopped) {
+                    void this.pollStatusApi().catch(e => this.log.error(e));
+                }
+            }, this.application.statusPollingDelaySeconds * 1000);
         }
     }
     async pollStatusApi(noReschedule) {
         if (!noReschedule) {
             clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
         }
         this.log.debug('call status polling');
         try {
@@ -2049,21 +1911,36 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
     }
     scheduleDevicePollingWithOffset() {
-        clearTimeout(this.application.devicePollingHandle);
+        if (this.application.devicePollingHandle) {
+            clearTimeout(this.application.devicePollingHandle);
+            this.application.devicePollingHandle = undefined;
+        }
         if (this.application.devicePollingDelaySeconds > 0) {
             // Device polling offset: 1/3 of status interval (stagger from status)
             const offsetMs = (this.application.statusPollingDelaySeconds * 1000) / 3;
-            this.application.devicePollingHandle = setTimeout(() => !this.stopped && this.pollDeviceApi(), this.application.devicePollingDelaySeconds * 1000 + offsetMs);
+            this.application.devicePollingHandle = setTimeout(() => {
+                this.application.devicePollingHandle = undefined;
+                if (!this.stopped) {
+                    this.pollDeviceApi().catch(e => this.log.error(e));
+                }
+            }, this.application.devicePollingDelaySeconds * 1000 + offsetMs);
         }
     }
     scheduleDevicePolling() {
-        clearTimeout(this.application.devicePollingHandle);
+        if (this.application.devicePollingHandle) {
+            clearTimeout(this.application.devicePollingHandle);
+            this.application.devicePollingHandle = undefined;
+        }
         if (this.application.devicePollingDelaySeconds > 0) {
-            this.application.devicePollingHandle = setTimeout(() => !this.stopped && this.pollDeviceApi(), this.application.devicePollingDelaySeconds * 1000);
+            this.application.devicePollingHandle = setTimeout(() => {
+                this.application.devicePollingHandle = undefined;
+                if (!this.stopped) {
+                    this.pollDeviceApi().catch(e => this.log.error(e));
+                }
+            }, this.application.devicePollingDelaySeconds * 1000);
         }
     }
     async pollDeviceApi() {
-        clearTimeout(this.application.deviceInternalTimer);
         this.log.debug('call device polling');
         try {
             const data = await this.sendRequest('/v1/me/player/devices', 'GET', '');
@@ -2096,13 +1973,20 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
     }
     schedulePlaylistPolling() {
-        clearTimeout(this.application.playlistPollingHandle);
+        if (this.application.playlistPollingHandle) {
+            clearTimeout(this.application.playlistPollingHandle);
+            this.application.playlistPollingHandle = undefined;
+        }
         if (this.application.playlistPollingDelaySeconds > 0) {
-            this.application.playlistPollingHandle = setTimeout(() => !this.stopped && this.pollPlaylistApi(), this.application.playlistPollingDelaySeconds * 1000);
+            this.application.playlistPollingHandle = setTimeout(() => {
+                this.application.playlistPollingHandle = undefined;
+                if (!this.stopped) {
+                    this.pollPlaylistApi();
+                }
+            }, this.application.playlistPollingDelaySeconds * 1000);
         }
     }
     pollPlaylistApi() {
-        clearTimeout(this.application.playlistInternalTimer);
         void this.reloadUsersPlaylist();
         this.schedulePlaylistPolling();
     }
@@ -2121,11 +2005,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         let resetShuffle = false;
         if (this.application.keepShuffleState) {
-            const state = cache.getValue('player.shuffle');
+            const state = this.cache.getValue('player.shuffle');
             if (state?.val) {
                 resetShuffle = true;
                 if (!keepTrack) {
-                    const tracksTotal = cache.getValue(`playlists.${this.shrinkStateName(`${owner}-${playlist}`)}.tracksTotal`);
+                    const tracksTotal = this.cache.getValue(`playlists.${this.shrinkStateName(`${owner}-${playlist}`)}.tracksTotal`);
                     if (tracksTotal?.val) {
                         trackNo = Math.floor(Math.random() * Math.floor(tracksTotal.val));
                     }
@@ -2140,7 +2024,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         };
         try {
             await this.sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), true);
-            setTimeout(() => !this.stopped && this.pollStatusApi(), 1000, true);
+            setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
         }
         catch (err) {
             this.log.error(`could not start playlist ${playlist} of user ${owner}; error: ${err}`);
@@ -2152,57 +2036,102 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return this.listenOnShuffleOn();
         }
     }
-    listenOnAuthorizationReturnUri(obj) {
-        const state = cache.getValue('authorization.state');
-        const returnUri = node_querystring_1.default.parse(obj.state.val.slice(obj.state.val.search(/\?/) + 1, obj.state.val.length));
-        if ('undefined' !== typeof returnUri.state) {
-            returnUri.state = returnUri.state.replace(/#_=_$/g, '');
-        }
-        if (state && returnUri.state === state.val) {
-            this.log.debug('getToken');
-            this.application.code = returnUri.code;
-            return this.getToken();
-        }
-        this.log.error('invalid session. you need to open the actual authorization.authorizationUrl');
-        return cache.setValue('Authorization.Authorization_Return_URI', 'invalid session. You need to open the actual Authorization.Authorization_URL again');
-    }
-    listenOnGetAuthorization() {
-        this.log.debug('requestAuthorization');
-        const state = this.generateRandomString(20);
-        const query = {
-            client_id: this.application.clientId,
-            response_type: 'code',
-            redirect_uri: this.application.redirect_uri,
-            state: state,
-            scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative',
-        };
-        const options = {
-            url: `https://accounts.spotify.com/de/authorize/?${node_querystring_1.default.stringify(query)}`,
-            method: 'GET',
-            followAllRedirects: true,
-        };
-        return Promise.all([
-            cache.setValue('authorization.state', state),
-            cache.setValue('authorization.authorizationUrl', options.url),
-            cache.setValue('authorization.authorized', false),
-            cache.setValue('info.connection', false),
-        ]);
-    }
-    listenOnAuthorized(obj) {
-        if (obj.state.val === true) {
-            // Stagger initial poll schedules to prevent simultaneous requests from causing rate limiting
-            // Status polling starts immediately
-            this.scheduleStatusPolling();
-            // Device polling starts after small offset (~1/3 of status interval)
-            const deviceOffset = (this.application.statusPollingDelaySeconds * 1000) / 3;
-            setTimeout(() => !this.stopped && this.scheduleDevicePolling(), deviceOffset);
-            // Playlist polling starts after larger offset (~2/3 of status interval)
-            const playlistOffset = (this.application.statusPollingDelaySeconds * 1000 * 2) / 3;
-            setTimeout(() => !this.stopped && this.schedulePlaylistPolling(), playlistOffset);
+    // listenOnAuthorizationReturnUri(obj: { state: ioBroker.State }): Promise<void> {
+    //     const state = this.cache.getValue('authorization.state');
+    //     const returnUri = querystring.parse(
+    //         (obj.state.val as string).slice(
+    //             (obj.state.val as string).search(/\?/) + 1,
+    //             (obj.state.val as string).length,
+    //         ),
+    //     );
+    //     if (returnUri.state) {
+    //         returnUri.state = (returnUri.state as string).replace(/#_=_$/g, '');
+    //     }
+    //     if (state && returnUri.state === state.val) {
+    //         this.log.debug('getToken');
+    //         this.application.code = returnUri.code as string;
+    //         return this.getToken();
+    //     }
+    //     this.log.error('invalid session. you need to open the actual authorization.authorizationUrl');
+    //     return this.cache.setValue(
+    //         'Authorization.Authorization_Return_URI',
+    //         'invalid session. You need to open the actual Authorization.Authorization_URL again',
+    //     );
+    // }
+    // listenOnGetAuthorization(): Promise<void[]> {
+    //     this.log.debug('requestAuthorization');
+    //     const state = this.generateRandomString(20);
+    //     const query = {
+    //         client_id: this.application.clientId,
+    //         response_type: 'code',
+    //         redirect_uri: this.application.redirect_uri,
+    //         state,
+    //         scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative',
+    //     };
+    //
+    //     const options = {
+    //         url: `https://accounts.spotify.com/de/authorize/?${querystring.stringify(query)}`,
+    //         method: 'GET',
+    //         followAllRedirects: true,
+    //     };
+    //
+    //     return Promise.all([
+    //         this.cache.setValue('authorization.state', state),
+    //         this.cache.setValue('authorization.authorizationUrl', options.url),
+    //         this.cache.setValue('authorization.authorized', false),
+    //         this.cache.setValue('info.connection', false),
+    //     ]);
+    // }
+    async listenOnAuthorized(obj) {
+        if (obj.state.val) {
+            const wasConnected = this.cache.getValue('info.connection');
+            let expiresAtMs = 0;
+            try {
+                const tokenObj = JSON.parse(obj.state.val);
+                this.application.token = tokenObj.access_token;
+                this.application.refreshToken = tokenObj.refresh_token;
+                expiresAtMs = this.getTokenExpiresAtMs(tokenObj);
+            }
+            catch (err) {
+                this.log.error(err);
+            }
+            if (!wasConnected?.val) {
+                await this.start();
+            }
+            else {
+                this.scheduleTokenRefresh(expiresAtMs, 'refreshToken');
+                // Stagger initial poll schedules to prevent simultaneous requests from causing rate limiting
+                // Status polling starts immediately
+                this.scheduleStatusPolling();
+                // Device polling starts after small offset (~1/3 of status interval)
+                const deviceOffset = (this.application.statusPollingDelaySeconds * 1000) / 3;
+                if (this.application.devicePollingHandle) {
+                    clearTimeout(this.application.devicePollingHandle);
+                    this.application.devicePollingHandle = undefined;
+                }
+                this.application.devicePollingHandle = setTimeout(() => {
+                    this.application.devicePollingHandle = undefined;
+                    if (!this.stopped) {
+                        this.scheduleDevicePolling();
+                    }
+                }, deviceOffset);
+                // Playlist polling starts after larger offset (~2/3 of status interval)
+                const playlistOffset = (this.application.statusPollingDelaySeconds * 1000 * 2) / 3;
+                if (this.application.playlistPollingHandle) {
+                    clearTimeout(this.application.playlistPollingHandle);
+                    this.application.playlistPollingHandle = undefined;
+                }
+                this.application.playlistPollingHandle = setTimeout(() => {
+                    this.application.playlistPollingHandle = undefined;
+                    if (!this.stopped) {
+                        this.schedulePlaylistPolling();
+                    }
+                }, playlistOffset);
+            }
         }
     }
     async listenOnUseForPlayback(obj) {
-        const lastDeviceId = cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`);
+        const lastDeviceId = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`);
         if (!lastDeviceId) {
             return;
         }
@@ -2213,7 +2142,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         };
         try {
             await this.sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), true);
-            setTimeout(() => !this.stopped && this.pollStatusApi(), 1000, true);
+            setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
         }
         catch (err) {
             this.log.error(`could not execute command: ${err}`);
@@ -2231,8 +2160,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             pos = 0;
         }
         // Play a specific playlist immediately
-        const idState = cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`);
-        const ownerState = cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.owner`);
+        const idState = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`);
+        const ownerState = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.owner`);
         if (!idState || !ownerState) {
             return;
         }
@@ -2259,7 +2188,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             query.device_id = send.device_id;
             delete send.device_id;
         }
-        clearTimeout(this.application.statusInternalTimer);
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
         try {
             await this.sendRequest(`/v1/me/player/play?${node_querystring_1.default.stringify(query)}`, 'PUT', JSON.stringify(send), true);
         }
@@ -2273,7 +2205,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             device_id: this.getSelectedDevice(this.deviceData),
         };
         this.log.debug(this.getSelectedDevice(this.deviceData));
-        clearTimeout(this.application.statusInternalTimer);
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
         void this.sendRequest(`/v1/me/player/play?${node_querystring_1.default.stringify(query)}`, 'PUT', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
@@ -2282,7 +2217,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const query = {
             device_id: this.getSelectedDevice(this.deviceData),
         };
-        clearTimeout(this.application.statusInternalTimer);
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
         void this.sendRequest(`/v1/me/player/pause?${node_querystring_1.default.stringify(query)}`, 'PUT', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
@@ -2291,7 +2229,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const query = {
             device_id: this.getSelectedDevice(this.deviceData),
         };
-        clearTimeout(this.application.statusInternalTimer);
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
         void this.sendRequest(`/v1/me/player/next?${node_querystring_1.default.stringify(query)}`, 'POST', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
@@ -2300,14 +2241,20 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const query = {
             device_id: this.getSelectedDevice(this.deviceData),
         };
-        clearTimeout(this.application.statusInternalTimer);
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
         void this.sendRequest(`/v1/me/player/previous?${node_querystring_1.default.stringify(query)}`, 'POST', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
     listenOnRepeat(obj) {
         if (['track', 'context', 'off'].indexOf(obj.state.val) >= 0) {
-            clearTimeout(this.application.statusInternalTimer);
+            if (this.application.statusInternalTimer) {
+                clearTimeout(this.application.statusInternalTimer);
+                this.application.statusInternalTimer = undefined;
+            }
             void this.sendRequest(`/v1/me/player/repeat?state=${obj.state.val}`, 'PUT', '', true)
                 .catch(err => this.log.error(`could not execute command: ${err}`))
                 .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
@@ -2335,7 +2282,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         });
     }
     listenOnVolume(obj) {
-        const isPlay = cache.getValue('player.isPlaying');
+        const isPlay = this.cache.getValue('player.isPlaying');
         if (isPlay?.val) {
             if (this.application.statusInternalTimer) {
                 clearTimeout(this.application.statusInternalTimer);
@@ -2354,15 +2301,15 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         void this.sendRequest(`/v1/me/player/seek?position_ms=${progress}`, 'PUT', '', true)
             .then(() => {
-            const durationState = cache.getValue('player.durationMs');
+            const durationState = this.cache.getValue('player.durationMs');
             if (durationState) {
                 const duration = durationState.val;
                 if (duration > 0 && duration <= progress) {
                     const progressPercentage = Math.floor((progress / duration) * 100);
                     return Promise.all([
-                        cache.setValue('player.progressMs', progress),
-                        cache.setValue('player.progress', this.convertToDigiClock(progress)),
-                        cache.setValue('player.progressPercentage', progressPercentage),
+                        this.cache.setValue('player.progressMs', progress),
+                        this.cache.setValue('player.progress', this.convertToDigiClock(progress)),
+                        this.cache.setValue('player.progressPercentage', progressPercentage),
                     ]);
                 }
             }
@@ -2375,17 +2322,20 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         if (progressPercentage < 0 || progressPercentage > 100) {
             return;
         }
-        clearTimeout(this.application.statusInternalTimer);
-        const durationState = cache.getValue('player.durationMs');
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
+        const durationState = this.cache.getValue('player.durationMs');
         if (durationState) {
             const duration = durationState.val;
             if (duration > 0) {
                 const progress = Math.floor((progressPercentage / 100) * duration);
                 void this.sendRequest(`/v1/me/player/seek?position_ms=${progress}`, 'PUT', '', true)
                     .then(() => Promise.all([
-                    cache.setValue('player.progressMs', progress),
-                    cache.setValue('player.progress', this.convertToDigiClock(progress)),
-                    cache.setValue('player.progressPercentage', progressPercentage),
+                    this.cache.setValue('player.progressMs', progress),
+                    this.cache.setValue('player.progress', this.convertToDigiClock(progress)),
+                    this.cache.setValue('player.progressPercentage', progressPercentage),
                 ]))
                     .catch(err => this.log.error(`could not execute command: ${err}`))
                     .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
@@ -2393,7 +2343,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
     }
     async listenOnShuffle(obj) {
-        clearTimeout(this.application.statusInternalTimer);
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
         try {
             await this.sendRequest(`/v1/me/player/shuffle?state=${obj.state.val === 'on' ? 'true' : 'false'}`, 'PUT', '', true);
         }
@@ -2425,28 +2378,31 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 position: 0,
             },
         };
-        clearTimeout(this.application.statusInternalTimer);
+        if (this.application.statusInternalTimer) {
+            clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
         void this.sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
     listenOnPlaylistId(obj) {
-        const ownerState = cache.getValue('player.playlist.owner');
+        const ownerState = this.cache.getValue('player.playlist.owner');
         if (!ownerState) {
             return;
         }
         return this.startPlaylist(obj.state.val, ownerState.val, 0);
     }
     listenOnPlaylistOwner(obj) {
-        const PlayListIdState = cache.getValue('player.playlist.id');
+        const PlayListIdState = this.cache.getValue('player.playlist.id');
         if (!PlayListIdState) {
             return;
         }
         return this.startPlaylist(PlayListIdState.val, obj.state.val, 0);
     }
     listenOnPlaylistTrackNo(obj) {
-        const PlayListIdState = cache.getValue('player.playlist.id');
-        const ownerState = cache.getValue('player.playlist.owner');
+        const PlayListIdState = this.cache.getValue('player.playlist.id');
+        const ownerState = this.cache.getValue('player.playlist.owner');
         if (!PlayListIdState || !ownerState) {
             return;
         }
@@ -2471,20 +2427,29 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     clearCache() {
         this.artistImageUrlCache = {};
         this.playlistCache = {};
-        this.application.cacheClearHandle = setTimeout(() => !this.stopped && this.clearCache(), 1000 * 60 * 60 * 24);
+        if (this.application.cacheClearHandle) {
+            clearTimeout(this.application.cacheClearHandle);
+            this.application.cacheClearHandle = undefined;
+        }
+        this.application.cacheClearHandle = setTimeout(() => {
+            this.application.cacheClearHandle = undefined;
+            if (!this.stopped) {
+                this.clearCache();
+            }
+        }, 1000 * 60 * 60 * 24);
     }
     async listenOnHtmlPlaylists() {
-        const objCurrent = cache.getValue('playlists.playlistList');
+        const objCurrent = this.cache.getValue('playlists.playlistList');
         const current = objCurrent?.val || '';
-        const objIds = cache.getValue('playlists.playlistListIds');
+        const objIds = this.cache.getValue('playlists.playlistListIds');
         if (!objIds?.val) {
-            await cache.setValue('html.playlists', '');
+            await this.cache.setValue('html.playlists', '');
             return;
         }
         const ids = objIds.val.split(';');
-        const objStrings = cache.getValue('playlists.playlistListString');
+        const objStrings = this.cache.getValue('playlists.playlistListString');
         if (!objStrings?.val) {
-            await cache.setValue('html.playlists', '');
+            await this.cache.setValue('html.playlists', '');
             return;
         }
         const strings = objStrings.val.split(';');
@@ -2513,7 +2478,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             html += '</tr>';
         }
         html += '</table>';
-        return cache.setValue('html.playlists', html);
+        return this.cache.setValue('html.playlists', html);
     }
     listenOnHtmlTracklist() {
         void this.getStateAsync('player.trackId')
@@ -2525,9 +2490,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             else {
                 currentTrackID = state.val;
             }
-            const obj = cache.getValue('player.playlist.trackListArray');
+            const obj = this.cache.getValue('player.playlist.trackListArray');
             if (!obj?.val) {
-                return cache.setValue('html.tracks', '');
+                return this.cache.setValue('html.tracks', '');
             }
             let source = [];
             if (typeof obj.val === 'string') {
@@ -2604,14 +2569,14 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 html += '</tr>';
             }
             html += '</table>';
-            return cache.setValue('html.tracks', html);
+            return this.cache.setValue('html.tracks', html);
         })
             .catch(err => {
             this.log.error(err);
         });
     }
     async listenOnHtmlDevices() {
-        let obj = cache.getValue('devices.deviceList');
+        let obj = this.cache.getValue('devices.deviceList');
         let current;
         if (!obj?.val) {
             current = '';
@@ -2619,21 +2584,21 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         else {
             current = obj.val;
         }
-        obj = cache.getValue('devices.deviceListIds');
+        obj = this.cache.getValue('devices.deviceListIds');
         if (!obj?.val) {
-            await cache.setValue('html.devices', '');
+            await this.cache.setValue('html.devices', '');
             return;
         }
         const ids = obj.val.split(';');
-        obj = cache.getValue('devices.availableDeviceListString');
+        obj = this.cache.getValue('devices.availableDeviceListString');
         if (!obj?.val) {
-            await cache.setValue('html.devices', '');
+            await this.cache.setValue('html.devices', '');
             return;
         }
         const strings = obj.val.split(';');
         let html = '<table class="spotifyDevicesTable">';
         for (let i = 0; i < ids.length; i++) {
-            const typeState = cache.getValue(`devices.${ids[i]}.type`);
+            const typeState = this.cache.getValue(`devices.${ids[i]}.type`);
             if (!typeState) {
                 continue;
             }
@@ -2663,7 +2628,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             html += '</tr>';
         }
         html += '</table>';
-        void cache.setValue('html.devices', html);
+        void this.cache.setValue('html.devices', html);
     }
 }
 exports.SpotifyPremiumAdapter = SpotifyPremiumAdapter;

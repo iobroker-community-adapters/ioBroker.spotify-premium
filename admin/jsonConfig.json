@@ -1,87 +1,100 @@
 {
     "type": "panel",
-    "items": [
-        {
-            "type": "group",
-            "label": "Authentication",
-            "items": [
-                {
-                    "type": "text",
-                    "name": "client_id",
-                    "label": "Client ID"
-                },
-                {
-                    "type": "password",
-                    "name": "client_secret",
-                    "label": "Client Secret"
-                },
-                {
-                    "type": "text",
-                    "name": "redirect_uri",
-                    "label": "Redirect URI",
-                    "placeholder": "http://127.0.0.1:80"
-                }
-            ]
+    "i18n": "Settings",
+    "items": {
+        "_oauth": {
+            "type": "oauth2",
+            "identifier": "spotify",
+            "saveTokenIn": "authorization.oauth2Tokens",
+            "ownClientId": "client_id",
+            "ownClientSecret": "client_secret",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
         },
-        {
-            "type": "group",
-            "label": "Delete Options",
-            "items": [
-                {
-                    "type": "checkbox",
-                    "name": "delete_devices",
-                    "label": "Delete Devices"
-                },
-                {
-                    "type": "checkbox",
-                    "name": "delete_playlists",
-                    "label": "Delete Playlists"
-                }
-            ]
+        "delete_devices": {
+            "newLine": true,
+            "type": "checkbox",
+            "label": "Delete Devices",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
         },
-        {
-            "type": "group",
-            "label": "State Options",
-            "items": [
-                {
-                    "type": "checkbox",
-                    "name": "keep_shuffle_state",
-                    "label": "Keep Shuffle State"
-                },
-                {
-                    "type": "select",
-                    "name": "defaultShuffle",
-                    "label": "Default Shuffle Mode",
-                    "options": [
-                        { "value": "on", "label": "On" },
-                        { "value": "off", "label": "Off" }
-                    ]
-                }
-            ]
+        "delete_playlists": {
+            "type": "checkbox",
+            "label": "Delete Playlists",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
         },
-        {
-            "type": "group",
-            "label": "Intervals (in seconds)",
-            "items": [
+        "keep_shuffle_state": {
+            "newLine": true,
+            "type": "checkbox",
+            "label": "Keep Shuffle State",
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "defaultShuffle": {
+            "type": "select",
+            "label": "Default Shuffle Mode",
+            "options": [
                 {
-                    "type": "number",
-                    "name": "status_interval",
-                    "label": "Status Interval",
-                    "min": 1
+                    "value": "on",
+                    "label": "On"
                 },
                 {
-                    "type": "number",
-                    "name": "device_interval",
-                    "label": "Device Interval",
-                    "min": 1
-                },
-                {
-                    "type": "number",
-                    "name": "playlist_interval",
-                    "label": "Playlist Interval",
-                    "min": 1
+                    "value": "off",
+                    "label": "Off"
                 }
-            ]
+            ],
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "status_interval": {
+            "newLine": true,
+            "type": "number",
+            "label": "Status Interval",
+            "tooltip": "Status Interval_tooltip",
+            "min": 1,
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "device_interval": {
+            "type": "number",
+            "label": "Device Interval",
+            "tooltip": "Device Interval_tooltip",
+            "min": 1,
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
+        },
+        "playlist_interval": {
+            "type": "number",
+            "label": "Playlist Interval",
+            "tooltip": "Playlist Interval_tooltip",
+            "min": 1,
+            "xs": 12,
+            "sm": 12,
+            "md": 12,
+            "lg": 12,
+            "xl": 12
         }
-    ]
+    }
 }
