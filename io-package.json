@@ -123,7 +123,7 @@
         ],
         "globalDependencies": [
             {
-                "admin": ">=7.7.22"
+                "admin": ">=7.8.7"
             }
         ],
         "plugins": {
@@ -369,7 +369,7 @@
             "_id": "player.play",
             "type": "state",
             "common": {
-                "role": "button",
+                "role": "button.play",
                 "name": "play",
                 "type": "boolean",
                 "read": false,
@@ -395,7 +395,7 @@
             "_id": "player.pause",
             "type": "state",
             "common": {
-                "role": "button",
+                "role": "button.pause",
                 "name": "pause",
                 "type": "boolean",
                 "read": false,
@@ -408,7 +408,7 @@
             "_id": "player.skipPlus",
             "type": "state",
             "common": {
-                "role": "button",
+                "role": "button.next",
                 "name": "next track",
                 "type": "boolean",
                 "read": false,
@@ -421,7 +421,7 @@
             "_id": "player.skipMinus",
             "type": "state",
             "common": {
-                "role": "button",
+                "role": "button.prev",
                 "name": "previous track",
                 "type": "boolean",
                 "read": false,
@@ -512,6 +512,9 @@
                 "role": "level.volume",
                 "name": "volume in percentage",
                 "type": "number",
+                "unit": "%",
+                "min": 0,
+                "max": 100,
                 "read": true,
                 "write": true
             },
@@ -521,7 +524,7 @@
             "_id": "player.trackId",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.track",
                 "name": "set track id to play this track; switch the context to track",
                 "type": "string",
                 "read": true,
@@ -569,7 +572,7 @@
             "_id": "player.progressMs",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.seek",
                 "name": "seek to position (ms)",
                 "type": "number",
                 "read": true,
@@ -581,7 +584,7 @@
             "_id": "player.progressPercentage",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.elapsed",
                 "name": "seek to position (%)",
                 "type": "number",
                 "read": true,
@@ -743,7 +746,7 @@
             "_id": "player.artistName",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.artist",
                 "name": "artist name; comma separated if multiple artists",
                 "type": "string",
                 "read": true,
@@ -797,7 +800,7 @@
             "_id": "player.contextImageUrl",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.cover",
                 "name": "image url of the current context; album, artist or playlist",
                 "type": "string",
                 "read": true,
@@ -809,7 +812,7 @@
             "_id": "player.album",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.album",
                 "name": "album",
                 "type": "string",
                 "read": true,
@@ -833,7 +836,7 @@
             "_id": "player.isPlaying",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.state",
                 "name": "is playing",
                 "type": "boolean",
                 "read": true,
@@ -858,7 +861,7 @@
             "_id": "player.albumImageUrl",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.cover.big",
                 "name": "album image url",
                 "type": "string",
                 "read": true,
@@ -870,7 +873,7 @@
             "_id": "player.trackName",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.title",
                 "name": "track name",
                 "type": "string",
                 "read": true,
@@ -1116,9 +1119,12 @@
             "_id": "player.device.volume",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "value.volume",
                 "name": "volume in percentage",
                 "type": "number",
+                "unit": "%",
+                "min": 0,
+                "max": 100,
                 "read": true,
                 "write": false
             },

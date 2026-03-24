@@ -8,6 +8,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SpotifyPremiumAdapter = void 0;
 const axios_1 = __importDefault(require("axios"));
 const dns_lookup_cache_1 = require("dns-lookup-cache");
+const node_fs_1 = require("node:fs");
+const node_path_1 = require("node:path");
 const node_querystring_1 = __importDefault(require("node:querystring"));
 const adapter_core_1 = require("@iobroker/adapter-core");
 const cache_1 = __importDefault(require("./lib/cache"));
@@ -95,6 +97,7 @@ function isTransientNetworkError(error) {
 class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     application = {
         userId: '',
+        market: '',
         baseUrl: 'https://api.spotify.com',
         clientId: '',
         clientSecret: '',
@@ -104,7 +107,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         redirect_uri: 'https://oauth2.iobroker.in/spotify',
         token: '',
         refreshToken: '',
-        code: '',
         statusInternalTimer: undefined,
         statusPollingHandle: undefined,
         statusPollingDelaySeconds: 10,
@@ -114,15 +116,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         playlistPollingDelaySeconds: 1800,
         error202shown: false,
         cacheClearHandle: undefined,
-        // callbackServer: null,
-        // callbackPort: 80,
         lastTrackId: '',
         lastPlaylistId: '',
         tokenRefreshTimer: undefined,
-        tokenExpiresAtMs: 0,
     };
     artistImageUrlCache = {};
     playlistCache = {};
+    inaccessiblePlaylists = new Set();
     deviceData = {
         lastActiveDeviceId: '',
         lastSelectDeviceId: '',
@@ -247,10 +247,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             };
         }
         catch (error) {
-            this.log.error(`[HTTP Error] ${error.message} for ${options.method} ${options.url}`);
+            const logLevel = error.response?.status === 404 ? 'debug' : 'error';
+            this.log[logLevel](`[HTTP Error] ${error.message} for ${options.method} ${options.url}`);
             if (error.response) {
-                this.log.error(`[HTTP Error Status] ${error.response.status}`);
-                this.log.error(`[HTTP Error Data] ${typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)}`);
+                this.log[logLevel](`[HTTP Error Status] ${error.response.status}`);
+                this.log[logLevel](`[HTTP Error Data] ${typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)}`);
             }
             throw error;
         }
@@ -295,7 +296,39 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.application.devicePollingDelaySeconds = deviceInterval * 60;
         this.application.playlistPollingDelaySeconds = playlistInterval * 60;
         this.subscribeStates('*');
-        void this.start();
+        void this.syncInstanceObjectRoles().then(() => this.start());
+    }
+    /**
+     * Ensures that the roles of existing states match the definitions in io-package.json.
+     * This is needed after role changes so that existing installations get updated roles.
+     */
+    async syncInstanceObjectRoles() {
+        let ioPack;
+        try {
+            ioPack = JSON.parse((0, node_fs_1.readFileSync)((0, node_path_1.join)(__dirname, '..', 'io-package.json'), 'utf8'));
+        }
+        catch {
+            this.log.warn('Could not read io-package.json for role sync');
+            return;
+        }
+        const instanceObjects = ioPack.instanceObjects || [];
+        for (const def of instanceObjects) {
+            if (def.type !== 'state' || !def.common?.role) {
+                continue;
+            }
+            const fullId = `${this.namespace}.${def._id}`;
+            try {
+                const obj = await this.getObjectAsync(fullId);
+                if (obj?.common && obj.common.role !== def.common.role) {
+                    this.log.debug(`updating role of ${def._id}: "${obj.common.role}" -> "${def.common.role}"`);
+                    obj.common.role = def.common.role;
+                    await this.setObjectAsync(fullId, obj);
+                }
+            }
+            catch {
+                // Object doesn't exist yet — will be created by the framework
+            }
+        }
     }
     async start() {
         this.clearCache();
@@ -312,7 +345,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.cache.setValue('player.reachable', true),
             ]);
             try {
-                await this.listenOnGetPlaybackInfo();
+                await this.pollStatusApi();
             }
             catch {
                 // ignore
@@ -382,7 +415,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const now = Date.now();
         const refreshAtMs = Math.max(expiresAtMs - TOKEN_REFRESH_SKEW_MS, now + TOKEN_REFRESH_MIN_DELAY_MS);
         const delayMs = Math.max(refreshAtMs - now, TOKEN_REFRESH_MIN_DELAY_MS);
-        this.application.tokenExpiresAtMs = expiresAtMs;
         this.log.debug(`Scheduling token refresh in ${Math.round(delayMs / 1000)}s (${source})`);
         this.application.tokenRefreshTimer = setTimeout(() => {
             this.application.tokenRefreshTimer = undefined;
@@ -433,7 +465,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         if (this.tooManyRequests) {
             // We are currently blocked because of too many requests. Do not send out a new request.
             this.log.debug(`TooManyRequests: ${this.tooManyRequests} endpoint: ${endpoint}`);
-            return Promise.reject(new Error('429'));
+            throw new Error('429');
         }
         try {
             const response = await this.request(options);
@@ -565,6 +597,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         this.log.error(`${statusCode} response: ${parsedBody.error?.message || 'unknown error'}`);
                         throw new Error(statusCode.toString());
                     }
+                    break;
                 case 429: {
                     // Too Many Requests
                     let wait = 1;
@@ -574,7 +607,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         this.log.warn(`too many requests, wait ${wait}s`);
                     }
                     try {
-                        await new Promise(resolve => setTimeout(() => !this.stopped && resolve(), wait * 1000));
+                        await new Promise(resolve => setTimeout(() => resolve(), wait * 1000));
+                        if (this.stopped) {
+                            return null;
+                        }
                         this.tooManyRequests = false;
                         return await this.sendRequest(endpoint, method, sendBody, delayAccepted);
                     }
@@ -611,9 +647,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 // Network error, DNS error, timeout, etc. - not Spotify's fault
                 this.log.error(`network request error on ${endpoint}: ${axiosError.message}`);
                 if (isTransientNetworkError(axiosError)) {
-                    return Promise.reject(new Error('503'));
+                    throw new Error('503');
                 }
-                return Promise.reject(axiosError);
+                throw axiosError;
             }
             // AxiosError with response status - process like normal error
             const errorStatusCode = axiosError.response.status;
@@ -647,6 +683,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             if (errorStatusCode === 403 && endpoint.includes('/playlists/') && endpoint.includes('/tracks')) {
                 this.log.debug(`playlist tracks access denied (403) on ${endpoint}; skipping`);
+                throw new Error(errorStatusCode.toString());
+            }
+            if (errorStatusCode === 404 && endpoint.includes('/playlists/')) {
+                // Personalized editorial playlists (e.g. 37i9dQZF1DW...) are not accessible via the Playlist API
+                this.log.debug(`playlist not accessible via API (404) on ${endpoint}; this is normal for Spotify editorial playlists`);
                 throw new Error(errorStatusCode.toString());
             }
             // For other error codes - just reject
@@ -887,70 +928,77 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             });
             await this.refreshDeviceList();
         }
-        const states = this.cache.getValues('devices.*');
-        const keys = Object.keys(states);
-        const fn2 = async (key) => {
-            if (!key.endsWith('.isActive')) {
-                return;
-            }
-            key = (0, utils_1.removeNameSpace)(key);
-            await this.cache.setValue(key, false);
-        };
-        await Promise.all(keys.map(fn2).filter((p) => p !== undefined));
+        else {
+            const states = this.cache.getValues('devices.*');
+            const keys = Object.keys(states);
+            const fn2 = async (key) => {
+                if (!key.endsWith('.isActive')) {
+                    return;
+                }
+                key = (0, utils_1.removeNameSpace)(key);
+                await this.cache.setValue(key, false);
+            };
+            await Promise.all(keys.map(fn2).filter((p) => p !== undefined));
+        }
         if (progress && isPlaying && this.application.statusPollingDelaySeconds > 0) {
             this.scheduleStatusInternalTimer(duration, progress, Date.now(), this.application.statusPollingDelaySeconds - 1);
         }
         const currentTrackId = data.item?.id || '';
-        if (currentTrackId === this.application.lastTrackId && currentTrackId !== '') {
+        if (currentTrackId === this.application.lastTrackId && currentTrackId) {
             // Same track, skip artist loading
-            await Promise.resolve();
         }
-        this.application.lastTrackId = currentTrackId;
-        const artists = [];
-        for (let i = 0; i < 100; i++) {
-            const id = data.item?.artists?.[i]?.id || '';
-            if ((0, utils_1.isEmpty)(id)) {
-                break;
-            }
-            artists.push(id);
-        }
-        const urls = [];
-        const fn = async (artist) => {
-            if (artist in this.artistImageUrlCache) {
-                urls.push(this.artistImageUrlCache[artist]);
-                return;
-            }
-            try {
-                const parseJson = await this.sendRequest(`/v1/artists/${artist}`, 'GET', '');
-                const artistUrl = parseJson.images?.[0]?.url || '';
-                if (!(0, utils_1.isEmpty)(artistUrl)) {
-                    this.artistImageUrlCache[artist] = artistUrl;
-                    urls.push(artistUrl);
+        else {
+            this.application.lastTrackId = currentTrackId;
+            const artists = [];
+            for (let i = 0; i < 100; i++) {
+                const id = data.item?.artists?.[i]?.id || '';
+                if (!id) {
+                    break;
                 }
+                artists.push(id);
             }
-            catch (error) {
-                this.log.debug(error);
+            const urls = [];
+            const fn = async (artist) => {
+                if (artist in this.artistImageUrlCache) {
+                    urls.push(this.artistImageUrlCache[artist]);
+                    return;
+                }
+                try {
+                    const parseJson = await this.sendRequest(`/v1/artists/${artist}`, 'GET', '');
+                    const artistUrl = parseJson.images?.[0]?.url || '';
+                    if (!(0, utils_1.isEmpty)(artistUrl)) {
+                        this.artistImageUrlCache[artist] = artistUrl;
+                        urls.push(artistUrl);
+                    }
+                }
+                catch (error) {
+                    this.log.debug(error);
+                }
+            };
+            await artists.reduce((promise, artist) => promise.then(() => fn(artist)), Promise.resolve());
+            let set = '';
+            if (urls.length !== 0) {
+                set = urls[0];
             }
-        };
-        await artists.reduce((promise, artist) => promise.then(() => fn(artist)), Promise.resolve());
-        let set = '';
-        if (urls.length !== 0) {
-            set = urls[0];
+            if (type === 'artist') {
+                contextImage = set;
+            }
+            await this.cache.setValue('player.artistImageUrl', set);
         }
-        if (type === 'artist') {
-            contextImage = set;
-        }
-        await this.cache.setValue('player.artistImageUrl', set);
         const uri = data.context?.uri || '';
+        this.log.debug(`context uri: "${uri}", type: "${type}"`);
         if (type === 'playlist' && uri) {
-            const indexOfUser = uri.indexOf('user:') + 5;
-            const endIndexOfUser = uri.indexOf(':', indexOfUser);
             const indexOfPlaylistId = uri.indexOf('playlist:') + 9;
             const playlistId = uri.slice(indexOfPlaylistId);
-            const userId = uri.substring(indexOfUser, endIndexOfUser);
+            const userMatch = uri.match(/user:([^:]+)/);
+            const userId = userMatch ? userMatch[1] : '';
+            this.log.debug(`parsed playlistId: "${playlistId}", userId: "${userId}"`);
             const query = {
-                fields: 'name,id,owner.id,tracks.total,images',
+                fields: 'name,id,owner(id),tracks(total),images',
             };
+            if (this.application.market) {
+                query.market = this.application.market;
+            }
             await this.cache.setValue('player.playlist.id', playlistId);
             const refreshPlaylist = async (parseJson) => {
                 const playlistName = parseJson?.name || '';
@@ -961,13 +1009,15 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 const ownerId = parseJson?.owner?.id || '';
                 const trackCount = parseJson?.tracks?.total || 0;
                 const prefix = this.shrinkStateName(`${ownerId}-${playlistId}`);
-                this.playlistCache[`${ownerId}-${playlistId}`] = {
+                const cacheEntry = {
                     id: playlistId,
                     name: playlistName,
                     images: [{ url: playlistImage }],
                     owner: { id: ownerId },
                     tracks: { total: trackCount },
                 };
+                this.playlistCache[`${ownerId}-${playlistId}`] = cacheEntry;
+                this.playlistCache[playlistId] = cacheEntry;
                 const trackList = this.cache.getValue(`playlists.${prefix}.trackList`);
                 await Promise.all([
                     this.cache.setValue('player.playlist.owner', ownerId),
@@ -1007,15 +1057,17 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 const state = this.cache.getValue(`playlists.${prefix}.trackListIds`);
                 const ids = state?.val || '';
                 if ((0, utils_1.isEmpty)(ids)) {
-                    return Promise.reject(new Error('no ids in trackListIds'));
+                    throw new Error('no ids in trackListIds');
                 }
                 const stateName = ids.split(';');
                 const stateArr = {};
                 for (let i = 0; i < stateName.length; i++) {
                     const ele = stateName[i].split(':');
-                    stateArr[ele[1]] = ele[0];
+                    if (ele.length >= 2) {
+                        stateArr[ele[1]] = ele[0];
+                    }
                 }
-                if (stateArr[songId] !== '' && stateArr[songId] !== null) {
+                if (songId in stateArr && stateArr[songId] !== '') {
                     const no = stateArr[songId];
                     await Promise.all([
                         this.cache.setValue(`playlists.${prefix}.trackList`, no),
@@ -1025,52 +1077,78 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     return;
                 }
             };
-            // Only load playlist details if playlist ID has changed (same logic as artist caching)
-            if (playlistId === this.application.lastPlaylistId && playlistId !== '') {
-                // Same playlist, skip loading playlist details
-                await Promise.resolve();
+            // Look up playlist in cache by userId-playlistId or just playlistId
+            const cachedPlaylist = this.playlistCache[`${userId}-${playlistId}`] || this.playlistCache[playlistId];
+            // Only load playlist details if playlist ID has changed
+            if (playlistId === this.application.lastPlaylistId && playlistId && cachedPlaylist) {
+                // Same playlist, just refresh track position
+                try {
+                    await refreshPlaylist(cachedPlaylist);
+                }
+                catch (e) {
+                    this.log.warn(`Cannot refresh playlist: ${e}`);
+                }
             }
-            // Playlist changed, update lastPlaylistId and load details
-            this.application.lastPlaylistId = playlistId;
-            // Check cache first using proper syntax
-            if (`${userId}-${playlistId}` in this.playlistCache) {
-                await refreshPlaylist(this.playlistCache[`${userId}-${playlistId}`]);
-            }
-            try {
-                const parseJson = await this.sendRequest(`/v1/users/${userId}/playlists/${playlistId}?${node_querystring_1.default.stringify(query)}`, 'GET', '');
-                await refreshPlaylist(parseJson);
-            }
-            catch (error) {
-                this.log.debug(error);
+            else {
+                // Playlist changed, update lastPlaylistId and load details
+                this.application.lastPlaylistId = playlistId;
+                if (cachedPlaylist) {
+                    try {
+                        await refreshPlaylist(cachedPlaylist);
+                    }
+                    catch (e) {
+                        this.log.warn(`Cannot refresh playlist: ${e}`);
+                    }
+                }
+                else if (this.inaccessiblePlaylists.has(playlistId)) {
+                    this.log.debug(`playlist ${playlistId} is known to be inaccessible, skipping API call`);
+                }
+                else {
+                    try {
+                        const parseJson = await this.sendRequest(`/v1/playlists/${playlistId}?${node_querystring_1.default.stringify(query)}`, 'GET', '');
+                        await refreshPlaylist(parseJson);
+                    }
+                    catch (error) {
+                        if (error.message === '404') {
+                            this.inaccessiblePlaylists.add(playlistId);
+                            this.log.info(`playlist ${playlistId} is not accessible via Spotify API (editorial playlist); will not retry`);
+                        }
+                        else {
+                            this.log.debug(error);
+                        }
+                    }
+                }
             }
         }
-        this.log.debug(`context type: "${type}"`);
-        await Promise.all([
-            this.cache.setValue('player.playlist.id', ''),
-            this.cache.setValue('player.playlist.name', ''),
-            this.cache.setValue('player.playlist.owner', ''),
-            this.cache.setValue('player.playlist.tracksTotal', 0),
-            this.cache.setValue('player.playlist.imageUrl', ''),
-            this.cache.setValue('player.playlist.trackList', ''),
-            this.cache.setValue('player.playlist.trackListNumber', ''),
-            this.cache.setValue('player.playlist.trackListString', ''),
-            this.cache.setValue('player.playlist.trackListStates', ''),
-            this.cache.setValue('player.playlist.trackListIdMap', ''),
-            this.cache.setValue('player.playlist.trackListIds', ''),
-            this.cache.setValue('player.playlist.trackListArray', ''),
-            this.cache.setValue('player.playlist.trackNo', 0),
-            this.cache.setValue('playlists.playlistList', ''),
-            this.cache.setValue('player.playlist', null, {
-                _id: `${this.namespace}.player.playlist`,
-                type: 'channel',
-                common: {
-                    name: 'Commands to control playback related to the playlist',
-                },
-                native: {},
-            }),
-        ]);
-        this.listenOnHtmlTracklist();
-        await this.listenOnHtmlPlaylists();
+        else {
+            this.log.debug(`context type: "${type}"`);
+            await Promise.all([
+                this.cache.setValue('player.playlist.id', ''),
+                this.cache.setValue('player.playlist.name', ''),
+                this.cache.setValue('player.playlist.owner', ''),
+                this.cache.setValue('player.playlist.tracksTotal', 0),
+                this.cache.setValue('player.playlist.imageUrl', ''),
+                this.cache.setValue('player.playlist.trackList', ''),
+                this.cache.setValue('player.playlist.trackListNumber', ''),
+                this.cache.setValue('player.playlist.trackListString', ''),
+                this.cache.setValue('player.playlist.trackListStates', ''),
+                this.cache.setValue('player.playlist.trackListIdMap', ''),
+                this.cache.setValue('player.playlist.trackListIds', ''),
+                this.cache.setValue('player.playlist.trackListArray', ''),
+                this.cache.setValue('player.playlist.trackNo', 0),
+                this.cache.setValue('playlists.playlistList', ''),
+                this.cache.setValue('player.playlist', null, {
+                    _id: `${this.namespace}.player.playlist`,
+                    type: 'channel',
+                    common: {
+                        name: 'Commands to control playback related to the playlist',
+                    },
+                    native: {},
+                }),
+            ]);
+            this.listenOnHtmlTracklist();
+            await this.listenOnHtmlPlaylists();
+        }
         await Promise.all([
             this.cache.setValue('player.contextImageUrl', contextImage),
             this.cache.setValue('player.contextDescription', contextDescription),
@@ -1079,12 +1157,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     convertToDigiClock(ms) {
         // milliseconds to digital time, e.g. 3:59=238759
         ms ||= 0;
-        const min = Math.floor(ms / 60000);
-        const sec = Math.floor(((ms % 360000) % 60000) / 1000);
+        const min = Math.floor(ms / 60_000);
+        const sec = Math.floor(((ms % 3_600_000) % 60_000) / 1000);
         return `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
     }
     async setUserInformation(data) {
         this.application.userId = data.id;
+        this.application.market = data.country || '';
         await this.cache.setValue('authorization.userId', data.id);
     }
     async reloadUsersPlaylist() {
@@ -1126,7 +1205,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     async createPlaylists(parseJson, autoContinue, addedList) {
         if ((0, utils_1.isEmpty)(parseJson) || (0, utils_1.isEmpty)(parseJson.items)) {
             this.log.debug('no playlist content');
-            return Promise.reject(new Error('no playlist content'));
+            throw new Error('no playlist content');
         }
         const fn = async (item) => {
             const playlistName = item.name || '';
@@ -1184,9 +1263,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 const stateArr = {};
                 for (let i = 0; i < stateName.length; i++) {
                     const ele = stateName[i].split(':');
-                    stateArr[ele[1]] = ele[0];
+                    if (ele.length >= 2) {
+                        stateArr[ele[1]] = ele[0];
+                    }
                 }
-                if (stateArr[songId] !== '' && stateArr[songId] !== null) {
+                if (songId in stateArr && stateArr[songId] !== '') {
                     trackListValue = stateArr[songId];
                 }
             }
@@ -1222,7 +1303,12 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         };
         for (let i = 0; i < parseJson.items.length; i++) {
             await new Promise(resolve => setTimeout(() => !this.stopped && resolve(), 1000));
-            await fn(parseJson.items[i]);
+            try {
+                await fn(parseJson.items[i]);
+            }
+            catch (e) {
+                this.log.warn(e);
+            }
         }
         if (autoContinue && parseJson.items.length && parseJson.next !== null) {
             return this.getUsersPlaylist(parseJson.offset + parseJson.limit, addedList);
@@ -1284,7 +1370,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             songs: [],
         };
         let offset = 0;
-        const regParam = `${owner}/playlists/${id}/tracks`;
         while (true) {
             const query = {
                 limit: 50,
@@ -1293,7 +1378,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             try {
                 // Wait 1s between Playlist updates to avoid getting rate limited
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                const data = await this.sendRequest(`/v1/users/${regParam}?${node_querystring_1.default.stringify(query)}`, 'GET', '');
+                const data = await this.sendRequest(`/v1/playlists/${id}/tracks?${node_querystring_1.default.stringify(query)}`, 'GET', '');
                 let i = offset;
                 const no = i.toString();
                 data.items.forEach((item) => {
@@ -1442,7 +1527,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             const deviceName = this.loadOrDefault(device, 'name', '');
             if ((0, utils_1.isEmpty)(deviceName)) {
                 this.log.warn('empty device name');
-                return Promise.reject(new Error('empty device name'));
+                throw new Error('empty device name');
             }
             let name;
             if (deviceId != null) {
@@ -1658,64 +1743,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         await this.listenOnHtmlDevices();
     }
-    /*generateRandomString(length: number): string {
-        let text = '';
-        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < length; i++) {
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-        }
-        return text;
-    }*/
-    /*async getToken(): Promise<void> {
-        const tokenData = new URLSearchParams();
-        tokenData.append('grant_type', 'authorization_code');
-        tokenData.append('code', this.application.code);
-        tokenData.append('redirect_uri', this.application.redirect_uri);
-
-        const options = {
-            url: 'https://accounts.spotify.com/api/token',
-            method: 'POST',
-            headers: {
-                Authorization: `Basic ${Buffer.from(`${this.application.clientId}:${this.application.clientSecret}`).toString('base64')}`,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            data: tokenData.toString(),
-        };
-
-        this.log.debug(`Sending token request to Spotify with code: ${this.application.code.substring(0, 20)}...`);
-
-        let tokenObj: AccessTokens;
-
-        try {
-            const response = await this.request(options);
-            const data = response.data;
-            let parsedBody: AccessTokens;
-            try {
-                parsedBody = typeof data === 'string' ? JSON.parse(data) : data;
-            } catch (e) {
-                parsedBody = {} as AccessTokens;
-                this.log.info(`Error: ${e}`);
-            }
-            this.log.debug(`Spotify token response received`);
-            parsedBody.client_id = this.application.clientId;
-            tokenObj = await this.saveToken(parsedBody);
-            await Promise.all([
-                this.cache.setValue('authorization.authorized', true),
-                this.cache.setValue('info.connection', true),
-                    this.cache.setValue('player.reachable', true),
-            ]);
-            this.application.token = tokenObj.access_token;
-            this.application.refreshToken = tokenObj.refresh_token;
-            this.scheduleTokenRefresh(this.getTokenExpiresAtMs(tokenObj), 'getToken');
-            return await this.start();
-        } catch (err) {
-            this.log.error(`getToken error: ${err.message || err}`);
-            if (err.response && err.response.data) {
-                this.log.error(`Spotify API error: ${JSON.stringify(err.response.data)}`);
-            }
-        }
-    }
-    */
     refreshToken() {
         if (this.refreshTokenInFlight) {
             this.log.debug('Token refresh already running - reusing in-flight refresh request');
@@ -1787,7 +1814,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return this.refreshTokenInFlight;
         }
         this.log.warn('Cannot refresh token: no refresh token available');
-        return Promise.reject(new Error('no refresh token'));
+        throw new Error('no refresh token');
     }
     async saveToken(data) {
         this.log.debug('saveToken');
@@ -1796,7 +1823,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return data;
         }
         this.log.error(JSON.stringify(data));
-        return Promise.reject(new Error('no tokens found in server response'));
+        throw new Error('no tokens found in server response');
     }
     async increaseTime(durationMs, progressMs, startDate, count) {
         const now = Date.now();
@@ -1821,7 +1848,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         // If no updates needed, just schedule next update if playing
         if (!updates.length) {
-            await Promise.resolve();
             if (count > 0) {
                 if (progressMs + 1000 > durationMs) {
                     setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
@@ -1833,6 +1859,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     }
                 }
             }
+            return;
         }
         await Promise.all(updates);
         if (count > 0) {
@@ -2011,10 +2038,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             owner = this.application.userId;
         }
         if ((0, utils_1.isEmpty)(trackNo)) {
-            return Promise.reject(new Error('no track no'));
+            throw new Error('no track no');
         }
         if ((0, utils_1.isEmpty)(playlist)) {
-            return Promise.reject(new Error('no playlist no'));
+            throw new Error('no playlist no');
         }
         if (keepTrack !== true) {
             keepTrack = false;
@@ -2052,53 +2079,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return this.listenOnShuffleOn();
         }
     }
-    // listenOnAuthorizationReturnUri(obj: { state: ioBroker.State }): Promise<void> {
-    //     const state = this.cache.getValue('authorization.state');
-    //     const returnUri = querystring.parse(
-    //         (obj.state.val as string).slice(
-    //             (obj.state.val as string).search(/\?/) + 1,
-    //             (obj.state.val as string).length,
-    //         ),
-    //     );
-    //     if (returnUri.state) {
-    //         returnUri.state = (returnUri.state as string).replace(/#_=_$/g, '');
-    //     }
-    //     if (state && returnUri.state === state.val) {
-    //         this.log.debug('getToken');
-    //         this.application.code = returnUri.code as string;
-    //         return this.getToken();
-    //     }
-    //     this.log.error('invalid session. you need to open the actual authorization.authorizationUrl');
-    //     return this.cache.setValue(
-    //         'Authorization.Authorization_Return_URI',
-    //         'invalid session. You need to open the actual Authorization.Authorization_URL again',
-    //     );
-    // }
-    // listenOnGetAuthorization(): Promise<void[]> {
-    //     this.log.debug('requestAuthorization');
-    //     const state = this.generateRandomString(20);
-    //     const query = {
-    //         client_id: this.application.clientId,
-    //         response_type: 'code',
-    //         redirect_uri: this.application.redirect_uri,
-    //         state,
-    //         scope: 'user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative',
-    //     };
-    //
-    //     const options = {
-    //         url: `https://accounts.spotify.com/de/authorize/?${querystring.stringify(query)}`,
-    //         method: 'GET',
-    //         followAllRedirects: true,
-    //     };
-    //
-    //     return Promise.all([
-    //         this.cache.setValue('authorization.state', state),
-    //         this.cache.setValue('authorization.authorizationUrl', options.url),
-    //         this.cache.setValue('authorization.authorized', false),
-    //         this.cache.setValue('info.connection', false),
-    //         this.cache.setValue('player.reachable', false),
-    //     ]);
-    // }
     async listenOnAuthorized(obj) {
         if (obj.state.val) {
             const wasConnected = this.cache.getValue('info.connection');
@@ -2499,7 +2479,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             html += `<tr class="spotifyPlaylistsRow${cssClassRow}" onclick="vis.setValue('${this.namespace}.playlists.playlistList', '${ids[i]}')">`;
             html += `<td${style} class="spotifyPlaylistsCol spotifyPlaylistsColTitle${cssClassTitle}">`;
-            html += strings[i];
+            html += strings[i] || '';
             html += '</td>';
             html += `<td class="spotifyPlaylistsCol spotifyPlaylistsColIcon${cssClassIcon}">`;
             if (current === ids[i]) {
@@ -2655,7 +2635,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             html += '</td>';
             html += `<td${style} class="spotifyDevicesColName${cssClassColName}">`;
-            html += strings[i];
+            html += strings[i] || '';
             html += '</td>';
             html += '</tr>';
         }

@@ -191,14 +191,8 @@ class Cache {
                 });
             }
         }
-        else {
-            if (!state || path.state == null || (!path.state.val && typeof path.state.val !== 'number')) {
-                // empty block
-            }
-            else {
-                // call listener
-                this.trigger(path.state, name);
-            }
+        else if (state && path.state != null && (path.state.val || typeof path.state.val === 'number')) {
+            this.trigger(path.state, name);
         }
         // this must be done serial
         return this.promiseSerial(pArray).then(() => Promise.resolve([null, `${this.adapter.namespace}.${name}`]));

@@ -1,13 +1,51 @@
 {
     "type": "panel",
-    "i18n": "Settings",
+    "i18n": true,
     "items": {
+        "_instructions": {
+            "type": "header",
+            "text": "manual0",
+            "size": 4,
+            "xs": 12
+        },
+        "_step1": {
+            "type": "staticText",
+            "text": "manual1",
+            "xs": 12
+        },
+        "_picture1": {
+            "type": "staticImage",
+            "showInDialog": true,
+            "src": "create_app.png",
+            "xs": 12
+        },
+        "_step2": {
+            "type": "staticText",
+            "text": "manual2",
+            "xs": 12
+        },
+        "_step3": {
+            "type": "staticText",
+            "text": "manual3",
+            "xs": 12
+        },
+        "_step4": {
+            "type": "staticText",
+            "text": "manual4",
+            "xs": 12
+        },
+        "_step5": {
+            "type": "staticText",
+            "text": "manual5",
+            "xs": 12
+        },
         "_oauth": {
             "type": "oauth2",
             "identifier": "spotify",
             "saveTokenIn": "authorization.oauth2Tokens",
             "ownClientId": "client_id",
             "ownClientSecret": "client_secret",
+            "scope": "user-modify-playback-state user-read-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative user-read-private",
             "xs": 12,
             "sm": 12,
             "md": 12,
