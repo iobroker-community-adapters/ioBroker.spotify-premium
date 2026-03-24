@@ -1033,7 +1033,10 @@ export class SpotifyPremiumAdapter extends Adapter {
                         this.log.warn(`too many requests, wait ${wait}s`);
                     }
                     try {
-                        await new Promise<void>(resolve => setTimeout(() => !this.stopped && resolve(), wait * 1000));
+                        await new Promise<void>(resolve => setTimeout(() => resolve(), wait * 1000));
+                        if (this.stopped) {
+                            return null;
+                        }
                         this.tooManyRequests = false;
                         return await this.sendRequest(endpoint, method, sendBody, delayAccepted);
                     } catch (error) {
@@ -1512,9 +1515,11 @@ export class SpotifyPremiumAdapter extends Adapter {
                 const stateArr: Record<string, string> = {};
                 for (let i = 0; i < stateName.length; i++) {
                     const ele = stateName[i].split(':');
-                    stateArr[ele[1]] = ele[0];
+                    if (ele.length >= 2) {
+                        stateArr[ele[1]] = ele[0];
+                    }
                 }
-                if (stateArr[songId] !== '' && stateArr[songId] !== null) {
+                if (songId in stateArr && stateArr[songId] !== '') {
                     const no = stateArr[songId];
                     await Promise.all([
                         this.cache.setValue(`playlists.${prefix}.trackList`, no),
@@ -1525,57 +1530,58 @@ export class SpotifyPremiumAdapter extends Adapter {
                 }
             };
 
-            // Only load playlist details if playlist ID has changed (same logic as artist caching)
+            // Only load playlist details if playlist ID has changed
             if (playlistId === this.application.lastPlaylistId && playlistId !== '') {
-                // Same playlist, skip loading playlist details
-                await Promise.resolve();
-            }
+                // Same playlist, just refresh track position
+                await refreshPlaylist(this.playlistCache[`${userId}-${playlistId}`] || ({} as SpotifyPlaylistItem));
+            } else {
+                // Playlist changed, update lastPlaylistId and load details
+                this.application.lastPlaylistId = playlistId;
 
-            // Playlist changed, update lastPlaylistId and load details
-            this.application.lastPlaylistId = playlistId;
-
-            // Check cache first using proper syntax
-            if (`${userId}-${playlistId}` in this.playlistCache) {
-                await refreshPlaylist(this.playlistCache[`${userId}-${playlistId}`]);
+                if (`${userId}-${playlistId}` in this.playlistCache) {
+                    await refreshPlaylist(this.playlistCache[`${userId}-${playlistId}`]);
+                } else {
+                    try {
+                        const parseJson = await this.sendRequest<SpotifyPlaylistItem>(
+                            `/v1/users/${userId}/playlists/${playlistId}?${querystring.stringify(query)}`,
+                            'GET',
+                            '',
+                        );
+                        await refreshPlaylist(parseJson);
+                    } catch (error) {
+                        this.log.debug(error);
+                    }
+                }
             }
-            try {
-                const parseJson = await this.sendRequest<SpotifyPlaylistItem>(
-                    `/v1/users/${userId}/playlists/${playlistId}?${querystring.stringify(query)}`,
-                    'GET',
-                    '',
-                );
-                await refreshPlaylist(parseJson);
-            } catch (error) {
-                this.log.debug(error);
-            }
+        } else {
+            this.log.debug(`context type: "${type}"`);
+            await Promise.all([
+                this.cache.setValue('player.playlist.id', ''),
+                this.cache.setValue('player.playlist.name', ''),
+                this.cache.setValue('player.playlist.owner', ''),
+                this.cache.setValue('player.playlist.tracksTotal', 0),
+                this.cache.setValue('player.playlist.imageUrl', ''),
+                this.cache.setValue('player.playlist.trackList', ''),
+                this.cache.setValue('player.playlist.trackListNumber', ''),
+                this.cache.setValue('player.playlist.trackListString', ''),
+                this.cache.setValue('player.playlist.trackListStates', ''),
+                this.cache.setValue('player.playlist.trackListIdMap', ''),
+                this.cache.setValue('player.playlist.trackListIds', ''),
+                this.cache.setValue('player.playlist.trackListArray', ''),
+                this.cache.setValue('player.playlist.trackNo', 0),
+                this.cache.setValue('playlists.playlistList', ''),
+                this.cache.setValue('player.playlist', null, {
+                    _id: `${this.namespace}.player.playlist`,
+                    type: 'channel',
+                    common: {
+                        name: 'Commands to control playback related to the playlist',
+                    },
+                    native: {},
+                }),
+            ]);
+            this.listenOnHtmlTracklist();
+            await this.listenOnHtmlPlaylists();
         }
-        this.log.debug(`context type: "${type}"`);
-        await Promise.all([
-            this.cache.setValue('player.playlist.id', ''),
-            this.cache.setValue('player.playlist.name', ''),
-            this.cache.setValue('player.playlist.owner', ''),
-            this.cache.setValue('player.playlist.tracksTotal', 0),
-            this.cache.setValue('player.playlist.imageUrl', ''),
-            this.cache.setValue('player.playlist.trackList', ''),
-            this.cache.setValue('player.playlist.trackListNumber', ''),
-            this.cache.setValue('player.playlist.trackListString', ''),
-            this.cache.setValue('player.playlist.trackListStates', ''),
-            this.cache.setValue('player.playlist.trackListIdMap', ''),
-            this.cache.setValue('player.playlist.trackListIds', ''),
-            this.cache.setValue('player.playlist.trackListArray', ''),
-            this.cache.setValue('player.playlist.trackNo', 0),
-            this.cache.setValue('playlists.playlistList', ''),
-            this.cache.setValue('player.playlist', null, {
-                _id: `${this.namespace}.player.playlist`,
-                type: 'channel',
-                common: {
-                    name: 'Commands to control playback related to the playlist',
-                },
-                native: {},
-            }),
-        ]);
-        this.listenOnHtmlTracklist();
-        await this.listenOnHtmlPlaylists();
         await Promise.all([
             this.cache.setValue('player.contextImageUrl', contextImage),
             this.cache.setValue('player.contextDescription', contextDescription),
@@ -1585,8 +1591,8 @@ export class SpotifyPremiumAdapter extends Adapter {
     convertToDigiClock(ms: number): string {
         // milliseconds to digital time, e.g. 3:59=238759
         ms ||= 0;
-        const min = Math.floor(ms / 60000);
-        const sec = Math.floor(((ms % 360000) % 60000) / 1000);
+        const min = Math.floor(ms / 60_000);
+        const sec = Math.floor(((ms % 3_600_000) % 60_000) / 1000);
         return `${min < 10 ? '0' : ''}${min}:${sec < 10 ? '0' : ''}${sec}`;
     }
 
@@ -1703,9 +1709,11 @@ export class SpotifyPremiumAdapter extends Adapter {
                 const stateArr: Record<string, string> = {};
                 for (let i = 0; i < stateName.length; i++) {
                     const ele = stateName[i].split(':');
-                    stateArr[ele[1]] = ele[0];
+                    if (ele.length >= 2) {
+                        stateArr[ele[1]] = ele[0];
+                    }
                 }
-                if (stateArr[songId] !== '' && stateArr[songId] !== null) {
+                if (songId in stateArr && stateArr[songId] !== '') {
                     trackListValue = stateArr[songId];
                 }
             }
@@ -3213,7 +3221,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             }
             html += `<tr class="spotifyPlaylistsRow${cssClassRow}" onclick="vis.setValue('${this.namespace}.playlists.playlistList', '${ids[i]}')">`;
             html += `<td${style} class="spotifyPlaylistsCol spotifyPlaylistsColTitle${cssClassTitle}">`;
-            html += strings[i];
+            html += strings[i] || '';
             html += '</td>';
             html += `<td class="spotifyPlaylistsCol spotifyPlaylistsColIcon${cssClassIcon}">`;
             if (current === ids[i]) {
@@ -3384,7 +3392,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             }
             html += '</td>';
             html += `<td${style} class="spotifyDevicesColName${cssClassColName}">`;
-            html += strings[i];
+            html += strings[i] || '';
             html += '</td>';
             html += '</tr>';
         }

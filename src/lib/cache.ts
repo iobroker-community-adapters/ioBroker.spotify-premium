@@ -258,13 +258,8 @@ export default class Cache {
                     task: this.adapter.setStateAsync(name, { val, ack: path.state!.ack }),
                 });
             }
-        } else {
-            if (!state || path.state == null || (!path.state.val && typeof path.state.val !== 'number')) {
-                // empty block
-            } else {
-                // call listener
-                this.trigger(path.state, name);
-            }
+        } else if (state && path.state != null && (path.state.val || typeof path.state.val === 'number')) {
+            this.trigger(path.state, name);
         }
 
         // this must be done serial
