@@ -178,7 +178,7 @@
         },
         {
             "_id": "player",
-            "type": "channel",
+            "type": "device",
             "common": {
                 "name": "Commands to control playback"
             },
@@ -202,7 +202,7 @@
         },
         {
             "_id": "player.device",
-            "type": "device",
+            "type": "channel",
             "common": {
                 "name": "Commands to control playback related to the current active device",
                 "icon": "icons/speaker_black.png"
@@ -488,10 +488,28 @@
             "native": {}
         },
         {
+            "_id": "player.repeatMode",
+            "type": "state",
+            "common": {
+                "role": "media.mode.repeat",
+                "name": "repeat mode as number: 0=off, 1=all, 2=one",
+                "type": "number",
+                "read": true,
+                "write": true,
+                "states": {
+                    "0": "off",
+                    "1": "all",
+                    "2": "one"
+                },
+                "icon": "icons/repeat_black.png"
+            },
+            "native": {}
+        },
+        {
             "_id": "player.volume",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "level.volume",
                 "name": "volume in percentage",
                 "type": "number",
                 "read": true,
@@ -585,6 +603,19 @@
                     "on": "On",
                     "off": "Off"
                 }
+            },
+            "native": {}
+        },
+        {
+            "_id": "player.shuffleBool",
+            "type": "state",
+            "common": {
+                "role": "media.mode.shuffle",
+                "name": "shuffle on/off",
+                "type": "boolean",
+                "read": true,
+                "write": true,
+                "icon": "icons/shuffle_black.png"
             },
             "native": {}
         },
@@ -811,6 +842,19 @@
             "native": {}
         },
         {
+            "_id": "player.reachable",
+            "type": "state",
+            "common": {
+                "role": "indicator.reachable",
+                "name": "If Spotify device is reachable",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        },
+        {
             "_id": "player.albumImageUrl",
             "type": "state",
             "common": {
@@ -841,6 +885,19 @@
                 "role": "value",
                 "name": "duration ms",
                 "type": "number",
+                "read": true,
+                "write": false
+            },
+            "native": {}
+        },
+        {
+            "_id": "player.durationSec",
+            "type": "state",
+            "common": {
+                "role": "media.duration",
+                "name": "duration in seconds",
+                "type": "number",
+                "unit": "sec",
                 "read": true,
                 "write": false
             },

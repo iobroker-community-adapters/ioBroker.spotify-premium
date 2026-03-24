@@ -157,6 +157,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.cache.on('player.skipPlus', () => this.listenOnSkipPlus());
                 this.cache.on('player.skipMinus', () => this.listenOnSkipMinus());
                 this.cache.on('player.repeat', (obj) => this.listenOnRepeat(obj), true);
+                this.cache.on('player.repeatMode', (obj) => this.listenOnRepeatMode(obj), true);
                 this.cache.on('player.repeatTrack', () => this.listenOnRepeatTrack());
                 this.cache.on('player.repeatContext', () => this.listenOnRepeatContext());
                 this.cache.on('player.repeatOff', () => this.listenOnRepeatOff());
@@ -164,6 +165,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.cache.on('player.progressMs', (obj) => this.listenOnProgressMs(obj), true);
                 this.cache.on('player.progressPercentage', (obj) => this.listenOnProgressPercentage(obj), true);
                 this.cache.on('player.shuffle', (obj) => this.listenOnShuffle(obj), this.config.defaultShuffle || 'on');
+                this.cache.on('player.shuffleBool', (obj) => this.listenOnShuffleBool(obj), true);
                 this.cache.on('player.shuffleOff', () => this.listenOnShuffleOff());
                 this.cache.on('player.shuffleOn', () => this.listenOnShuffleOn());
                 this.cache.on('player.trackId', (obj) => this.listenOnTrackId(obj), true);
@@ -217,6 +219,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     this.cache.setValue('player.playlist.owner', ''),
                     this.cache.setValue('authorization.authorized', false),
                     this.cache.setValue('info.connection', false),
+                    this.cache.setValue('player.reachable', false),
                 ]).then(() => callback?.());
             },
         });
@@ -306,6 +309,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             await Promise.all([
                 this.cache.setValue('authorization.authorized', true),
                 this.cache.setValue('info.connection', true),
+                this.cache.setValue('player.reachable', true),
             ]);
             try {
                 await this.listenOnGetPlaybackInfo();
@@ -331,6 +335,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             await Promise.all([
                 this.cache.setValue('authorization.authorized', false),
                 this.cache.setValue('info.connection', false),
+                this.cache.setValue('player.reachable', false),
             ]);
         }
     }
@@ -486,6 +491,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             await Promise.all([
                                 this.cache.setValue('authorization.authorized', false),
                                 this.cache.setValue('info.connection', false),
+                                this.cache.setValue('player.reachable', false),
                             ]);
                             this.log.debug('Starting token refresh...');
                             await this.refreshToken();
@@ -493,6 +499,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             await Promise.all([
                                 this.cache.setValue('authorization.authorized', true),
                                 this.cache.setValue('info.connection', true),
+                                this.cache.setValue('player.reachable', true),
                             ]);
                             const data = await this.sendRequest(endpoint, method, sendBody, delayAccepted, true);
                             this.log.info(`Request retry after token refresh successful for ${endpoint}`);
@@ -517,11 +524,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             await Promise.all([
                                 this.cache.setValue('authorization.authorized', false),
                                 this.cache.setValue('info.connection', false),
+                                this.cache.setValue('player.reachable', false),
                             ]);
                             await this.refreshToken();
                             await Promise.all([
                                 this.cache.setValue('authorization.authorized', true),
                                 this.cache.setValue('info.connection', true),
+                                this.cache.setValue('player.reachable', true),
                             ]);
                             const result = await this.sendRequest(endpoint, method, sendBody, delayAccepted, true);
                             this.log.debug('data with new token');
@@ -551,6 +560,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         await Promise.all([
                             this.cache.setValue('authorization.authorized', false),
                             this.cache.setValue('info.connection', false),
+                            this.cache.setValue('player.reachable', false),
                         ]);
                         this.log.error(`${statusCode} response: ${parsedBody.error?.message || 'unknown error'}`);
                         throw new Error(statusCode.toString());
@@ -616,6 +626,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     await Promise.all([
                         this.cache.setValue('authorization.authorized', false),
                         this.cache.setValue('info.connection', false),
+                        this.cache.setValue('player.reachable', false),
                     ]);
                     this.log.debug('Starting token refresh (from error handler)...');
                     await this.refreshToken();
@@ -623,6 +634,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     await Promise.all([
                         this.cache.setValue('authorization.authorized', true),
                         this.cache.setValue('info.connection', true),
+                        this.cache.setValue('player.reachable', true),
                     ]);
                     const result = await this.sendRequest(endpoint, method, sendBody, delayAccepted, true);
                     this.log.info(`Request retry after token refresh successful for ${endpoint}`);
@@ -828,13 +840,16 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             this.cache.setValue('player.albumImageUrl', albumUrl),
             this.setOrDefault(data, 'item.name', 'player.trackName', ''),
             this.cache.setValue('player.durationMs', duration),
+            this.cache.setValue('player.durationSec', Math.round(duration / 1000)),
             this.cache.setValue('player.duration', this.convertToDigiClock(duration)),
             this.cache.setValue('player.type', type),
             this.cache.setValue('player.progressMs', progress),
             this.cache.setValue('player.progressPercentage', progressPercentage),
             this.cache.setValue('player.progress', this.convertToDigiClock(progress)),
             this.cache.setValue('player.shuffle', shuffle ? 'on' : 'off'),
+            this.cache.setValue('player.shuffleBool', shuffle),
             this.setOrDefault(data, 'repeat_state', 'player.repeat', 'off'),
+            this.cache.setValue('player.repeatMode', data.repeat_state === 'context' ? 1 : data.repeat_state === 'track' ? 2 : 0),
             this.setOrDefault(data, 'device.volume_percent', 'player.device.volume', 100),
         ]);
         if (deviceName) {
@@ -1687,6 +1702,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             await Promise.all([
                 this.cache.setValue('authorization.authorized', true),
                 this.cache.setValue('info.connection', true),
+                    this.cache.setValue('player.reachable', true),
             ]);
             this.application.token = tokenObj.access_token;
             this.application.refreshToken = tokenObj.refresh_token;
@@ -2080,6 +2096,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     //         this.cache.setValue('authorization.authorizationUrl', options.url),
     //         this.cache.setValue('authorization.authorized', false),
     //         this.cache.setValue('info.connection', false),
+    //         this.cache.setValue('player.reachable', false),
     //     ]);
     // }
     async listenOnAuthorized(obj) {
@@ -2281,6 +2298,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             },
         });
     }
+    listenOnRepeatMode(obj) {
+        const map = { 0: 'off', 1: 'context', 2: 'track' };
+        const val = map[obj.state.val];
+        if (val) {
+            this.listenOnRepeat({ state: { val } });
+        }
+    }
     listenOnVolume(obj) {
         const isPlay = this.cache.getValue('player.isPlaying');
         if (isPlay?.val) {
@@ -2367,6 +2391,14 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         return this.listenOnShuffle({
             state: {
                 val: 'on',
+                ack: false,
+            },
+        });
+    }
+    listenOnShuffleBool(obj) {
+        return this.listenOnShuffle({
+            state: {
+                val: obj.state.val ? 'on' : 'off',
                 ack: false,
             },
         });
