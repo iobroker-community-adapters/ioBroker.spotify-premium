@@ -1103,7 +1103,7 @@
             "_id": "player.device.name",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.player.name",
                 "name": "device name",
                 "type": "string",
                 "read": true,
@@ -1115,7 +1115,7 @@
             "_id": "player.device.type",
             "type": "state",
             "common": {
-                "role": "value",
+                "role": "media.player.type",
                 "name": "device type",
                 "type": "string",
                 "read": true,
