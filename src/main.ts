@@ -827,6 +827,8 @@ export class SpotifyPremiumAdapter extends Adapter {
                     // empty
                     this.log.info(`Error: ${e}`);
                 }
+            } else if (typeof state.val === 'object') {
+                tokenObj = state.val as unknown as AccessTokens;
             }
             const validAccessToken = tokenObj.access_token;
             const validRefreshToken = tokenObj.refresh_token;
@@ -2420,6 +2422,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                             }
                         }
                         parsedJson.refresh_token ||= this.application.refreshToken;
+                        parsedJson.client_id = this.application.clientId;
                         this.log.debug('Token refresh successful');
 
                         try {
@@ -2461,6 +2464,7 @@ export class SpotifyPremiumAdapter extends Adapter {
     async saveToken(data: AccessTokens): Promise<AccessTokens> {
         this.log.debug('saveToken');
         if (data.access_token && data.refresh_token) {
+            data.access_token_expires_on = new Date(Date.now() + data.expires_in * 1000).toISOString();
             await this.cache.setValue('authorization.oauth2Tokens', JSON.stringify(data));
             return data;
         }
