@@ -8,10 +8,12 @@ interface TreeNode {
     state?: ioBroker.State | null;
     obj?: ioBroker.StateObject | null;
 }
+export type ListenerParameter = { id?: string; state: ioBroker.State };
+export type ListenerCallback = (event: ListenerParameter) => void;
 
 interface Listener {
     name: string | RegExp;
-    func: (event: { id: string; state: ioBroker.State }) => void;
+    func: ListenerCallback;
     ackIsFalse: boolean;
 }
 
@@ -21,8 +23,6 @@ interface PromiseSerialItem {
     task: Promise<any>;
     val?: { val: ioBroker.StateValue; ack: boolean };
 }
-
-type ListenerCallback = (event: { id: string; state: ioBroker.State }) => void;
 
 export default class Cache {
     private listener: Listener[] = [];
@@ -268,16 +268,16 @@ export default class Cache {
         );
     }
 
-    private trigger(state: ioBroker.State, name: string): void {
+    private trigger(state: ioBroker.State, id: string): void {
         this.listener.forEach(value => {
             if (value.ackIsFalse && state.ack) {
                 return;
             }
-            if ((value.name instanceof RegExp && value.name.test(name)) || value.name === name) {
+            if ((value.name instanceof RegExp && value.name.test(id)) || value.name === id) {
                 this.adapter.log.debug(`trigger: ${value.name} -> ${JSON.stringify(state)}`);
                 value.func({
-                    id: name,
-                    state: state,
+                    id,
+                    state,
                 });
             }
         });

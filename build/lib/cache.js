@@ -197,16 +197,16 @@ class Cache {
         // this must be done serial
         return this.promiseSerial(pArray).then(() => Promise.resolve([null, `${this.adapter.namespace}.${name}`]));
     }
-    trigger(state, name) {
+    trigger(state, id) {
         this.listener.forEach(value => {
             if (value.ackIsFalse && state.ack) {
                 return;
             }
-            if ((value.name instanceof RegExp && value.name.test(name)) || value.name === name) {
+            if ((value.name instanceof RegExp && value.name.test(id)) || value.name === id) {
                 this.adapter.log.debug(`trigger: ${value.name} -> ${JSON.stringify(state)}`);
                 value.func({
-                    id: name,
-                    state: state,
+                    id,
+                    state,
                 });
             }
         });

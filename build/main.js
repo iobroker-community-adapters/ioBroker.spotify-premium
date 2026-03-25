@@ -118,6 +118,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         lastPlaylistId: '',
         tokenRefreshTimer: undefined,
     };
+    waitForVolumeUpdate = null;
     artistImageUrlCache = {};
     playlistCache = {};
     inaccessiblePlaylists = new Set();
@@ -2114,7 +2115,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
     }
     async listenOnUseForPlayback(obj) {
-        const lastDeviceId = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`);
+        const lastDeviceId = obj.id ? this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`) : '';
         if (!lastDeviceId) {
             return;
         }
@@ -2143,8 +2144,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             pos = 0;
         }
         // Play a specific playlist immediately
-        const idState = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`);
-        const ownerState = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.owner`);
+        const idState = obj.id ? this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`) : '';
+        const ownerState = obj.id ? this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.owner`) : '';
         if (!idState || !ownerState) {
             return;
         }
@@ -2154,29 +2155,44 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     listenOnDeviceList(obj) {
         if (!(0, utils_1.isEmpty)(obj.state.val)) {
-            void this.listenOnUseForPlayback({ id: `devices.${obj.state.val}.useForPlayback` });
+            void this.listenOnUseForPlayback({ id: `devices.${obj.state.val}.useForPlayback`, state: obj.state });
         }
     }
     listenOnPlaylistList(obj) {
         if (!(0, utils_1.isEmpty)(obj.state.val)) {
-            void this.listenOnPlayThisList({ id: `playlists.${obj.state.val}.playThisList` });
+            void this.listenOnPlayThisList({ id: `playlists.${obj.state.val}.playThisList`, state: obj.state });
         }
     }
     async listenOnPlayUri(obj) {
         const query = {
             device_id: this.getSelectedDevice(this.deviceData),
         };
-        const send = obj.state.val;
-        if (!(0, utils_1.isEmpty)(send.device_id)) {
-            query.device_id = send.device_id;
-            delete send.device_id;
+        let command;
+        if (typeof obj.state.val === 'string' && obj.state.val && obj.state.val.startsWith('{')) {
+            try {
+                command = JSON.parse(obj.state.val);
+                if (command.device_id) {
+                    query.device_id = command.device_id;
+                    delete command.device_id;
+                }
+            }
+            catch {
+                this.log.error(`Cannot parse URI value: ${obj.state.val}`);
+                return;
+            }
         }
-        if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
-            this.application.statusInternalTimer = undefined;
+        else if (obj.state.val && typeof obj.state.val === 'object') {
+            command = obj.state.val;
+            if (command.device_id) {
+                query.device_id = command.device_id;
+                delete obj.state.val.device_id;
+            }
+        }
+        else if (obj.state.val && typeof obj.state.val === 'string') {
+            command = { context_uri: obj.state.val };
         }
         try {
-            await this.sendRequest(`/v1/me/player/play?${node_querystring_1.default.stringify(query)}`, 'PUT', JSON.stringify(send), true);
+            await this.sendRequest(`/v1/me/player/play?${node_querystring_1.default.stringify(query)}`, 'PUT', command ? JSON.stringify(command) : '', true);
         }
         catch (err) {
             this.log.error(`could not execute command: ${err}`);
@@ -2269,6 +2285,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.listenOnRepeat({
             state: {
                 val: 'off',
+                ack: false,
             },
         });
     }
@@ -2286,6 +2303,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 clearTimeout(this.application.statusInternalTimer);
                 this.application.statusInternalTimer = undefined;
             }
+            this.waitForVolumeUpdate = { value: obj.state.val, ts: Date.now() };
             void this.sendRequest(`/v1/me/player/volume?volume_percent=${obj.state.val}`, 'PUT', '', true)
                 .catch(err => this.log.error(`could not execute command: ${err}`))
                 .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
@@ -2414,8 +2432,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         const owner = ownerState.val;
         const id = PlayListIdState.val;
-        let o = obj.state.val;
-        o = parseInt(o, 10) || 1;
+        const o = parseInt(obj.state.val, 10) || 1;
         return this.startPlaylist(id, owner, o - 1, true);
     }
     listenOnGetPlaybackInfo() {

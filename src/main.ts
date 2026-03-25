@@ -6,7 +6,7 @@ import querystring from 'node:querystring';
 import { Adapter, type AdapterOptions } from '@iobroker/adapter-core';
 
 import type { SpotifyPremiumAdapterConfig } from './types';
-import Cache from './lib/cache';
+import Cache, { type ListenerParameter } from './lib/cache';
 import { isEmpty, removeNameSpace } from './lib/utils';
 
 export interface AccessTokens {
@@ -19,6 +19,16 @@ export interface AccessTokens {
     scope: string;
     refresh_token: string;
     client_id: string;
+}
+
+interface SpotifyCommandPlay {
+    device_id?: string;
+    context_uri?: string;
+    uris?: string[];
+    offset?: {
+        position: number;
+    };
+    position_ms?: number;
 }
 
 interface SpotifyCommandMe {
@@ -527,6 +537,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         lastPlaylistId: '',
         tokenRefreshTimer: undefined,
     };
+    private waitForVolumeUpdate: null | { ts: number; value: number } = null;
     private artistImageUrlCache: Record<string, string> = {};
     private playlistCache: Record<string, SpotifyPlaylistItem> = {};
     private inaccessiblePlaylists: Set<string> = new Set();
@@ -549,38 +560,54 @@ export class SpotifyPremiumAdapter extends Adapter {
             objectChange: (id: string, obj: ioBroker.Object | null | undefined) =>
                 this.cache.setExternalObj(id, obj as ioBroker.StateObject),
             ready: () => {
-                this.cache.on('authorization.oauth2Tokens', (obj: any) => this.listenOnAuthorized(obj));
-                this.cache.on(/\.useForPlayback$/, (obj: any) => this.listenOnUseForPlayback(obj));
-                this.cache.on(/\.trackList$/, (obj: any) => this.listenOnTrackList(obj), true);
-                this.cache.on(/\.playThisList$/, (obj: any) => this.listenOnPlayThisList(obj));
-                this.cache.on('devices.deviceList', (obj: any) => this.listenOnDeviceList(obj), true);
-                this.cache.on('playlists.playlistList', (obj: any) => this.listenOnPlaylistList(obj), true);
+                this.cache.on('authorization.oauth2Tokens', (obj: ListenerParameter) => this.listenOnAuthorized(obj));
+                this.cache.on(/\.useForPlayback$/, (obj: ListenerParameter) => this.listenOnUseForPlayback(obj));
+                this.cache.on(/\.trackList$/, (obj: ListenerParameter) => this.listenOnTrackList(obj), true);
+                this.cache.on(/\.playThisList$/, (obj: ListenerParameter) => this.listenOnPlayThisList(obj));
+                this.cache.on('devices.deviceList', (obj: ListenerParameter) => this.listenOnDeviceList(obj), true);
+                this.cache.on(
+                    'playlists.playlistList',
+                    (obj: ListenerParameter) => this.listenOnPlaylistList(obj),
+                    true,
+                );
                 this.cache.on('player.play', () => this.listenOnPlay());
-                this.cache.on('player.playUri', (obj: any) => this.listenOnPlayUri(obj));
+                this.cache.on('player.playUri', (obj: ListenerParameter) => this.listenOnPlayUri(obj));
                 this.cache.on('player.pause', () => this.listenOnPause());
-                this.cache.on('player.state', (obj: any) => this.listenOnState(obj), true);
+                this.cache.on('player.state', (obj: ListenerParameter) => this.listenOnState(obj), true);
                 this.cache.on('player.skipPlus', () => this.listenOnSkipPlus());
                 this.cache.on('player.skipMinus', () => this.listenOnSkipMinus());
-                this.cache.on('player.repeat', (obj: any) => this.listenOnRepeat(obj), true);
-                this.cache.on('player.repeatMode', (obj: any) => this.listenOnRepeatMode(obj), true);
+                this.cache.on('player.repeat', (obj: ListenerParameter) => this.listenOnRepeat(obj), true);
+                this.cache.on('player.repeatMode', (obj: ListenerParameter) => this.listenOnRepeatMode(obj), true);
                 this.cache.on('player.repeatTrack', () => this.listenOnRepeatTrack());
                 this.cache.on('player.repeatContext', () => this.listenOnRepeatContext());
                 this.cache.on('player.repeatOff', () => this.listenOnRepeatOff());
-                this.cache.on('player.volume', (obj: any) => this.listenOnVolume(obj), true);
-                this.cache.on('player.progressMs', (obj: any) => this.listenOnProgressMs(obj), true);
-                this.cache.on('player.progressPercentage', (obj: any) => this.listenOnProgressPercentage(obj), true);
+                this.cache.on('player.volume', (obj: ListenerParameter) => this.listenOnVolume(obj), true);
+                this.cache.on('player.progressMs', (obj: ListenerParameter) => this.listenOnProgressMs(obj), true);
+                this.cache.on(
+                    'player.progressPercentage',
+                    (obj: ListenerParameter) => this.listenOnProgressPercentage(obj),
+                    true,
+                );
                 this.cache.on(
                     'player.shuffle',
-                    (obj: any) => this.listenOnShuffle(obj),
+                    (obj: ListenerParameter) => this.listenOnShuffle(obj),
                     this.config.defaultShuffle || 'on',
                 );
-                this.cache.on('player.shuffleBool', (obj: any) => this.listenOnShuffleBool(obj), true);
+                this.cache.on('player.shuffleBool', (obj: ListenerParameter) => this.listenOnShuffleBool(obj), true);
                 this.cache.on('player.shuffleOff', () => this.listenOnShuffleOff());
                 this.cache.on('player.shuffleOn', () => this.listenOnShuffleOn());
-                this.cache.on('player.trackId', (obj: any) => this.listenOnTrackId(obj), true);
-                this.cache.on('player.playlist.id', (obj: any) => this.listenOnPlaylistId(obj), true);
-                this.cache.on('player.playlist.owner', (obj: any) => this.listenOnPlaylistOwner(obj), true);
-                this.cache.on('player.playlist.trackNo', (obj: any) => this.listenOnPlaylistTrackNo(obj), true);
+                this.cache.on('player.trackId', (obj: ListenerParameter) => this.listenOnTrackId(obj), true);
+                this.cache.on('player.playlist.id', (obj: ListenerParameter) => this.listenOnPlaylistId(obj), true);
+                this.cache.on(
+                    'player.playlist.owner',
+                    (obj: ListenerParameter) => this.listenOnPlaylistOwner(obj),
+                    true,
+                );
+                this.cache.on(
+                    'player.playlist.trackNo',
+                    (obj: ListenerParameter) => this.listenOnPlaylistTrackNo(obj),
+                    true,
+                );
                 this.cache.on('getPlaylists', () => this.reloadUsersPlaylist());
                 this.cache.on('getPlaybackInfo', () => this.listenOnGetPlaybackInfo());
                 this.cache.on('getDevices', () => this.listenOnGetDevices());
@@ -2696,7 +2723,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             }
         }
 
-        const send = {
+        const send: SpotifyCommandPlay = {
             context_uri: `spotify:user:${owner}:playlist:${playlist}`,
             offset: {
                 position: trackNo,
@@ -2716,7 +2743,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         }
     }
 
-    async listenOnAuthorized(obj: { state: ioBroker.State }): Promise<void> {
+    async listenOnAuthorized(obj: ListenerParameter): Promise<void> {
         if (obj.state.val) {
             const wasConnected = this.cache.getValue('info.connection');
             let expiresAtMs = 0;
@@ -2764,8 +2791,8 @@ export class SpotifyPremiumAdapter extends Adapter {
         }
     }
 
-    async listenOnUseForPlayback(obj: any): Promise<void> {
-        const lastDeviceId = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`);
+    async listenOnUseForPlayback(obj: ListenerParameter): Promise<void> {
+        const lastDeviceId = obj.id ? this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`) : '';
         if (!lastDeviceId) {
             return;
         }
@@ -2782,21 +2809,21 @@ export class SpotifyPremiumAdapter extends Adapter {
         }
     }
 
-    listenOnTrackList(obj: any): void {
-        if (obj.state.val >= 0) {
-            void this.listenOnPlayThisList(obj, obj.state.val);
+    listenOnTrackList(obj: ListenerParameter): void {
+        if ((obj.state.val as number) >= 0) {
+            void this.listenOnPlayThisList(obj, obj.state.val as number);
         }
     }
 
-    listenOnPlayThisList(obj: { id: string }, pos?: number): Promise<void> | undefined {
+    listenOnPlayThisList(obj: ListenerParameter, pos?: number): Promise<void> | undefined {
         let keepTrack = true;
         if (typeof pos !== 'number') {
             keepTrack = false;
             pos = 0;
         }
         // Play a specific playlist immediately
-        const idState = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`);
-        const ownerState = this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.owner`);
+        const idState = obj.id ? this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.id`) : '';
+        const ownerState = obj.id ? this.cache.getValue(`${obj.id.slice(0, obj.id.lastIndexOf('.'))}.owner`) : '';
         if (!idState || !ownerState) {
             return;
         }
@@ -2805,38 +2832,48 @@ export class SpotifyPremiumAdapter extends Adapter {
         return this.startPlaylist(id as string, owner as string, pos, keepTrack);
     }
 
-    listenOnDeviceList(obj: any): void {
+    listenOnDeviceList(obj: ListenerParameter): void {
         if (!isEmpty(obj.state.val)) {
-            void this.listenOnUseForPlayback({ id: `devices.${obj.state.val}.useForPlayback` });
+            void this.listenOnUseForPlayback({ id: `devices.${obj.state.val}.useForPlayback`, state: obj.state });
         }
     }
 
-    listenOnPlaylistList(obj: any): void {
+    listenOnPlaylistList(obj: ListenerParameter): void {
         if (!isEmpty(obj.state.val)) {
-            void this.listenOnPlayThisList({ id: `playlists.${obj.state.val}.playThisList` });
+            void this.listenOnPlayThisList({ id: `playlists.${obj.state.val}.playThisList`, state: obj.state });
         }
     }
 
-    async listenOnPlayUri(obj: any): Promise<void> {
+    async listenOnPlayUri(obj: ListenerParameter): Promise<void> {
         const query = {
             device_id: this.getSelectedDevice(this.deviceData),
         };
-
-        const send = obj.state.val;
-        if (!isEmpty(send.device_id)) {
-            query.device_id = send.device_id;
-            delete send.device_id;
-        }
-
-        if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
-            this.application.statusInternalTimer = undefined;
+        let command: SpotifyCommandPlay | undefined;
+        if (typeof obj.state.val === 'string' && obj.state.val && obj.state.val.startsWith('{')) {
+            try {
+                command = JSON.parse(obj.state.val);
+                if (command!.device_id) {
+                    query.device_id = command!.device_id;
+                    delete command!.device_id;
+                }
+            } catch {
+                this.log.error(`Cannot parse URI value: ${obj.state.val}`);
+                return;
+            }
+        } else if (obj.state.val && typeof obj.state.val === 'object') {
+            command = obj.state.val as unknown as { device_id?: string };
+            if (command.device_id) {
+                query.device_id = command.device_id;
+                delete (obj.state.val as unknown as { device_id?: string }).device_id;
+            }
+        } else if (obj.state.val && typeof obj.state.val === 'string') {
+            command = { context_uri: obj.state.val };
         }
         try {
             await this.sendRequest(
                 `/v1/me/player/play?${querystring.stringify(query)}`,
                 'PUT',
-                JSON.stringify(send),
+                command ? JSON.stringify(command) : '',
                 true,
             );
         } catch (err) {
@@ -2872,7 +2909,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
 
-    listenOnState(obj: any): void {
+    listenOnState(obj: ListenerParameter): void {
         if (obj.state.val) {
             this.listenOnPlay();
         } else {
@@ -2906,8 +2943,8 @@ export class SpotifyPremiumAdapter extends Adapter {
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
 
-    listenOnRepeat(obj: any): void {
-        if (['track', 'context', 'off'].indexOf(obj.state.val) >= 0) {
+    listenOnRepeat(obj: ListenerParameter): void {
+        if (['track', 'context', 'off'].indexOf(obj.state.val as 'track' | 'context' | 'off') >= 0) {
             if (this.application.statusInternalTimer) {
                 clearTimeout(this.application.statusInternalTimer);
                 this.application.statusInternalTimer = undefined;
@@ -2922,7 +2959,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         this.listenOnRepeat({
             state: {
                 val: 'track',
-            },
+            } as ioBroker.State,
         });
     }
 
@@ -2930,7 +2967,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         this.listenOnRepeat({
             state: {
                 val: 'context',
-            },
+            } as ioBroker.State,
         });
     }
 
@@ -2938,32 +2975,34 @@ export class SpotifyPremiumAdapter extends Adapter {
         this.listenOnRepeat({
             state: {
                 val: 'off',
-            },
+                ack: false,
+            } as ioBroker.State,
         });
     }
 
-    listenOnRepeatMode(obj: any): void {
+    listenOnRepeatMode(obj: ListenerParameter): void {
         const map: Record<number, string> = { 0: 'off', 1: 'context', 2: 'track' };
-        const val = map[obj.state.val];
+        const val = map[obj.state.val as number];
         if (val) {
-            this.listenOnRepeat({ state: { val } });
+            this.listenOnRepeat({ state: { val } as ioBroker.State });
         }
     }
 
-    listenOnVolume(obj: any): void {
+    listenOnVolume(obj: ListenerParameter): void {
         const isPlay = this.cache.getValue('player.isPlaying');
         if (isPlay?.val) {
             if (this.application.statusInternalTimer) {
                 clearTimeout(this.application.statusInternalTimer);
                 this.application.statusInternalTimer = undefined;
             }
+            this.waitForVolumeUpdate = { value: obj.state.val as number, ts: Date.now() };
             void this.sendRequest(`/v1/me/player/volume?volume_percent=${obj.state.val}`, 'PUT', '', true)
                 .catch(err => this.log.error(`could not execute command: ${err}`))
                 .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
         }
     }
 
-    listenOnProgressMs(obj: any): void {
+    listenOnProgressMs(obj: ListenerParameter): void {
         const progress = obj.state.val;
         if (this.application.statusInternalTimer) {
             clearTimeout(this.application.statusInternalTimer);
@@ -2976,11 +3015,11 @@ export class SpotifyPremiumAdapter extends Adapter {
                 if (durationState) {
                     const duration = durationState.val;
 
-                    if (duration > 0 && duration <= progress) {
-                        const progressPercentage = Math.floor((progress / duration) * 100);
+                    if (duration > 0 && duration <= (progress as number)) {
+                        const progressPercentage = Math.floor(((progress as number) / duration) * 100);
                         return Promise.all([
                             this.cache.setValue('player.progressMs', progress),
-                            this.cache.setValue('player.progress', this.convertToDigiClock(progress)),
+                            this.cache.setValue('player.progress', this.convertToDigiClock(progress as number)),
                             this.cache.setValue('player.progressPercentage', progressPercentage),
                         ]);
                     }
@@ -2990,8 +3029,8 @@ export class SpotifyPremiumAdapter extends Adapter {
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
 
-    listenOnProgressPercentage(obj: any): void {
-        const progressPercentage = obj.state.val;
+    listenOnProgressPercentage(obj: ListenerParameter): void {
+        const progressPercentage = obj.state.val as number;
         if (progressPercentage < 0 || progressPercentage > 100) {
             return;
         }
@@ -3018,7 +3057,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         }
     }
 
-    async listenOnShuffle(obj: any): Promise<void> {
+    async listenOnShuffle(obj: ListenerParameter): Promise<void> {
         if (this.application.statusInternalTimer) {
             clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
@@ -3041,7 +3080,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             state: {
                 val: 'off',
                 ack: false,
-            },
+            } as ioBroker.State,
         });
     }
 
@@ -3050,21 +3089,21 @@ export class SpotifyPremiumAdapter extends Adapter {
             state: {
                 val: 'on',
                 ack: false,
-            },
+            } as ioBroker.State,
         });
     }
 
-    listenOnShuffleBool(obj: any): Promise<void> {
+    listenOnShuffleBool(obj: ListenerParameter): Promise<void> {
         return this.listenOnShuffle({
             state: {
                 val: obj.state.val ? 'on' : 'off',
                 ack: false,
-            },
+            } as ioBroker.State,
         });
     }
 
-    listenOnTrackId(obj: any): void {
-        const send = {
+    listenOnTrackId(obj: ListenerParameter): void {
+        const send: SpotifyCommandPlay = {
             uris: [`spotify:track:${obj.state.val}`],
             offset: {
                 position: 0,
@@ -3079,23 +3118,23 @@ export class SpotifyPremiumAdapter extends Adapter {
             .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
 
-    listenOnPlaylistId(obj: any): Promise<void> | undefined {
+    listenOnPlaylistId(obj: ListenerParameter): Promise<void> | undefined {
         const ownerState = this.cache.getValue('player.playlist.owner');
         if (!ownerState) {
             return;
         }
-        return this.startPlaylist(obj.state.val, ownerState.val as string, 0);
+        return this.startPlaylist(obj.state.val as string, ownerState.val as string, 0);
     }
 
-    listenOnPlaylistOwner(obj: any): Promise<void> | undefined {
+    listenOnPlaylistOwner(obj: ListenerParameter): Promise<void> | undefined {
         const PlayListIdState = this.cache.getValue('player.playlist.id');
         if (!PlayListIdState) {
             return;
         }
-        return this.startPlaylist(PlayListIdState.val as string, obj.state.val, 0);
+        return this.startPlaylist(PlayListIdState.val as string, obj.state.val as string, 0);
     }
 
-    listenOnPlaylistTrackNo(obj: any): Promise<void> | undefined {
+    listenOnPlaylistTrackNo(obj: ListenerParameter): Promise<void> | undefined {
         const PlayListIdState = this.cache.getValue('player.playlist.id');
         const ownerState = this.cache.getValue('player.playlist.owner');
         if (!PlayListIdState || !ownerState) {
@@ -3103,8 +3142,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         }
         const owner = ownerState.val;
         const id = PlayListIdState.val;
-        let o = obj.state.val;
-        o = parseInt(o, 10) || 1;
+        const o = parseInt(obj.state.val as string, 10) || 1;
 
         return this.startPlaylist(id as string, owner as string, o - 1, true);
     }
