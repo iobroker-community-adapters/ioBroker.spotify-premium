@@ -848,6 +848,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             this.cache.setValue('player.device.name', deviceName),
             this.cache.setValue('player.device.type', deviceType),
             this.cache.setValue('player.device.volume', { val: deviceVolume, ack: true }),
+            this.cache.setValue('player.volume', { val: deviceVolume, ack: true }),
             this.cache.setValue('player.device.isAvailable', !(0, utils_1.isEmpty)(deviceName)),
             this.cache.setValue('player.device', null, {
                 _id: `${this.namespace}.player.device`,
@@ -1711,6 +1712,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.cache.setValue('player.device.name', ''),
                 this.cache.setValue('player.device.type', ''),
                 this.cache.setValue('player.device.volume', 100),
+                this.cache.setValue('player.volume', { val: 100, ack: true }),
                 this.cache.setValue('player.device.isActive', false),
                 this.cache.setValue('player.device.isAvailable', false),
                 this.cache.setValue('player.device.isRestricted', false),
