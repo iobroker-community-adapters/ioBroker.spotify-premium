@@ -32,5 +32,13 @@
   "playlistInterval": "Refresh interval for playlist information. (in minutes, recommended 15, 0 = disabled)",
   "redirectUri": "Redirect URI",
   "sendLabel": "Copy here the link from other window. Starts with \"http://127.0.0.1/?code=...\" and press \"Send\"",
-  "statusInterval": "Refresh interval for status information. (in seconds, recommended 10, 0 = disabled). Only required if you control Spotify on devices apart from the adapter."
+  "statusInterval": "Refresh interval for status information. (in seconds, recommended 10, 0 = disabled). Only required if you control Spotify on devices apart from the adapter.",
+  "statusIntervalLabel": "Status interval",
+  "statusIntervalHelp": "Suggested value is 10 seconds",
+  "deviceIntervalLabel": "Device interval",
+  "deviceIntervalHelp": "Suggested value is 5 minutes",
+  "playlistIntervalLabel": "Playlist interval",
+  "playlistIntervalHelp": "Suggested value is 15 minutes",
+  "seconds": "seconds",
+  "minutes": "minutes"
 }

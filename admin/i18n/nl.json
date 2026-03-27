@@ -27,10 +27,18 @@
   "manual9": "De browser weigert de verbinding en retourneert een URL in de adresbalk. Als de fout 'invalid redirect uri' wordt weergegeven, controleert u of stap 3 is uitgevoerd.",
   "message": "Nu wordt het nieuwe venster geopend. Voer het wachtwoord in en log in en autoriseer de applicatie.<br/> Nadat de pagina is omgeleid naar \"http://127.0.0.1\" met de fout - \"pagina niet gevonden\".<br/> Kopieer deze URL in het invoerveld hieronder en druk op de knop \"Verzenden\"",
   "off": "uit",
-  "on": "Aan",
+  "on": "aan",
   "on save adapter restarts with new config immediately": "on save-adapter wordt onmiddellijk opnieuw opgestart met nieuwe config",
   "playlistInterval": "Vernieuw interval voor afspeellijstinformatie. (in minuten, aanbevolen 15, 0 = uitgeschakeld)",
   "redirectUri": "Redirect URI",
   "sendLabel": "Kopieer hier de link uit een ander venster. Begint met \"http://127.0.0.1/?code=...\" en druk op \"Verzenden\"",
-  "statusInterval": "Vernieuw interval voor statusinformatie. (in seconden, aanbevolen 10, 0 = uitgeschakeld). Alleen vereist als u Spotify op apparaten anders dan de adapter beheert."
+  "statusInterval": "Vernieuw interval voor statusinformatie. (in seconden, aanbevolen 10, 0 = uitgeschakeld). Alleen vereist als u Spotify op apparaten anders dan de adapter beheert.",
+  "statusIntervalLabel": "Statusinterval",
+  "statusIntervalHelp": "Aanbevolen waarde is 10 seconden",
+  "deviceIntervalLabel": "Apparaatinterval",
+  "deviceIntervalHelp": "Aanbevolen waarde is 5 minuten",
+  "playlistIntervalLabel": "Afspeellijstinterval",
+  "playlistIntervalHelp": "Aanbevolen waarde is 15 minuten",
+  "seconds": "seconden",
+  "minutes": "minuten"
 }

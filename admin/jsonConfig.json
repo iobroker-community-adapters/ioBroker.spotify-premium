@@ -55,7 +55,7 @@
         "delete_devices": {
             "newLine": true,
             "type": "checkbox",
-            "label": "Delete Devices",
+            "label": "deleteDevices",
             "xs": 12,
             "sm": 12,
             "md": 12,
@@ -64,7 +64,7 @@
         },
         "delete_playlists": {
             "type": "checkbox",
-            "label": "Delete Playlists",
+            "label": "deletePlaylists",
             "xs": 12,
             "sm": 12,
             "md": 12,
@@ -74,7 +74,7 @@
         "keep_shuffle_state": {
             "newLine": true,
             "type": "checkbox",
-            "label": "Keep Shuffle State",
+            "label": "keepShuffleState",
             "xs": 12,
             "sm": 12,
             "md": 12,
@@ -83,15 +83,15 @@
         },
         "defaultShuffle": {
             "type": "select",
-            "label": "Default Shuffle Mode",
+            "label": "defaultShuffle",
             "options": [
                 {
                     "value": "on",
-                    "label": "On"
+                    "label": "on"
                 },
                 {
                     "value": "off",
-                    "label": "Off"
+                    "label": "off"
                 }
             ],
             "xs": 12,
@@ -103,8 +103,10 @@
         "status_interval": {
             "newLine": true,
             "type": "number",
-            "label": "Status Interval",
-            "tooltip": "Status Interval_tooltip",
+            "label": "statusIntervalLabel",
+            "tooltip": "statusInterval",
+            "help": "statusIntervalHelp",
+            "unit": "seconds",
             "min": 1,
             "xs": 12,
             "sm": 12,
@@ -114,8 +116,10 @@
         },
         "device_interval": {
             "type": "number",
-            "label": "Device Interval",
-            "tooltip": "Device Interval_tooltip",
+            "label": "deviceIntervalLabel",
+            "tooltip": "deviceInterval",
+            "help": "deviceIntervalHelp",
+            "unit": "minutes",
             "min": 1,
             "xs": 12,
             "sm": 12,
@@ -125,8 +129,10 @@
         },
         "playlist_interval": {
             "type": "number",
-            "label": "Playlist Interval",
-            "tooltip": "Playlist Interval_tooltip",
+            "label": "playlistIntervalLabel",
+            "tooltip": "playlistInterval",
+            "help": "playlistIntervalHelp",
+            "unit": "minutes",
             "min": 1,
             "xs": 12,
             "sm": 12,

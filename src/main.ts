@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosRequestConfig } from 'axios';
 import { lookup } from 'dns-lookup-cache';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -666,7 +666,7 @@ export class SpotifyPremiumAdapter extends Adapter {
         });
     }
 
-    async request(options: any): Promise<any> {
+    async request(options: AxiosRequestConfig): Promise<any> {
         this.log.debug(`[HTTP Request] ${options.method} ${options.url}`);
         if (options.headers) {
             this.log.debug(`[HTTP Headers] ${JSON.stringify(options.headers)}`);
@@ -693,7 +693,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             };
         } catch (error) {
             if (error.response) {
-                // HTTP error with response (4xx, 5xx) - return as normal result so sendRequestDirect can handle it via switch/case
+                // HTTP error with response (4xx, 5xx) - return as normal result, so sendRequestDirect can handle it via switch/case
                 const response = error.response;
                 this.log.debug(`[HTTP Error] ${error.message} for ${options.method} ${options.url}`);
                 return {
@@ -929,16 +929,19 @@ export class SpotifyPremiumAdapter extends Adapter {
         delayAccepted?: boolean,
         tokenRefreshAttempted?: boolean,
     ): Promise<any> {
-        const options = {
+        const options: AxiosRequestConfig = {
             url: this.application.baseUrl + endpoint,
             method,
-            lookup, // DNS caching
+            lookup: lookup as unknown as AxiosRequestConfig['lookup'], // DNS caching
             headers: {
                 Authorization: `Bearer ${this.application.token}`,
             },
-            form: sendBody,
         };
-        this.log.debug(`spotify api call... ${endpoint}; ${options.form}`);
+        if (sendBody) {
+            options.data = sendBody;
+            options.headers!['Content-Type'] = 'application/json';
+        }
+        this.log.debug(`spotify api call... ${endpoint}; ${options.data || ''}`);
         const callStack = new Error().stack;
         void this.setState('authorization.error', '', true);
 
@@ -2769,7 +2772,8 @@ export class SpotifyPremiumAdapter extends Adapter {
             play: true,
         };
         try {
-            await this.sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), true);
+            const response = await this.sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), true);
+            this.log.debug(`listenOnUseForPlayback response: ${JSON.stringify(response)}`);
             setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
         } catch (err) {
             this.log.error(`could not execute command: ${err}`);

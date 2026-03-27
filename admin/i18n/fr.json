@@ -27,10 +27,18 @@
   "manual9": "Le navigateur rejettera la connexion et retournera une URL dans la barre d'adresse. Si l'erreur 'invalid redirect uri' apparaît, assurez-vous que l'étape 3 a bien été effectuée.",
   "message": "Maintenant, la nouvelle fenêtre s'ouvrira. Veuillez entrer le mot de passe et vous connecter et autoriser l'application.<br/> Une fois la page redirigée vers \"http://127.0.0.1\" avec l'erreur - \"page not found\".<br/> Copiez cette URL dans le champ de saisie ci-dessous et appuyez sur le bouton \"Envoyer\"",
   "off": "désactivé",
-  "on": "au",
+  "on": "activé",
   "on save adapter restarts with new config immediately": "sur l'adaptateur de sauvegarde redémarre avec la nouvelle config immédiatement",
   "playlistInterval": "Intervalle d'actualisation pour les informations de playlist. (en minutes, recommandé 15, 0 = désactivé)",
   "redirectUri": "Redirect URI",
   "sendLabel": "Copiez ici le lien d'une autre fenêtre. Commence par \"http://127.0.0.1/?code=...\" et appuyez sur \"Envoyer\"",
-  "statusInterval": "Intervalle d'actualisation pour les informations d'état. (en secondes, recommandé 10, 0 = désactivé). Requis uniquement si vous contrôlez Spotify sur des appareils autres que l'adaptateur."
+  "statusInterval": "Intervalle d'actualisation pour les informations d'état. (en secondes, recommandé 10, 0 = désactivé). Requis uniquement si vous contrôlez Spotify sur des appareils autres que l'adaptateur.",
+  "statusIntervalLabel": "Intervalle de statut",
+  "statusIntervalHelp": "Valeur suggérée : 10 secondes",
+  "deviceIntervalLabel": "Intervalle des appareils",
+  "deviceIntervalHelp": "Valeur suggérée : 5 minutes",
+  "playlistIntervalLabel": "Intervalle des playlists",
+  "playlistIntervalHelp": "Valeur suggérée : 15 minutes",
+  "seconds": "secondes",
+  "minutes": "minutes"
 }

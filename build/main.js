@@ -122,6 +122,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     artistImageUrlCache = {};
     playlistCache = {};
     inaccessiblePlaylists = new Set();
+    playlistFetchCooldown = new Map(); // playlistId -> timestamp when cooldown expires
     deviceData = {
         lastActiveDeviceId: '',
         lastSelectDeviceId: '',
@@ -231,17 +232,26 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return {
                 status: response.status,
                 statusCode: response.status,
+                headers: response.headers,
                 body: typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
                 data: response.data,
             };
         }
         catch (error) {
-            const logLevel = error.response?.status === 404 ? 'debug' : 'error';
-            this.log[logLevel](`[HTTP Error] ${error.message} for ${options.method} ${options.url}`);
             if (error.response) {
-                this.log[logLevel](`[HTTP Error Status] ${error.response.status}`);
-                this.log[logLevel](`[HTTP Error Data] ${typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)}`);
+                // HTTP error with response (4xx, 5xx) - return as normal result, so sendRequestDirect can handle it via switch/case
+                const response = error.response;
+                this.log.debug(`[HTTP Error] ${error.message} for ${options.method} ${options.url}`);
+                return {
+                    status: response.status,
+                    statusCode: response.status,
+                    headers: response.headers,
+                    body: typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
+                    data: response.data,
+                };
             }
+            // Network error (no response) - DNS, timeout, etc.
+            this.log.error(`[HTTP Error] ${error.message} for ${options.method} ${options.url}`);
             throw error;
         }
     }
@@ -449,9 +459,12 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             headers: {
                 Authorization: `Bearer ${this.application.token}`,
             },
-            form: sendBody,
         };
-        this.log.debug(`spotify api call... ${endpoint}; ${options.form}`);
+        if (sendBody) {
+            options.data = sendBody;
+            options.headers['Content-Type'] = 'application/json';
+        }
+        this.log.debug(`spotify api call... ${endpoint}; ${options.data || ''}`);
         const callStack = new Error().stack;
         void this.setState('authorization.error', '', true);
         if (this.tooManyRequests) {
@@ -595,21 +608,16 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     let wait = 1;
                     if (headers?.['retry-after'] && Number(headers['retry-after']) > 0) {
                         wait = Number(headers['retry-after']);
-                        this.tooManyRequests = true;
-                        this.log.warn(`too many requests, wait ${wait}s`);
                     }
-                    try {
-                        await new Promise(resolve => setTimeout(() => resolve(), wait * 1000));
-                        if (this.stopped) {
-                            return null;
-                        }
+                    this.tooManyRequests = true;
+                    this.log.warn(`too many requests on ${endpoint}, wait ${wait}s`);
+                    await new Promise(resolve => setTimeout(() => resolve(), wait * 1000));
+                    if (this.stopped) {
                         this.tooManyRequests = false;
-                        return await this.sendRequest(endpoint, method, sendBody, delayAccepted);
+                        return null;
                     }
-                    catch (error) {
-                        this.log.debug(error);
-                    }
-                    break;
+                    this.tooManyRequests = false;
+                    return await this.sendRequest(endpoint, method, sendBody, delayAccepted);
                 }
                 default: {
                     this.log.warn('http request error not handled, please debug');
@@ -633,58 +641,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             return ret;
         }
-        catch (axiosError) {
-            // Handle AxiosError - when axios throws an error with no response or error response
-            if (!axiosError.response) {
-                // Network error, DNS error, timeout, etc. - not Spotify's fault
-                this.log.error(`network request error on ${endpoint}: ${axiosError.message}`);
-                if (isTransientNetworkError(axiosError)) {
-                    throw new Error('503');
-                }
-                throw axiosError;
+        catch (error) {
+            // Network error (no response from server) - DNS, timeout, connection refused, etc.
+            this.log.error(`network request error on ${endpoint}: ${error.message}`);
+            if (isTransientNetworkError(error)) {
+                throw new Error('503');
             }
-            // AxiosError with response status - process like normal error
-            const errorStatusCode = axiosError.response.status;
-            const body = axiosError.response.data;
-            this.log.debug(`spotify api error response: ${errorStatusCode} on ${endpoint}`);
-            // Handle 401 specifically - try token refresh
-            if (errorStatusCode === 401 && !tokenRefreshAttempted) {
-                this.log.warn(`Received 401 Unauthorized on ${endpoint} (via error) - attempting automatic token refresh`);
-                try {
-                    await Promise.all([
-                        this.cache.setValue('authorization.authorized', false),
-                        this.cache.setValue('info.connection', false),
-                        this.cache.setValue('player.reachable', false),
-                    ]);
-                    this.log.debug('Starting token refresh (from error handler)...');
-                    await this.refreshToken();
-                    this.log.info('Token refresh successful - reconnecting');
-                    await Promise.all([
-                        this.cache.setValue('authorization.authorized', true),
-                        this.cache.setValue('info.connection', true),
-                        this.cache.setValue('player.reachable', true),
-                    ]);
-                    const result = await this.sendRequest(endpoint, method, sendBody, delayAccepted, true);
-                    this.log.info(`Request retry after token refresh successful for ${endpoint}`);
-                    return result;
-                }
-                catch (err) {
-                    this.log.error(`Token refresh or retry failed for ${endpoint}: ${err}`);
-                    throw err;
-                }
-            }
-            if (errorStatusCode === 403 && endpoint.includes('/playlists/') && endpoint.includes('/tracks')) {
-                this.log.debug(`playlist tracks access denied (403) on ${endpoint}; skipping`);
-                throw new Error(errorStatusCode.toString());
-            }
-            if (errorStatusCode === 404 && endpoint.includes('/playlists/')) {
-                // Personalized editorial playlists (e.g. 37i9dQZF1DW...) are not accessible via the Playlist API
-                this.log.debug(`playlist not accessible via API (404) on ${endpoint}; this is normal for Spotify editorial playlists`);
-                throw new Error(errorStatusCode.toString());
-            }
-            // For other error codes - just reject
-            this.log.error(`request failed with status ${errorStatusCode} on ${endpoint}: ${typeof body === 'string' ? body : JSON.stringify(body)}`);
-            throw new Error(errorStatusCode.toString());
+            throw error;
         }
     }
     loadOrDefault(obj, name, defaultVal) {
@@ -1094,17 +1057,30 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     this.log.debug(`playlist ${playlistId} is known to be inaccessible, skipping API call`);
                 }
                 else {
-                    try {
-                        const parseJson = await this.sendRequest(`/v1/playlists/${playlistId}?${node_querystring_1.default.stringify(query)}`, 'GET', '');
-                        await refreshPlaylist(parseJson);
+                    // Check if this playlist is on cooldown (e.g. after a 429 error)
+                    const cooldownUntil = this.playlistFetchCooldown.get(playlistId);
+                    if (cooldownUntil && Date.now() < cooldownUntil) {
+                        this.log.debug(`playlist ${playlistId} fetch on cooldown, skipping API call`);
                     }
-                    catch (error) {
-                        if (error.message === '404') {
-                            this.inaccessiblePlaylists.add(playlistId);
-                            this.log.info(`playlist ${playlistId} is not accessible via Spotify API (editorial playlist); will not retry`);
+                    else {
+                        this.playlistFetchCooldown.delete(playlistId);
+                        try {
+                            const parseJson = await this.sendRequest(`/v1/playlists/${playlistId}?${node_querystring_1.default.stringify(query)}`, 'GET', '');
+                            await refreshPlaylist(parseJson);
                         }
-                        else {
-                            this.log.debug(error);
+                        catch (error) {
+                            if (error.message === '404') {
+                                this.inaccessiblePlaylists.add(playlistId);
+                                this.log.info(`playlist ${playlistId} is not accessible via Spotify API (editorial playlist); will not retry`);
+                            }
+                            else if (error.message === '429') {
+                                // Rate limited - put playlist on 5 minute cooldown to break the retry loop
+                                this.playlistFetchCooldown.set(playlistId, Date.now() + 5 * 60 * 1000);
+                                this.log.warn(`playlist ${playlistId} fetch rate limited (429), cooldown for 5 minutes`);
+                            }
+                            else {
+                                this.log.debug(error);
+                            }
                         }
                     }
                 }
@@ -2130,7 +2106,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             play: true,
         };
         try {
-            await this.sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), true);
+            const response = await this.sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), true);
+            this.log.debug(`listenOnUseForPlayback response: ${JSON.stringify(response)}`);
             setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
         }
         catch (err) {
@@ -2455,6 +2432,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     clearCache() {
         this.artistImageUrlCache = {};
         this.playlistCache = {};
+        this.playlistFetchCooldown.clear();
         if (this.application.cacheClearHandle) {
             clearTimeout(this.application.cacheClearHandle);
             this.application.cacheClearHandle = undefined;

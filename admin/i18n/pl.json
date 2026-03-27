@@ -27,10 +27,18 @@
   "manual9": "przeglądarka przekieruje do nieprawidłowego adresu URL. Jeśli wystąpi błąd 'invalid redirect uri', sprawdź krok 3",
   "message": "Teraz otworzy się nowe okno. Wprowadź hasło i login oraz autoryzuj aplikację.<br/> Po przekierowaniu strony na „http://127.0.0.1” z błędem „nie znaleziono strony”.<br/> Skopiuj ten adres URL do pola wejściowego poniżej i naciśnij przycisk „Wyślij”",
   "off": "wyłączony",
-  "on": "na",
+  "on": "włączony",
   "on save adapter restarts with new config immediately": "na karcie save natychmiast uruchamia się z nową konfiguracją",
   "playlistInterval": "Interwał odświeżania informacji o liście odtwarzania. (w minutach, zalecane 15, 0 = wyłączone)",
   "redirectUri": "Redirect URI",
   "sendLabel": "Skopiuj tutaj link z innego okna. Zaczyna się od „http://127.0.0.1/?code=...” i naciśnij „Wyślij”",
-  "statusInterval": "Interwał odświeżania dla informacji o stanie. (w sekundach zalecany 10, 0 = wyłączony). Wymagany tylko wtedy, gdy kontrolujesz Spotify na urządzeniach z wyjątkiem adaptera."
+  "statusInterval": "Interwał odświeżania dla informacji o stanie. (w sekundach zalecany 10, 0 = wyłączony). Wymagany tylko wtedy, gdy kontrolujesz Spotify na urządzeniach z wyjątkiem adaptera.",
+  "statusIntervalLabel": "Interwał statusu",
+  "statusIntervalHelp": "Zalecana wartość to 10 sekund",
+  "deviceIntervalLabel": "Interwał urządzeń",
+  "deviceIntervalHelp": "Zalecana wartość to 5 minut",
+  "playlistIntervalLabel": "Interwał playlist",
+  "playlistIntervalHelp": "Zalecana wartość to 15 minut",
+  "seconds": "sekund",
+  "minutes": "minut"
 }
