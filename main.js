@@ -10,9 +10,9 @@ const ownUtils = require('./lib/utils');
 
 const { lookup } = require('dns-lookup-cache');
 
-const querystring = require('querystring');
-const http = require('http');
-const url = require('url');
+const querystring = require('node:querystring');
+const http = require('node:http');
+const url = require('node:url');
 
 const axios = require('axios');
 
