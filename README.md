@@ -31,8 +31,8 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 ### Setup / Authorization
 1. Sign in on https://developer.spotify.com/dashboard/
-2. Create an application, you get a Client ID and a Client Secret
-3. Set the redirect URIs to `http://127.0.0.1` in your app settings at your created spotify application
+2. Create an application, you get a Client ID and a Client Secret (see [instruction](docs/create_app.png))
+3. Set the redirect URIs to `https://oauth2.iobroker.in/spotify` in your app settings at your created spotify application
 4. Put the Client ID and Client Secret in the fields down below
 5. Start the instance
 6. Switch to the objects tab and push the button getAuthorization at `spotify-premium.0.authorization`
@@ -41,6 +41,8 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 9. The browser will be redirected to an invalid URL. If the error `invalid redirect uri` occurs please verify step 3
 10. Copy that url and put it to `spotify-premium.0.authorization.authorizationReturnUri`
 11. The value in `spotify-premium.0.authorization.authorized` turns to true if everything was successful
+
+We must provide a HTTPS redirect URI as from December 2025 spotify does not allow non secure URIs anymore.
 
 #### [Video tutorial](https://www.youtube.com/watch?v=n0m9201qABU)
 [![How to authorize](https://img.youtube.com/vi/n0m9201qABU/0.jpg "https://www.youtube.com/watch?v=n0m9201qABU")](https://www.youtube.com/watch?v=n0m9201qABU)
@@ -100,6 +102,10 @@ Click for widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+- (@GermanBluefox) Rewrite adapter to TypeScript
+- (@GermanBluefox) Authorization process was changed and user must authenticate anew
+
 ### 1.6.0 (2026-02-28)
 - (mcm1957) Issues reported by repository checker have been fixed
 - (mightymurphy) stabilized token refresh and improved widget behavior
@@ -113,7 +119,7 @@ Click for widget source.
 
 ### 1.5.6 (2025-12-08)
 - (aruttkamp) dev dependencies aktualisiert
-- (mcm1957) adapter reuires node.js 20 now
+- (mcm1957) adapter requires node.js 20 now
 - (aruttkamp) dev dependencies aktualisiert
 - (aruttkamp) correct issues detected by repsoitory checker [#421]
 - (aruttkamp) changes redirect URI and docu
