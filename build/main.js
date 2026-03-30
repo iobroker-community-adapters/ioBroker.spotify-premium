@@ -773,7 +773,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     async createPlaybackInfo(data) {
         data ||= {};
-        const deviceId = data.device?.id || '';
+        const deviceId = this.cleanDeviceId(data.device?.id || '');
         const isDeviceActive = data.device?.is_active || false;
         const isDeviceRestricted = data.device?.is_restricted || false;
         const deviceName = data.device?.name || '';
@@ -1495,7 +1495,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         const addedList = [];
         const fn = async (device) => {
-            const deviceId = this.loadOrDefault(device, 'id', '');
+            const deviceId = this.cleanDeviceId(this.loadOrDefault(device, 'id', ''));
+            device.id = deviceId;
             const deviceName = this.loadOrDefault(device, 'name', '');
             if ((0, utils_1.isEmpty)(deviceName)) {
                 this.log.warn('empty device name');

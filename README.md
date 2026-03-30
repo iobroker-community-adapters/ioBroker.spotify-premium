@@ -105,7 +105,7 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 2.0.0 (2026-03-30)
 - (@GermanBluefox) Rewrite adapter to TypeScript
 - (@GermanBluefox) An Authorization process was changed and user must authenticate anew
 
@@ -132,9 +132,6 @@ Click for the widget source.
 
 ### 1.5.2 (2024-12-16)
 - (aruttkamp) ESLint 9 implemented
-
-### 1.5.1 (2024-12-16)
-- (aruttkamp) Testing Node 22.x implemented
 
 ## License
 The MIT License (MIT)
