@@ -1272,7 +1272,7 @@ export class SpotifyPremiumAdapter extends Adapter {
 
     async createPlaybackInfo(data: SpotifyCommandPlayer): Promise<void> {
         data ||= {} as SpotifyCommandPlayer;
-        const deviceId = data.device?.id || '';
+        const deviceId = this.cleanDeviceId(data.device?.id || '');
         const isDeviceActive = data.device?.is_active || false;
         const isDeviceRestricted = data.device?.is_restricted || false;
         const deviceName = data.device?.name || '';
@@ -2115,7 +2115,8 @@ export class SpotifyPremiumAdapter extends Adapter {
             type: string;
             volume_percent: number;
         }): Promise<void> => {
-            const deviceId = this.loadOrDefault<string>(device, 'id', '');
+            const deviceId = this.cleanDeviceId(this.loadOrDefault<string>(device, 'id', ''));
+            device.id = deviceId;
             const deviceName = this.loadOrDefault<string>(device, 'name', '');
             if (isEmpty(deviceName)) {
                 this.log.warn('empty device name');
