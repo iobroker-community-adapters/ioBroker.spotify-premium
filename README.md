@@ -105,7 +105,7 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### 2.0.0 (2026-03-30)
+### **WORK IN PROGRESS**
 - (@GermanBluefox) Rewrite adapter to TypeScript
 - (@GermanBluefox) An Authorization process was changed and user must authenticate anew
 
@@ -113,7 +113,7 @@ Click for the widget source.
 - (mcm1957) Issues reported by repository checker have been fixed
 - (mightymurphy) stabilized token refresh and improved widget behavior
 - (copilot) Adapter requires admin >= 7.7.22 now
-- (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep>
+- (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep
 - (copilot) Improved error handling and logging for token refresh
 - (copilot) Device polling now continues during temporary authentication issues (401) instead of stopping.
 - (copilot) Next Track button widget name corrected

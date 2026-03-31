@@ -3,19 +3,6 @@
     "name": "spotify-premium",
     "version": "2.0.0",
     "news": {
-      "2.0.0": {
-        "en": "Rewrite adapter to TypeScript\nAn Authorization process was changed and user must authenticate anew",
-        "de": "Rewrite Adapter für TypeScript\nEin Autorisierungsprozess wurde geändert und der Benutzer muss eine neue authentifizieren",
-        "ru": "Переписать адаптер на TypeScript\nПроцесс авторизации был изменен, и пользователь должен подтвердить подлинность заново",
-        "pt": "Reescrever o adaptador para o TypeScript\nUm processo de autorização foi alterado e o usuário deve autenticar novamente",
-        "nl": "Herschrijf de adapter naar TypeScript\nEen autorisatieproces werd gewijzigd en gebruiker moet opnieuw authenticeren",
-        "fr": "Réécrire l'adaptateur pour TypeScript\nUn processus d'autorisation a été modifié et l'utilisateur doit s'authentifier à nouveau",
-        "it": "Riscrivere l'adattatore a TypeScript\nUn processo di autorizzazione è stato modificato e l'utente deve autenticarsi di nuovo",
-        "es": "Adaptador de reescritura a TipoScript\nSe cambió un proceso de autorización y el usuario debe autenticar de nuevo",
-        "pl": "Przepisz adapter na TypeScript\nProces autoryzacji został zmieniony i użytkownik musi uwierzytelniać ponownie",
-        "uk": "Перезапис адаптера до TypeScript\nПроцес авторизації змінився і користувач повинен автентифікувати новий",
-        "zh-cn": "重写适配器到类型脚本\n授权程序已更改, 用户必须重新认证"
-      },
       "1.6.0": {
         "en": "Issues reported by repository checker have been fixed\nstabilized token refresh and improved widget behavior\nAdapter requires admin >= 7.7.22 now\nMerge pull request 522 from mightymurphy and 521 from michiproep>\nImproved error handling and logging for token refresh\nDevice polling now continues during temporary authentication issues (401) instead of stopping.\nNext Track button widget name corrected\nWidget image paths fixed to use `/vis/widgets/` instead of relative path for proper display in VIS\nDependencies have been updated",
         "de": "Vom Repository-Checker gemeldete Probleme wurden behoben\nstabilisiertes token-erfrischung und verbessertes widget-verhalten\nAdapter benötigt admin >= 7.7.22 jetzt\nMerge Pull Anfrage 522 von mayymurphy und 521 von michiproep>\nVerbesserte Fehlerbehandlung und Protokollierung für Token-Erfrischung\nDie Gerätebefragung erfolgt nun bei temporären Authentifizierungsproblemen (401) statt Stoppen.\nNächster Track Schaltfläche Widget Name korrigiert\nWidget-Bildpfade festgelegt, um `/vis/widgets/` anstelle des relativen Pfades für die richtige Anzeige in VIS zu verwenden\nAbhängigkeiten wurden aktualisiert",
