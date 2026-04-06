@@ -105,7 +105,7 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### 2.0.2 (2026-04-06)
+### **WORK IN PROGRESS**
 - (mcm1957) Adapter requires admin >= 7.8.9 now
 - (mcm1957) adapter requires js-controller >= 6.0.11 now
 - (mcm1957) Dependencies have been updated
