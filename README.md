@@ -105,6 +105,11 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+- (mcm1957) Adapter requires admin >= 7.8.9 now
+- (mcm1957) adapter requires js-controller >= 6.0.11 now
+- (mcm1957) Dependencies have been updated
+
 ### 2.0.1 (2026-03-31)
 - (@GermanBluefox) Rewrite adapter to TypeScript
 - (@GermanBluefox) An Authorization process was changed and user must authenticate anew
