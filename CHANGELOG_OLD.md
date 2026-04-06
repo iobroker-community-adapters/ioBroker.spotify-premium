@@ -1,4 +1,7 @@
 # Older changes
+## 1.5.2 (2024-12-16)
+- (aruttkamp) ESLint 9 implemented
+
 ## 1.5.1 (2024-12-16)
 - (aruttkamp) Testing Node 22.x implemented
 

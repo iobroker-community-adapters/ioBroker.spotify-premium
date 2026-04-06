@@ -105,7 +105,7 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 2.0.2 (2026-04-06)
 - (mcm1957) Adapter requires admin >= 7.8.9 now
 - (mcm1957) adapter requires js-controller >= 6.0.11 now
 - (mcm1957) Dependencies have been updated
@@ -134,9 +134,6 @@ Click for the widget source.
 
 ### 1.5.3 (2025-04-15)
 - (aruttkamp) redirect URI changed [#429]
-
-### 1.5.2 (2024-12-16)
-- (aruttkamp) ESLint 9 implemented
 
 ## License
 The MIT License (MIT)

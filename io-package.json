@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "news": {
+      "2.0.2": {
+        "en": "Adapter requires admin >= 7.8.9 now\nadapter requires js-controller >= 6.0.11 now\nDependencies have been updated",
+        "de": "Adapter benötigt admin >= 7.8.9 jetzt\nadapter benötigt jetzt js-controller >= 6.0.11\nAbhängigkeiten wurden aktualisiert",
+        "ru": "Адаптер требует администратора >= 7.8.9\nадаптер требует js-контроллер >= 6.0.11\nЗависимости были обновлены",
+        "pt": "Adaptador requer admin >= 7.8.9 agora\nadaptador requer js-controlador >= 6.0.11 agora\nAs dependências foram atualizadas",
+        "nl": "Adapter vereist admin < 7,8.9 nu\nadapter vereist js-controller >= 6.0.11 nu\nAfhankelijkheden zijn bijgewerkt",
+        "fr": "Adaptateur nécessite admin >= 7.8.9 maintenant\nadaptateur nécessite js-controller >= 6.0.11 maintenant\nLes dépendances ont été actualisées",
+        "it": "L'adattatore richiede admin >= 7.8.9 ora\nadattatore richiede js-controller >= 6.0.11 ora\nLe dipendenze sono state aggiornate",
+        "es": "Adaptador requiere administración= 7.8.9 ahora\nadaptador requiere js-controller >= 6.0.11\nSe han actualizado las dependencias",
+        "pl": "Adapter wymaga admin > = 7.8.9\nadapter wymaga sterownika js- > = 6.0.11\nZaktualizowano zależności",
+        "uk": "Адаптер вимагає адмін >= 7.8.9 зараз\nадаптер вимагає js-controller >= 6.0.11 тепер\nЗалежність було оновлено",
+        "zh-cn": "适配器现在需要管理\\\\ 7.8.9\n适配器需要js控制器 >= 6.0.11 现在\n依赖关系已更新"
+      },
       "2.0.1": {
         "en": "Rewrite adapter to TypeScript\nAn Authorization process was changed and user must authenticate anew",
         "de": "Rewrite Adapter für TypeScript\nEin Autorisierungsprozess wurde geändert und der Benutzer muss eine neue authentifizieren",
