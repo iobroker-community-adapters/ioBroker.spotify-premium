@@ -105,7 +105,7 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 3.0.0 (2026-05-17)
 - (copilot) Adapter requires node.js >= 22 now
 - (@GermanBluefox) Updated packages
 
@@ -136,12 +136,7 @@ Click for the widget source.
 - (aruttkamp) correct issues detected by repository checker [#421]
 - (aruttkamp) changes redirect URI and docu
 
-### 1.5.3 (2025-04-15)
-- (aruttkamp) redirect URI changed [#429]
-
-[Older changelogs can be found there](CHANGELOG_OLD.md)
-
-## License
+[Older changelogs can be found there](CHANGELOG_OLD.md)## License
 The MIT License (MIT)
 
 Copyright (c) 2024-2026 iobroker-community-adapters <iobroker-community-adapters@gmx.de>  

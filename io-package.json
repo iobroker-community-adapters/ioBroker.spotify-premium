@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "2.0.3",
+    "version": "3.0.0",
     "news": {
+      "3.0.0": {
+        "en": "Adapter requires node.js >= 22 now\nUpdated packages",
+        "de": "Adapter benötigt node.js >= 22 jetzt\nAktualisierte Pakete",
+        "ru": "Адаптер требует node.js >= 22 сейчас\nОбновленные пакеты",
+        "pt": "Adaptador requer nod.js >= 22 agora\nPacotes atualizados",
+        "nl": "Voor de adapter zijn node.js < 22 nu nodig\nBijgewerkte pakketten",
+        "fr": "Adaptateur nécessite node.js >= 22 maintenant\nPaquets mis à jour",
+        "it": "Adattatore richiede node.js >= 22 ora\nPacchetti aggiornati",
+        "es": "Adaptador requiere node.js ю= 22 ahora\nPaquetes actualizados",
+        "pl": "Adapter wymaga node.js > = 22\nAktualizacja pakietów",
+        "uk": "Адаптер вимагає node.js >= 22 тепер\nОновлені пакети",
+        "zh-cn": "适配器需要节点.js 现在22\n更新软件包"
+      },
       "2.0.3": {
         "en": "Adapter requires admin >= 7.8.9 now\nadapter requires js-controller >= 6.0.11 now\nDependencies have been updated",
         "de": "Adapter benötigt admin >= 7.8.9 jetzt\nadapter benötigt jetzt js-controller >= 6.0.11\nAbhängigkeiten wurden aktualisiert",

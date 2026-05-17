@@ -1,4 +1,8 @@
 # Older changes
+## 1.5.3 (2025-04-15)
+- (aruttkamp) redirect URI changed [#429]
+
+
 ## 1.5.2 (2024-12-16)
 - (aruttkamp) ESLint 9 implemented
 
