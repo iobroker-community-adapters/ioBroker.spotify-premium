@@ -107,6 +107,7 @@ Click for the widget source.
 -->
 ### **WORK IN PROGRESS**
 - (copilot) Adapter requires node.js >= 22 now
+- (@GermanBluefox) Updated packages
 
 ### 2.0.3 (2026-04-06)
 - (mcm1957) Adapter requires admin >= 7.8.9 now

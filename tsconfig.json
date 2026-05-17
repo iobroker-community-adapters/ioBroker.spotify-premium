@@ -6,7 +6,7 @@
         // the compilation is configured in tsconfig.build.json
         "noEmit": true,
 
-        // check JS files, but do not compile them => tsconfig.build.json
+        // check JS files but do not compile them => tsconfig.build.json
         "allowJs": true,
         "checkJs": true,
 
@@ -32,6 +32,7 @@
 
         // Consider targeting es2022 or higher if you only support Node.js 12+
         "target": "es2022",
+        "rootDir": "src",
 
         "sourceMap": true,
         "inlineSourceMap": false,
