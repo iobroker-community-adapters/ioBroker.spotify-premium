@@ -105,6 +105,9 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+- (copilot) Adapter requires node.js >= 22 now
+
 ### 2.0.3 (2026-04-06)
 - (mcm1957) Adapter requires admin >= 7.8.9 now
 - (mcm1957) adapter requires js-controller >= 6.0.11 now
@@ -134,6 +137,8 @@ Click for the widget source.
 
 ### 1.5.3 (2025-04-15)
 - (aruttkamp) redirect URI changed [#429]
+
+[Older changelogs can be found there](CHANGELOG_OLD.md)
 
 ## License
 The MIT License (MIT)
