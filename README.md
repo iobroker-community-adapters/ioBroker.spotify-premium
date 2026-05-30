@@ -136,7 +136,9 @@ Click for the widget source.
 - (aruttkamp) correct issues detected by repository checker [#421]
 - (aruttkamp) changes redirect URI and docu
 
-[Older changelogs can be found there](CHANGELOG_OLD.md)## License
+[Older changelogs can be found there](CHANGELOG_OLD.md)
+
+## License
 The MIT License (MIT)
 
 Copyright (c) 2024-2026 iobroker-community-adapters <iobroker-community-adapters@gmx.de>  
