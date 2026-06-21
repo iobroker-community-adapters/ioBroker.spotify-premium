@@ -1313,6 +1313,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     /**
      * Strip Amazon Echo suffixes (_amzn_1, _amzn_2, etc.) from Spotify device IDs.
      * The Spotify API returns these suffixes for Echo devices but rejects them in playback commands.
+     *
+     * @param id
      */
     cleanDeviceId(id) {
         return id.replace(/_amzn_\d+$/, '');
@@ -2172,6 +2174,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
         }
         else if (obj.state.val && typeof obj.state.val === 'object') {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             command = obj.state.val;
             if (command.device_id) {
                 query.device_id = command.device_id;

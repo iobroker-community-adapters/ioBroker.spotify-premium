@@ -2843,7 +2843,8 @@ export class SpotifyPremiumAdapter extends Adapter {
                 return;
             }
         } else if (obj.state.val && typeof obj.state.val === 'object') {
-            command = obj.state.val;
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            command = obj.state.val as SpotifyCommandPlay;
             if (command.device_id) {
                 query.device_id = command.device_id;
                 delete (obj.state.val as unknown as { device_id?: string }).device_id;
