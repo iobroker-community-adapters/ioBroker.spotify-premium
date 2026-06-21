@@ -105,9 +105,10 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### 3.0.0 (2026-05-17)
+### **WORK IN PROGRESS**
 - (copilot) Adapter requires node.js >= 22 now
 - (@GermanBluefox) Updated packages
+- (mcm1957) Dependencies have been updated
 
 ### 2.0.3 (2026-04-06)
 - (mcm1957) Adapter requires admin >= 7.8.9 now
