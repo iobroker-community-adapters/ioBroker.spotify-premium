@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "news": {
+      "3.0.1": {
+        "en": "Linter issues fixed blocking release process\nDependencies have been updated",
+        "de": "Linter-Probleme behoben, die den Freigabeprozess blockierten\nDie Abhängigkeiten wurden aktualisiert.",
+        "ru": "Исправлены проблемы линтера, препятствующие процессу выпуска.\nЗависимости обновлены.",
+        "pt": "Problemas com o linter que bloqueavam o processo de lançamento foram corrigidos.\nAs dependências foram atualizadas.",
+        "nl": "Problemen met de linter opgelost die het releaseproces blokkeerden.\nAfhankelijkheden zijn bijgewerkt.",
+        "fr": "Les problèmes de linter bloquant le processus de publication ont été résolus.\nLes dépendances ont été mises à jour",
+        "it": "Risolti i problemi di Linter che bloccavano il processo di rilascio.\nLe dipendenze sono state aggiornate",
+        "es": "El linter solucionó los problemas que bloqueaban el proceso de lanzamiento.\nSe han actualizado las dependencias.",
+        "pl": "Linter publikuje poprawki blokujące proces udostępniania\nZaktualizowano zależności",
+        "uk": "Виправлені проблеми з Linter, що блокують процес випуску\nЗалежності оновлено",
+        "zh-cn": "Linter 问题已修复，但阻碍了发布流程。\n依赖项已更新"
+      },
       "3.0.0": {
         "en": "Adapter requires node.js >= 22 now\nUpdated packages",
         "de": "Adapter benötigt node.js >= 22 jetzt\nAktualisierte Pakete",
@@ -80,19 +93,6 @@
         "pl": "przekierowanie URI zmienione [# 429]",
         "uk": "змінено [#429]",
         "zh-cn": "重定向 URI 更改 [# 429]"
-      },
-      "1.5.2": {
-        "en": "ESLint 9 implemented",
-        "de": "ESLint 9 implementiert",
-        "ru": "ESLint 9 реализован",
-        "pt": "ESLint 9 implementado",
-        "nl": "ESLint 9 geïmplementeerd",
-        "fr": "ESLint 9 mis en œuvre",
-        "it": "ESLint 9 implementato",
-        "es": "ESLint 9 implemented",
-        "pl": "Wdrożenie ESLint 9",
-        "uk": "ESLint 9 реалізований",
-        "zh-cn": "已执行ESLint 9"
       }
     },
     "titleLang": {
