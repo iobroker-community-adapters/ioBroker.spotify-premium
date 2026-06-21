@@ -106,9 +106,12 @@ Click for the widget source.
     ### **WORK IN PROGRESS**
 -->
 ### **WORK IN PROGRESS**
+- (mcm1957) Linter issues fixed blocking release process
+- (mcm1957) Dependencies have been updated
+
+### 3.0.0 (2026-05-17)
 - (copilot) Adapter requires node.js >= 22 now
 - (@GermanBluefox) Updated packages
-- (mcm1957) Dependencies have been updated
 
 ### 2.0.3 (2026-04-06)
 - (mcm1957) Adapter requires admin >= 7.8.9 now
