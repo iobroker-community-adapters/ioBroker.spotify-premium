@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.4.1",
-    "axios": "^1.16.1",
+    "axios": "^1.17.0",
     "dns-lookup-cache": "^1.0.4"
   },
   "devDependencies": {
