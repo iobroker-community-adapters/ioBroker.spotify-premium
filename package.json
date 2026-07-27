@@ -25,7 +25,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.4.1",
+    "@iobroker/adapter-core": "^3.4.3",
     "axios": "^1.17.0",
     "dns-lookup-cache": "^1.0.4"
   },
