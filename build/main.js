@@ -324,6 +324,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     this.log.debug(`updating role of ${def._id}: "${obj.common.role}" -> "${def.common.role}"`);
                     obj.common.role = def.common.role;
                     await this.setObjectAsync(fullId, obj);
+                    // The cache was filled before the sync; otherwise setObjectStatesIfChanged() would write the old role back
+                    this.cache.setExternalObj(fullId, obj);
                 }
             }
             catch {
@@ -694,13 +696,18 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     createOrDefault(obj, name, stateId, defaultVal, description, type, states) {
         const t = this.loadOrDefault(obj, name, defaultVal);
+        const roleByType = {
+            boolean: 'indicator',
+            number: 'value',
+            object: 'json',
+        };
         const object = {
             _id: stateId,
             type: 'state',
             common: {
                 name: description,
                 type,
-                role: 'value',
+                role: roleByType[type] || 'text',
                 write: false,
                 read: true,
             },
@@ -759,7 +766,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 common: {
                     name: '',
                     type: 'string',
-                    role: 'value',
+                    role: 'text',
                     states: null,
                     read: true,
                     write: true,
@@ -1288,7 +1295,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     common: {
                         name: 'Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track. First track is 0',
                         type: 'mixed',
-                        role: 'value',
+                        role: 'state',
                         states: stateObj,
                         read: true,
                         write: true,
@@ -1602,7 +1609,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     common: {
                         name: 'can used for playing',
                         type: 'boolean',
-                        role: 'value',
+                        role: 'indicator',
                         read: true,
                         write: false,
                     },
