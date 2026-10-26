@@ -105,6 +105,9 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (GermanBluefox) Use /playlists/{id}/items instead of the removed /tracks endpoint (Spotify API change Feb 2026); 403 on single playlists no longer sets the instance to error (#630)
+
 ### 3.0.1 (2026-06-21)
 - (mcm1957) Linter issues fixed blocking release process
 - (mcm1957) Dependencies have been updated

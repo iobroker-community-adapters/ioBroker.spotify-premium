@@ -52,6 +52,7 @@ class RequestQueue {
 const TOKEN_REFRESH_SKEW_MS = 10 * 60 * 1000; // Refresh 10 minutes before expiry
 const TOKEN_REFRESH_MIN_DELAY_MS = 30 * 1000; // Avoid immediate refresh loops
 const TOKEN_REFRESH_RETRY_DELAY_MS = 60 * 1000; // Retry quickly on transient network failures
+const PLAYLIST_NOT_ACCESSIBLE = '403 playlist not accessible'; // 403 on /v1/playlists/{id}/items
 function getErrorMessage(error) {
     if (!error) {
         return '';
@@ -583,6 +584,16 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             throw err;
                         }
                     }
+                    else if (statusCode === 403 && /^\/v1\/playlists\/[^/?]+\/items/.test(endpoint)) {
+                        // 403 on a single playlist (e.g. not owned by the user in Spotify Development Mode).
+                        // This is not a token or connection problem, so do not set the instance to error
+                        const playlistId = endpoint.split('/')[3];
+                        if (!this.inaccessiblePlaylists.has(playlistId)) {
+                            this.inaccessiblePlaylists.add(playlistId);
+                            this.log.info(`Playlist ${playlistId} is not accessible (403), probably not owned by the user (Spotify Development Mode), will not retry`);
+                        }
+                        throw new Error(PLAYLIST_NOT_ACCESSIBLE);
+                    }
                     else {
                         if (statusCode === 401 && tokenRefreshAttempted) {
                             this.log.error(`Authentication failed (401) on endpoint: ${endpoint} - Token refresh did not resolve the issue`);
@@ -642,6 +653,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return ret;
         }
         catch (error) {
+            if (error.message === PLAYLIST_NOT_ACCESSIBLE) {
+                // Already logged once per playlist
+                throw error;
+            }
             // Network error (no response from server) - DNS, timeout, connection refused, etc.
             this.log.error(`network request error on ${endpoint}: ${error.message}`);
             if (isTransientNetworkError(error)) {
@@ -960,7 +975,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 const playlistImage = parseJson?.images?.[0]?.url || '';
                 contextImage = playlistImage;
                 const ownerId = parseJson?.owner?.id || '';
-                const trackCount = parseJson?.tracks?.total || 0;
+                const trackCount = parseJson?.items?.total ?? parseJson?.tracks?.total ?? 0;
                 const prefix = this.shrinkStateName(`${ownerId}-${playlistId}`);
                 const cacheEntry = {
                     id: playlistId,
@@ -1010,7 +1025,17 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 const state = this.cache.getValue(`playlists.${prefix}.trackListIds`);
                 const ids = state?.val || '';
                 if ((0, utils_1.isEmpty)(ids)) {
-                    throw new Error('no ids in trackListIds');
+                    // e.g. playlist is not accessible (403) or contains no tracks
+                    this.log.debug(`no track ids for playlist ${playlistId}`);
+                    await Promise.all([
+                        this.cache.setValue('player.playlist.trackListNumber', ''),
+                        this.cache.setValue('player.playlist.trackListString', ''),
+                        this.cache.setValue('player.playlist.trackListStates', ''),
+                        this.cache.setValue('player.playlist.trackListIdMap', ''),
+                        this.cache.setValue('player.playlist.trackListIds', ''),
+                        this.cache.setValue('player.playlist.trackListArray', ''),
+                    ]);
+                    return;
                 }
                 const stateName = ids.split(';');
                 const stateArr = {};
@@ -1181,7 +1206,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
             const playlistId = item.id || '';
             const ownerId = item.owner?.id || '';
-            const trackCount = item.tracks?.total || 0;
+            const trackCount = item.items?.total ?? item.tracks?.total ?? 0;
             const imageUrl = item.images?.[0]?.url || '';
             this.playlistCache[`${ownerId}-${playlistId}`] = {
                 id: playlistId,
@@ -1216,7 +1241,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.createOrDefault(item, 'id', `${prefix}.id`, '', 'playlist id', 'string'),
                 this.createOrDefault(item, 'owner.id', `${prefix}.owner`, '', 'playlist owner', 'string'),
                 this.createOrDefault(item, 'name', `${prefix}.name`, '', 'playlist name', 'string'),
-                this.createOrDefault(item, 'tracks.total', `${prefix}.tracksTotal`, '', 'number of songs', 'number'),
+                this.createOrDefault({ total: trackCount }, 'total', `${prefix}.tracksTotal`, '', 'number of songs', 'number'),
                 this.createOrDefault(item, 'images[0].url', `${prefix}.imageUrl`, '', 'image url', 'string'),
             ]);
             const playlistObject = await this.getPlaylistTracks(ownerId, playlistId);
@@ -1344,6 +1369,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             trackIds: '',
             songs: [],
         };
+        if (this.inaccessiblePlaylists.has(id)) {
+            this.log.debug(`playlist ${id} is known to be inaccessible, skipping track list request`);
+            return playlistObject;
+        }
         let offset = 0;
         while (true) {
             const query = {
@@ -1353,26 +1382,29 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             try {
                 // Wait 1s between Playlist updates to avoid getting rate limited
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                const data = await this.sendRequest(`/v1/playlists/${id}/tracks?${node_querystring_1.default.stringify(query)}`, 'GET', '');
+                const data = await this.sendRequest(`/v1/playlists/${id}/items?${node_querystring_1.default.stringify(query)}`, 'GET', '');
                 let i = offset;
                 const no = i.toString();
                 data.items.forEach((item) => {
-                    const trackId = item.track?.id || '';
+                    // Since February 2026 the track object is delivered in "item" instead of "track"
+                    const t = item.item ?? item.track;
+                    const trackId = t?.id || '';
                     if ((0, utils_1.isEmpty)(trackId)) {
+                        // e.g. local files or episodes
                         return this.log.debug(`There was a playlist track ignored because of missing id; playlist: ${id}; track no: ${no}`);
                     }
-                    const artist = this.getArtistNamesOrDefault(item, 'track.artists');
-                    const artistArray = this.getArtistArrayOrDefault(item, 'track.artists');
-                    const trackName = item.track?.name || '';
-                    const trackDuration = item.track?.duration_ms || 0;
+                    const artist = this.getArtistNamesOrDefault({ item: t }, 'item.artists');
+                    const artistArray = this.getArtistArrayOrDefault(t, 'artists');
+                    const trackName = t?.name || '';
+                    const trackDuration = t?.duration_ms || 0;
                     const addedAt = item.addedAt || '';
                     const addedBy = item.addedBy || '';
-                    const trackAlbumId = item.track?.album.id || '';
-                    const trackAlbumName = item.track?.album.name || '';
-                    const trackDiscNumber = item.track?.disc_number || 1;
-                    const trackEpisode = item.track?.episode || false;
-                    const trackExplicit = item.track?.explicit || false;
-                    const trackPopularity = item.track?.popularity || 0;
+                    const trackAlbumId = t?.album.id || '';
+                    const trackAlbumName = t?.album.name || '';
+                    const trackDiscNumber = t?.disc_number || 1;
+                    const trackEpisode = t?.episode || false;
+                    const trackExplicit = t?.explicit || false;
+                    const trackPopularity = t?.popularity || 0;
                     if (playlistObject.songs.length > 0) {
                         playlistObject.stateString += ';';
                         playlistObject.listString += ';';
