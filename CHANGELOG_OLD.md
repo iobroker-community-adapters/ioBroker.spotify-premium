@@ -1,11 +1,21 @@
 # Older changes
+## 1.6.0 (2026-02-28)
+- (mcm1957) Issues reported by repository checker have been fixed
+- (mightymurphy) stabilized token refresh and improved widget behavior
+- (copilot) Adapter requires admin >= 7.7.22 now
+- (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep
+- (copilot) Improved error handling and logging for token refresh
+- (copilot) Device polling now continues during temporary authentication issues (401) instead of stopping.
+- (copilot) Next Track button widget name corrected
+- (copilot) Widget image paths fixed to use `/vis/widgets/` instead of a relative path for proper display in VIS
+- (mcm1957) Dependencies have been updated
+
 ## 1.5.6 (2025-12-08)
 - (aruttkamp) dev dependencies aktualisiert
 - (mcm1957) adapter requires node.js 20 now
 - (aruttkamp) dev dependencies aktualisiert
 - (aruttkamp) correct issues detected by repository checker [#421]
 - (aruttkamp) changes redirect URI and docu
-
 
 ## 1.5.3 (2025-04-15)
 - (aruttkamp) redirect URI changed [#429]

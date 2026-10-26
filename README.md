@@ -111,7 +111,7 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 3.1.0 (2026-10-26)
 * (GermanBluefox) Use /playlists/{id}/items instead of the removed /tracks endpoint (Spotify API change Feb 2026); 403 on single playlists no longer sets the instance to error (#630)
 * (GermanBluefox) Handle expired/revoked refresh tokens (`invalid_grant`, Spotify limits refresh tokens to 6 months since July 2026): the token is discarded, polling stops and the user is asked to authorize again instead of retrying the refresh (#588)
 * (GermanBluefox) State roles corrected according to the ioBroker role definitions (e.g. `text`, `indicator`, `json` instead of `value`), existing objects are updated on start (#628)
@@ -135,20 +135,7 @@ Click for the widget source.
 - (@GermanBluefox) Rewrite adapter to TypeScript
 - (@GermanBluefox) An Authorization process was changed and user must authenticate anew
 
-### 1.6.0 (2026-02-28)
-- (mcm1957) Issues reported by repository checker have been fixed
-- (mightymurphy) stabilized token refresh and improved widget behavior
-- (copilot) Adapter requires admin >= 7.7.22 now
-- (aruttkamp) Merge pull request 522 from mightymurphy and 521 from michiproep
-- (copilot) Improved error handling and logging for token refresh
-- (copilot) Device polling now continues during temporary authentication issues (401) instead of stopping.
-- (copilot) Next Track button widget name corrected
-- (copilot) Widget image paths fixed to use `/vis/widgets/` instead of a relative path for proper display in VIS
-- (mcm1957) Dependencies have been updated
-
-[Older changelogs can be found there](CHANGELOG_OLD.md)
-
-## License
+[Older changelogs can be found there](CHANGELOG_OLD.md)## License
 The MIT License (MIT)
 
 Copyright (c) 2024-2026 iobroker-community-adapters <iobroker-community-adapters@gmx.de>  
