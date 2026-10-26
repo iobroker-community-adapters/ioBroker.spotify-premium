@@ -53,6 +53,7 @@ const TOKEN_REFRESH_SKEW_MS = 10 * 60 * 1000; // Refresh 10 minutes before expir
 const TOKEN_REFRESH_MIN_DELAY_MS = 30 * 1000; // Avoid immediate refresh loops
 const TOKEN_REFRESH_RETRY_DELAY_MS = 60 * 1000; // Retry quickly on transient network failures
 const PLAYLIST_NOT_ACCESSIBLE = '403 playlist not accessible'; // 403 on /v1/playlists/{id}/items
+const REAUTHORIZATION_REQUIRED = 'reauthorization required'; // refresh token expired or revoked (invalid_grant)
 function getErrorMessage(error) {
     if (!error) {
         return '';
@@ -364,7 +365,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
         }
         catch (err) {
-            this.log.warn(err);
+            if (err?.message !== REAUTHORIZATION_REQUIRED) {
+                this.log.warn(err);
+            }
             await Promise.all([
                 this.cache.setValue('authorization.authorized', false),
                 this.cache.setValue('info.connection', false),
@@ -428,6 +431,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             this.refreshToken()
                 .then(() => this.log.info('Proactive token refresh successful'))
                 .catch(err => {
+                if (err?.message === REAUTHORIZATION_REQUIRED) {
+                    // Already reported by discardTokens()
+                    return;
+                }
                 this.log.error(`Proactive token refresh failed: ${err}`);
                 if (isTransientNetworkError(err)) {
                     this.log.warn(`Proactive token refresh failed due temporary network issue; retrying in ${Math.round(TOKEN_REFRESH_RETRY_DELAY_MS / 1000)}s`);
@@ -453,6 +460,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         return this.requestQueue.add(() => this.sendRequestDirect(endpoint, method, sendBody, delayAccepted, tokenRefreshAttempted));
     }
     async sendRequestDirect(endpoint, method, sendBody, delayAccepted, tokenRefreshAttempted) {
+        if (!this.application.token) {
+            // No valid token (never authorized or refresh token expired): do not call the API until the user authorizes again
+            throw new Error(REAUTHORIZATION_REQUIRED);
+        }
         const options = {
             url: this.application.baseUrl + endpoint,
             method,
@@ -547,7 +558,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             if (err.toString().includes('202')) {
                                 this.log.debug(`${err} request accepted but no data, try again`);
                             }
-                            else {
+                            else if (err?.message !== REAUTHORIZATION_REQUIRED) {
                                 this.log.error(`Token refresh or retry failed for ${endpoint}: ${err}`);
                             }
                             throw err;
@@ -578,7 +589,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             if (err.toString().includes('202')) {
                                 this.log.debug(`${err} request accepted but no data, try again`);
                             }
-                            else {
+                            else if (err?.message !== REAUTHORIZATION_REQUIRED) {
                                 this.log.error(`error on request data again. ${err}`);
                             }
                             throw err;
@@ -1806,10 +1817,19 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         throw err instanceof Error ? err : new Error(String(err));
                     }
                 }
-                this.log.error(`Token refresh failed with status code: ${statusCode}`);
+                if (statusCode === 400 && response.data?.error === 'invalid_grant') {
+                    // Refresh token expired (max. 6 months since July 2026) or was revoked.
+                    // Spotify requires not to retry the refresh: discard the token and let the user authorize again
+                    await this.discardTokens(response.data.error_description || 'invalid_grant');
+                    throw new Error(REAUTHORIZATION_REQUIRED);
+                }
+                this.log.error(`Token refresh failed with status code: ${statusCode}${body ? `: ${body}` : ''}`);
                 throw new Error(String(statusCode));
             })
                 .catch(error => {
+                if (error?.message === REAUTHORIZATION_REQUIRED) {
+                    throw error;
+                }
                 this.log.error(`Token refresh request failed: ${error.message || error}`);
                 if (error?.response) {
                     const responseData = error.response.data;
@@ -1834,6 +1854,36 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         this.log.error(JSON.stringify(data));
         throw new Error('no tokens found in server response');
+    }
+    /**
+     * Called when Spotify rejects the refresh token with invalid_grant (expired after 6 months or revoked).
+     * Discards the stored tokens and stops polling until the user authorizes the adapter again in the instance settings.
+     *
+     * @param reason error description returned by Spotify
+     */
+    async discardTokens(reason) {
+        for (const timer of [
+            'tokenRefreshTimer',
+            'statusPollingHandle',
+            'devicePollingHandle',
+            'playlistPollingHandle',
+        ]) {
+            if (this.application[timer]) {
+                clearTimeout(this.application[timer]);
+                this.application[timer] = undefined;
+            }
+        }
+        this.application.token = '';
+        this.application.refreshToken = '';
+        const message = `Spotify authorization is no longer valid (${reason}). Spotify refresh tokens expire after 6 months. Please open the instance settings and authorize the adapter with Spotify again.`;
+        this.log.error(message);
+        await Promise.all([
+            this.cache.setValue('authorization.oauth2Tokens', ''),
+            this.cache.setValue('authorization.authorized', false),
+            this.cache.setValue('info.connection', false),
+            this.cache.setValue('player.reachable', false),
+            this.setStateAsync('authorization.error', message, true),
+        ]);
     }
     async increaseTime(durationMs, progressMs, startDate, count) {
         const now = Date.now();
@@ -1925,6 +1975,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         catch (err) {
             const errStr = err.toString();
+            if (errStr.includes(REAUTHORIZATION_REQUIRED)) {
+                // Polling is started again after the user authorized the adapter again
+                this.log.debug('status polling paused until the adapter is authorized again');
+                return;
+            }
             if (!errStr.includes('202')) {
                 this.application.error202shown = false;
             }
@@ -2002,6 +2057,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         catch (err) {
             const errStr = err.toString();
+            if (errStr.includes(REAUTHORIZATION_REQUIRED)) {
+                this.log.debug('device polling paused until the adapter is authorized again');
+                return;
+            }
             if (errStr.includes('401') ||
                 errStr.includes('429') ||
                 errStr.includes('500') ||
