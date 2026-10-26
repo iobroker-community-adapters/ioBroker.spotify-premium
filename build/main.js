@@ -825,9 +825,17 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         let contextDescription = '';
         let contextImage = '';
-        const album = data.item?.album?.name || '';
-        const albumUrl = data.item?.album?.images?.[0]?.url || '';
-        const artist = this.getArtistNamesOrDefault(data, 'item.artists');
+        // Podcast episodes have no album and no artists: use the show and its publisher instead
+        const isEpisode = data.item?.type === 'episode';
+        const showName = data.item?.show?.name || '';
+        const showImage = data.item?.show?.images?.[0]?.url || '';
+        const album = isEpisode ? showName : data.item?.album?.name || '';
+        const albumUrl = isEpisode
+            ? data.item?.images?.[0]?.url || showImage
+            : data.item?.album?.images?.[0]?.url || '';
+        const artist = isEpisode
+            ? data.item?.show?.publisher || ''
+            : this.getArtistNamesOrDefault(data, 'item.artists');
         if (type === 'album') {
             contextDescription = `Album: ${album}`;
             contextImage = albumUrl;
@@ -838,6 +846,14 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         else if (type === 'track') {
             contextDescription = 'Track';
             // tracks has no images
+            contextImage = albumUrl;
+        }
+        else if (type === 'show') {
+            contextDescription = `Show: ${showName}`;
+            contextImage = showImage;
+        }
+        else if (type === 'episode') {
+            contextDescription = 'Episode';
             contextImage = albumUrl;
         }
         const shuffle = data.shuffle_state || false;
@@ -967,6 +983,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             let set = '';
             if (urls.length !== 0) {
                 set = urls[0];
+            }
+            else if (isEpisode) {
+                set = showImage;
             }
             if (type === 'artist') {
                 contextImage = set;
@@ -1974,7 +1993,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         }
         this.log.debug('call status polling');
         try {
-            const data = await this.sendRequest('/v1/me/player', 'GET', '');
+            // Without additional_types=episode Spotify returns no item while a podcast episode is playing
+            const data = await this.sendRequest('/v1/me/player?additional_types=episode', 'GET', '');
             void this.createPlaybackInfo(data);
             if (!noReschedule) {
                 this.scheduleStatusPolling();
@@ -2280,7 +2300,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
         }
         else if (obj.state.val && typeof obj.state.val === 'string') {
-            command = { context_uri: obj.state.val };
+            // Single tracks and podcast episodes cannot be played as context (only albums, artists, playlists and shows)
+            command = /^spotify:(track|episode):/.test(obj.state.val)
+                ? { uris: [obj.state.val] }
+                : { context_uri: obj.state.val };
         }
         try {
             await this.sendRequest(`/v1/me/player/play?${node_querystring_1.default.stringify(query)}`, 'PUT', command ? JSON.stringify(command) : '', true);
