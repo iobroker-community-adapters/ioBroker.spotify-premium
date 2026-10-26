@@ -14,9 +14,13 @@ const cache_1 = __importDefault(require("./lib/cache"));
 const utils_1 = require("./lib/utils");
 // Request queue to prevent rate limiting (429 errors)
 class RequestQueue {
+    adapter;
     queue = [];
     isProcessing = false;
     minDelayMs = 2500; // Minimum delay between requests in milliseconds (~0.4 req/sec = ~24 req/min, ultra-conservative for Spotify)
+    constructor(adapter) {
+        this.adapter = adapter;
+    }
     add(fn) {
         return new Promise((resolve, reject) => {
             this.queue.push({ fn, resolve, reject });
@@ -34,7 +38,7 @@ class RequestQueue {
             .then(result => {
             resolve(result);
             // Small delay to prevent rate limiting
-            setTimeout(() => {
+            this.adapter.setTimeout(() => {
                 this.isProcessing = false;
                 this.process();
             }, this.minDelayMs);
@@ -42,7 +46,7 @@ class RequestQueue {
             .catch(error => {
             reject(error);
             // Small delay even on error to prevent rate limiting
-            setTimeout(() => {
+            this.adapter.setTimeout(() => {
                 this.isProcessing = false;
                 this.process();
             }, this.minDelayMs);
@@ -132,7 +136,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     stopped = false;
     tooManyRequests = false;
     refreshTokenInFlight = null;
-    requestQueue = new RequestQueue();
+    requestQueue = new RequestQueue(this);
     cache = new cache_1.default(this);
     constructor(options = {}) {
         super({
@@ -180,27 +184,27 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             unload: callback => {
                 this.stopped = true;
                 if (this.application.statusPollingHandle) {
-                    clearTimeout(this.application.statusPollingHandle);
+                    this.clearTimeout(this.application.statusPollingHandle);
                     this.application.statusPollingHandle = undefined;
                 }
                 if (this.application.statusInternalTimer) {
-                    clearTimeout(this.application.statusInternalTimer);
+                    this.clearTimeout(this.application.statusInternalTimer);
                     this.application.statusInternalTimer = undefined;
                 }
                 if (this.application.devicePollingHandle) {
-                    clearTimeout(this.application.devicePollingHandle);
+                    this.clearTimeout(this.application.devicePollingHandle);
                     this.application.devicePollingHandle = undefined;
                 }
                 if (this.application.playlistPollingHandle) {
-                    clearTimeout(this.application.playlistPollingHandle);
+                    this.clearTimeout(this.application.playlistPollingHandle);
                     this.application.playlistPollingHandle = undefined;
                 }
                 if (this.application.cacheClearHandle) {
-                    clearTimeout(this.application.cacheClearHandle);
+                    this.clearTimeout(this.application.cacheClearHandle);
                     this.application.cacheClearHandle = undefined;
                 }
                 if (this.application.tokenRefreshTimer) {
-                    clearTimeout(this.application.tokenRefreshTimer);
+                    this.clearTimeout(this.application.tokenRefreshTimer);
                     this.application.tokenRefreshTimer = undefined;
                 }
                 void Promise.all([
@@ -414,7 +418,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     scheduleTokenRefresh(expiresAtMs, source) {
         if (this.application.tokenRefreshTimer) {
-            clearTimeout(this.application.tokenRefreshTimer);
+            this.clearTimeout(this.application.tokenRefreshTimer);
             this.application.tokenRefreshTimer = undefined;
         }
         if (!expiresAtMs || !this.application.refreshToken) {
@@ -424,7 +428,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const refreshAtMs = Math.max(expiresAtMs - TOKEN_REFRESH_SKEW_MS, now + TOKEN_REFRESH_MIN_DELAY_MS);
         const delayMs = Math.max(refreshAtMs - now, TOKEN_REFRESH_MIN_DELAY_MS);
         this.log.debug(`Scheduling token refresh in ${Math.round(delayMs / 1000)}s (${source})`);
-        this.application.tokenRefreshTimer = setTimeout(() => {
+        this.application.tokenRefreshTimer = this.setTimeout(() => {
             this.application.tokenRefreshTimer = undefined;
             if (this.stopped) {
                 return;
@@ -441,9 +445,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 if (isTransientNetworkError(err)) {
                     this.log.warn(`Proactive token refresh failed due temporary network issue; retrying in ${Math.round(TOKEN_REFRESH_RETRY_DELAY_MS / 1000)}s`);
                     if (this.application.tokenRefreshTimer) {
-                        clearTimeout(this.application.tokenRefreshTimer);
+                        this.clearTimeout(this.application.tokenRefreshTimer);
                     }
-                    this.application.tokenRefreshTimer = setTimeout(() => {
+                    this.application.tokenRefreshTimer = this.setTimeout(() => {
                         this.application.tokenRefreshTimer = undefined;
                         if (this.stopped) {
                             return;
@@ -635,7 +639,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     }
                     this.tooManyRequests = true;
                     this.log.warn(`too many requests on ${endpoint}, wait ${wait}s`);
-                    await new Promise(resolve => setTimeout(() => resolve(), wait * 1000));
+                    await this.delay(wait * 1000);
                     if (this.stopped) {
                         this.tooManyRequests = false;
                         return null;
@@ -1330,7 +1334,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             ]);
         };
         for (let i = 0; i < parseJson.items.length; i++) {
-            await new Promise(resolve => setTimeout(() => !this.stopped && resolve(), 1000));
+            // this.delay() never resolves while the adapter is stopping
+            await this.delay(1000);
             try {
                 await fn(parseJson.items[i]);
             }
@@ -1418,7 +1423,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             };
             try {
                 // Wait 1s between Playlist updates to avoid getting rate limited
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await this.delay(1000);
                 const data = await this.sendRequest(`/v1/playlists/${id}/items?${node_querystring_1.default.stringify(query)}`, 'GET', '');
                 let i = offset;
                 const no = i.toString();
@@ -1895,7 +1900,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             'playlistPollingHandle',
         ]) {
             if (this.application[timer]) {
-                clearTimeout(this.application[timer]);
+                this.clearTimeout(this.application[timer]);
                 this.application[timer] = undefined;
             }
         }
@@ -1936,7 +1941,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         if (!updates.length) {
             if (count > 0) {
                 if (progressMs + 1000 > durationMs) {
-                    setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
+                    this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
                 }
                 else {
                     const state = this.cache.getValue('player.isPlaying');
@@ -1950,7 +1955,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         await Promise.all(updates);
         if (count > 0) {
             if (progressMs + 1000 > durationMs) {
-                setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
+                this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
             }
             else {
                 const state = this.cache.getValue('player.isPlaying');
@@ -1962,9 +1967,9 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     scheduleStatusInternalTimer(durationMs, progressMs, startDate, count) {
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
         }
-        this.application.statusInternalTimer = setTimeout(() => {
+        this.application.statusInternalTimer = this.setTimeout(() => {
             this.application.statusInternalTimer = undefined;
             if (!this.stopped) {
                 this.increaseTime(durationMs, progressMs, startDate, count).catch(err => this.log.error(JSON.stringify(err)));
@@ -1973,12 +1978,12 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     scheduleStatusPolling() {
         if (this.application.statusPollingHandle) {
-            clearTimeout(this.application.statusPollingHandle);
+            this.clearTimeout(this.application.statusPollingHandle);
             this.application.statusPollingHandle = undefined;
         }
         if (this.application.statusPollingDelaySeconds > 0) {
             // Status polling has no offset (base timing)
-            this.application.statusPollingHandle = setTimeout(() => {
+            this.application.statusPollingHandle = this.setTimeout(() => {
                 this.application.statusPollingHandle = undefined;
                 if (!this.stopped) {
                     void this.pollStatusApi().catch(e => this.log.error(e));
@@ -1988,7 +1993,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     async pollStatusApi(noReschedule) {
         if (!noReschedule) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         this.log.debug('call status polling');
@@ -2047,13 +2052,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     scheduleDevicePollingWithOffset() {
         if (this.application.devicePollingHandle) {
-            clearTimeout(this.application.devicePollingHandle);
+            this.clearTimeout(this.application.devicePollingHandle);
             this.application.devicePollingHandle = undefined;
         }
         if (this.application.devicePollingDelaySeconds > 0) {
             // Device polling offset: 1/3 of status interval (stagger from status)
             const offsetMs = (this.application.statusPollingDelaySeconds * 1000) / 3;
-            this.application.devicePollingHandle = setTimeout(() => {
+            this.application.devicePollingHandle = this.setTimeout(() => {
                 this.application.devicePollingHandle = undefined;
                 if (!this.stopped) {
                     this.pollDeviceApi().catch(e => this.log.error(e));
@@ -2063,11 +2068,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     scheduleDevicePolling() {
         if (this.application.devicePollingHandle) {
-            clearTimeout(this.application.devicePollingHandle);
+            this.clearTimeout(this.application.devicePollingHandle);
             this.application.devicePollingHandle = undefined;
         }
         if (this.application.devicePollingDelaySeconds > 0) {
-            this.application.devicePollingHandle = setTimeout(() => {
+            this.application.devicePollingHandle = this.setTimeout(() => {
                 this.application.devicePollingHandle = undefined;
                 if (!this.stopped) {
                     this.pollDeviceApi().catch(e => this.log.error(e));
@@ -2113,11 +2118,11 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
     }
     schedulePlaylistPolling() {
         if (this.application.playlistPollingHandle) {
-            clearTimeout(this.application.playlistPollingHandle);
+            this.clearTimeout(this.application.playlistPollingHandle);
             this.application.playlistPollingHandle = undefined;
         }
         if (this.application.playlistPollingDelaySeconds > 0) {
-            this.application.playlistPollingHandle = setTimeout(() => {
+            this.application.playlistPollingHandle = this.setTimeout(() => {
                 this.application.playlistPollingHandle = undefined;
                 if (!this.stopped) {
                     this.pollPlaylistApi();
@@ -2163,7 +2168,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         };
         try {
             await this.sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), true);
-            setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
+            this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
         }
         catch (err) {
             this.log.error(`could not start playlist ${playlist} of user ${owner}; error: ${err}`);
@@ -2199,10 +2204,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 // Device polling starts after small offset (~1/3 of status interval)
                 const deviceOffset = (this.application.statusPollingDelaySeconds * 1000) / 3;
                 if (this.application.devicePollingHandle) {
-                    clearTimeout(this.application.devicePollingHandle);
+                    this.clearTimeout(this.application.devicePollingHandle);
                     this.application.devicePollingHandle = undefined;
                 }
-                this.application.devicePollingHandle = setTimeout(() => {
+                this.application.devicePollingHandle = this.setTimeout(() => {
                     this.application.devicePollingHandle = undefined;
                     if (!this.stopped) {
                         this.scheduleDevicePolling();
@@ -2211,10 +2216,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 // Playlist polling starts after larger offset (~2/3 of status interval)
                 const playlistOffset = (this.application.statusPollingDelaySeconds * 1000 * 2) / 3;
                 if (this.application.playlistPollingHandle) {
-                    clearTimeout(this.application.playlistPollingHandle);
+                    this.clearTimeout(this.application.playlistPollingHandle);
                     this.application.playlistPollingHandle = undefined;
                 }
-                this.application.playlistPollingHandle = setTimeout(() => {
+                this.application.playlistPollingHandle = this.setTimeout(() => {
                     this.application.playlistPollingHandle = undefined;
                     if (!this.stopped) {
                         this.schedulePlaylistPolling();
@@ -2236,7 +2241,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         try {
             const response = await this.sendRequest('/v1/me/player', 'PUT', JSON.stringify(send), true);
             this.log.debug(`listenOnUseForPlayback response: ${JSON.stringify(response)}`);
-            setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
+            this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
         }
         catch (err) {
             this.log.error(`could not execute command: ${err}`);
@@ -2311,7 +2316,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         catch (err) {
             this.log.error(`could not execute command: ${err}`);
         }
-        setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
+        this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
     }
     listenOnPlay() {
         const query = {
@@ -2319,24 +2324,24 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         };
         this.log.debug(this.getSelectedDevice(this.deviceData));
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         void this.sendRequest(`/v1/me/player/play?${node_querystring_1.default.stringify(query)}`, 'PUT', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
-            .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+            .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
     listenOnPause() {
         const query = {
             device_id: this.getSelectedDevice(this.deviceData),
         };
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         void this.sendRequest(`/v1/me/player/pause?${node_querystring_1.default.stringify(query)}`, 'PUT', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
-            .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+            .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
     listenOnState(obj) {
         if (obj.state.val) {
@@ -2351,34 +2356,34 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             device_id: this.getSelectedDevice(this.deviceData),
         };
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         void this.sendRequest(`/v1/me/player/next?${node_querystring_1.default.stringify(query)}`, 'POST', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
-            .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+            .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
     listenOnSkipMinus() {
         const query = {
             device_id: this.getSelectedDevice(this.deviceData),
         };
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         void this.sendRequest(`/v1/me/player/previous?${node_querystring_1.default.stringify(query)}`, 'POST', '', true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
-            .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+            .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
     listenOnRepeat(obj) {
         if (['track', 'context', 'off'].indexOf(obj.state.val) >= 0) {
             if (this.application.statusInternalTimer) {
-                clearTimeout(this.application.statusInternalTimer);
+                this.clearTimeout(this.application.statusInternalTimer);
                 this.application.statusInternalTimer = undefined;
             }
             void this.sendRequest(`/v1/me/player/repeat?state=${obj.state.val}`, 'PUT', '', true)
                 .catch(err => this.log.error(`could not execute command: ${err}`))
-                .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+                .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
         }
     }
     listenOnRepeatTrack() {
@@ -2414,19 +2419,19 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         const isPlay = this.cache.getValue('player.isPlaying');
         if (isPlay?.val) {
             if (this.application.statusInternalTimer) {
-                clearTimeout(this.application.statusInternalTimer);
+                this.clearTimeout(this.application.statusInternalTimer);
                 this.application.statusInternalTimer = undefined;
             }
             this.waitForVolumeUpdate = { value: obj.state.val, ts: Date.now() };
             void this.sendRequest(`/v1/me/player/volume?volume_percent=${obj.state.val}`, 'PUT', '', true)
                 .catch(err => this.log.error(`could not execute command: ${err}`))
-                .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+                .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
         }
     }
     listenOnProgressMs(obj) {
         const progress = obj.state.val;
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         void this.sendRequest(`/v1/me/player/seek?position_ms=${progress}`, 'PUT', '', true)
@@ -2445,7 +2450,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             }
         })
             .catch(err => this.log.error(`could not execute command: ${err}`))
-            .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+            .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
     listenOnProgressPercentage(obj) {
         const progressPercentage = obj.state.val;
@@ -2453,7 +2458,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return;
         }
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         const durationState = this.cache.getValue('player.durationMs');
@@ -2468,13 +2473,13 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                     this.cache.setValue('player.progressPercentage', progressPercentage),
                 ]))
                     .catch(err => this.log.error(`could not execute command: ${err}`))
-                    .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+                    .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
             }
         }
     }
     async listenOnShuffle(obj) {
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         try {
@@ -2483,7 +2488,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         catch (err) {
             this.log.error(`could not execute command: ${err}`);
         }
-        setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
+        this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
     }
     listenOnShuffleOff() {
         return this.listenOnShuffle({
@@ -2517,12 +2522,12 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             },
         };
         if (this.application.statusInternalTimer) {
-            clearTimeout(this.application.statusInternalTimer);
+            this.clearTimeout(this.application.statusInternalTimer);
             this.application.statusInternalTimer = undefined;
         }
         void this.sendRequest('/v1/me/player/play', 'PUT', JSON.stringify(send), true)
             .catch(err => this.log.error(`could not execute command: ${err}`))
-            .then(() => setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
+            .then(() => this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000));
     }
     listenOnPlaylistId(obj) {
         const ownerState = this.cache.getValue('player.playlist.owner');
@@ -2566,10 +2571,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         this.playlistCache = {};
         this.playlistFetchCooldown.clear();
         if (this.application.cacheClearHandle) {
-            clearTimeout(this.application.cacheClearHandle);
+            this.clearTimeout(this.application.cacheClearHandle);
             this.application.cacheClearHandle = undefined;
         }
-        this.application.cacheClearHandle = setTimeout(() => {
+        this.application.cacheClearHandle = this.setTimeout(() => {
             this.application.cacheClearHandle = undefined;
             if (!this.stopped) {
                 this.clearCache();
