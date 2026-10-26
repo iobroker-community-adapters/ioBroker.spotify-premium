@@ -110,7 +110,7 @@
     },
     "authors": [
       "Lucky",
-      "Alexander Kose",
+      "Alexander Kose <twonky4@gmx.de>",
       "iobroker-community-adapters <mcm57@gmx.at>"
     ],
     "keywords": [
@@ -238,7 +238,7 @@
       "_id": "playlists.playlistList",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "Available playlist saved in common part. Change this value to a userId-playlistId to start this playlist.",
         "type": "string",
         "read": true,
@@ -250,7 +250,7 @@
       "_id": "playlists.playlistListIds",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
         "type": "string",
         "read": true,
@@ -262,7 +262,7 @@
       "_id": "playlists.playlistListString",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of playlists as string, pattern: name;name;name;...",
         "type": "string",
         "read": true,
@@ -274,7 +274,7 @@
       "_id": "playlists.yourPlaylistListIds",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of your playlist ids as string, pattern: userId-playlistId;userId-playlistId;userId-playlistId;...",
         "type": "string",
         "read": true,
@@ -286,7 +286,7 @@
       "_id": "playlists.yourPlaylistListString",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of your playlists as string, pattern: name;name;name;...",
         "type": "string",
         "read": true,
@@ -298,7 +298,7 @@
       "_id": "devices.deviceList",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "All devices saved in common part. Change this value to a device id to start playing on this.",
         "type": "string",
         "read": true,
@@ -310,7 +310,7 @@
       "_id": "devices.deviceListIds",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of all device ids as string, pattern: id;id;id;...",
         "type": "string",
         "read": true,
@@ -322,7 +322,7 @@
       "_id": "devices.deviceListString",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of all devices as string, pattern: name;name;name;...",
         "type": "string",
         "read": true,
@@ -334,7 +334,7 @@
       "_id": "devices.availableDeviceListIds",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of available device ids as string, pattern: id;id;id;...",
         "type": "string",
         "read": true,
@@ -346,7 +346,7 @@
       "_id": "devices.availableDeviceListString",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of available devices as string, pattern: name;name;name;...",
         "type": "string",
         "read": true,
@@ -407,7 +407,7 @@
       "_id": "player.playUri",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "Start a new context based on spotify uri. Set a javascript object like: {\"device_id\":\"2fb7dce39e76b94f4a1dc52d896048cac8276952\",\"context_uri\":\"spotify:user:11128263953:playlist:3sP5z9L9w0GHRWQlnZgyQN\",\"offset\":{\"position\":5}} or: {\"uris\":[\"spotify:track:4iV5W9uYEdYUVa79Axb7Rh\",\"spotify:track:1301WleyT98MSxVHPZCA6M\"],\"position_ms\":24050} For more infos look at: https://developer.spotify.com/documentation/web-api/reference/player/start-a-users-playback/",
         "type": "string",
         "read": false,
@@ -498,7 +498,7 @@
       "_id": "player.repeat",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "repeat mode",
         "type": "string",
         "read": true,
@@ -561,7 +561,7 @@
       "_id": "player.playlist.trackNo",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "level",
         "name": "set track no of playlist to play this track",
         "type": "number",
         "read": true,
@@ -573,7 +573,7 @@
       "_id": "player.playlist.id",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "set playlist id to play; in combination with player.playlist.owner, if it is empty the authorized user will be used; first set player.playlist.owner, then player.playlist.id",
         "type": "string",
         "read": true,
@@ -585,7 +585,7 @@
       "_id": "player.playlist.owner",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "set playlist owner to start playlist in combination with player.playlist.id; first set player.playlist.owner, then player.playlist.id",
         "type": "string",
         "read": true,
@@ -621,7 +621,7 @@
       "_id": "player.shuffle",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "shuffle",
         "type": "string",
         "read": true,
@@ -711,7 +711,7 @@
       "_id": "authorization.userId",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "user id",
         "type": "string",
         "read": true,
@@ -723,7 +723,7 @@
       "_id": "authorization.authorized",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "indicator",
         "name": "authorized",
         "type": "boolean",
         "read": true,
@@ -735,7 +735,7 @@
       "_id": "authorization.error",
       "type": "state",
       "common": {
-        "role": "indicator.error",
+        "role": "text",
         "name": "Authorization error",
         "type": "string",
         "read": true,
@@ -783,7 +783,7 @@
       "_id": "player.artistImageUrl",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text.url",
         "name": "artist image url of the first available artist if multiple artists",
         "type": "string",
         "read": true,
@@ -795,7 +795,7 @@
       "_id": "player.type",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "context type",
         "type": "string",
         "read": true,
@@ -813,7 +813,7 @@
       "_id": "player.contextDescription",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "description of the current context",
         "type": "string",
         "read": true,
@@ -849,7 +849,7 @@
       "_id": "player.progress",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "media.elapsed.text",
         "name": "progress in format 03:50; Mi:SS",
         "type": "string",
         "read": true,
@@ -861,7 +861,7 @@
       "_id": "player.isPlaying",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "indicator",
         "name": "is playing",
         "type": "boolean",
         "read": true,
@@ -948,7 +948,7 @@
       "_id": "player.duration",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "media.duration.text",
         "name": "duration in format 03:50; Mi:SS",
         "type": "string",
         "read": true,
@@ -960,7 +960,7 @@
       "_id": "player.playlist.name",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "playlist name",
         "type": "string",
         "read": true,
@@ -984,7 +984,7 @@
       "_id": "player.playlist.imageUrl",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text.url",
         "name": "playlist image url",
         "type": "string",
         "read": true,
@@ -996,7 +996,7 @@
       "_id": "player.playlist.trackList",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "state",
         "name": "Tracks of the playlist saved in common part. Change this value to a track position number to start this playlist with this track.",
         "type": "mixed",
         "read": true,
@@ -1008,7 +1008,7 @@
       "_id": "player.playlist.trackListNumber",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of tracks as string, pattern: 0;1;2;...",
         "type": "string",
         "read": true,
@@ -1020,7 +1020,7 @@
       "_id": "player.playlist.trackListString",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of tracks as string, pattern: title - artist;title - artist;title - artist;...",
         "type": "string",
         "read": true,
@@ -1032,7 +1032,7 @@
       "_id": "player.playlist.trackListStates",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...",
         "type": "string",
         "read": true,
@@ -1044,7 +1044,7 @@
       "_id": "player.playlist.trackListIdMap",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...",
         "type": "string",
         "read": true,
@@ -1056,7 +1056,7 @@
       "_id": "player.playlist.trackListIds",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "text",
         "name": "contains list of track ids as string, pattern: id;id;id;...",
         "type": "string",
         "read": true,
@@ -1068,7 +1068,7 @@
       "_id": "player.playlist.trackListArray",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "json",
         "name": "contains list of tracks as array object, pattern: [{id: \"id\", title: \"title\", artistName: \"artistName1, artistName2\", artistArray: [{id: \"artistId\", name: \"artistName\"}, {id: \"artistId\", name: \"artistName\"}, ...], album: {id: \"albumId\", name: \"albumName\"}, durationMs: 253844, duration: 4:13, addedAt: 15395478261235, addedBy: \"userId\", discNumber: 1, episode: false, explicit: false, popularity: 56}, ...]",
         "type": "string",
         "read": true,
@@ -1080,7 +1080,7 @@
       "_id": "player.device.id",
       "type": "state",
       "common": {
-        "role": "id",
+        "role": "text",
         "name": "device id",
         "type": "string",
         "read": true,
@@ -1092,7 +1092,7 @@
       "_id": "player.device.isActive",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "indicator",
         "name": "current active device",
         "type": "boolean",
         "read": true,
@@ -1104,7 +1104,7 @@
       "_id": "player.device.isAvailable",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "indicator",
         "name": "can used for playing",
         "type": "boolean",
         "read": true,
@@ -1116,7 +1116,7 @@
       "_id": "player.device.isRestricted",
       "type": "state",
       "common": {
-        "role": "value",
+        "role": "indicator",
         "name": "it is not possible to control restricted devices with the adapter",
         "type": "boolean",
         "read": true,
