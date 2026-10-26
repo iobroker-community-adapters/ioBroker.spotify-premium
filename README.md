@@ -47,6 +47,8 @@ See also the [Spotify Developer API Documentation](https://developer.spotify.com
 
 We must provide an HTTPS redirect URI as from December 2025 spotify does not allow non-secure URIs anymore.
 
+Since July 2026 Spotify refresh tokens expire after 6 months. When this happens, the adapter logs an error, sets `spotify-premium.0.authorization.authorized` to false, writes the reason to `spotify-premium.0.authorization.error` and stops polling. Just authorize the adapter again in the instance settings.
+
 #### [Video tutorial](https://www.youtube.com/watch?v=n0m9201qABU)
 [![How to authorize](https://img.youtube.com/vi/n0m9201qABU/0.jpg "https://www.youtube.com/watch?v=n0m9201qABU")](https://www.youtube.com/watch?v=n0m9201qABU)
 
@@ -107,6 +109,7 @@ Click for the widget source.
 -->
 ### **WORK IN PROGRESS**
 * (GermanBluefox) Use /playlists/{id}/items instead of the removed /tracks endpoint (Spotify API change Feb 2026); 403 on single playlists no longer sets the instance to error (#630)
+* (GermanBluefox) Handle expired/revoked refresh tokens (`invalid_grant`, Spotify limits refresh tokens to 6 months since July 2026): the token is discarded, polling stops and the user is asked to authorize again instead of retrying the refresh (#588)
 
 ### 3.0.1 (2026-06-21)
 - (mcm1957) Linter issues fixed blocking release process
