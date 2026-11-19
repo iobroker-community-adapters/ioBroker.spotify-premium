@@ -173,7 +173,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.cache.on('player.shuffleOn', () => this.listenOnShuffleOn());
                 this.cache.on('player.trackId', (obj) => this.listenOnTrackId(obj), true);
                 this.cache.on('player.playlist.id', (obj) => this.listenOnPlaylistId(obj), true);
-                this.cache.on('player.playlist.owner', (obj) => this.listenOnPlaylistOwner(obj), true);
+                // player.playlist.owner starts nothing: the cache keeps it for the next write of player.playlist.id
                 this.cache.on('player.playlist.trackNo', (obj) => this.listenOnPlaylistTrackNo(obj), true);
                 this.cache.on('getPlaylists', () => this.reloadUsersPlaylist());
                 this.cache.on('getPlaybackInfo', () => this.listenOnGetPlaybackInfo());
@@ -1343,8 +1343,8 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 this.createOrDefault(playlistObject, 'listNumber', `${prefix}.trackListNumber`, '', 'contains list of tracks as string, patter: 0;1;2;...', 'string'),
                 this.createOrDefault(playlistObject, 'listString', `${prefix}.trackListString`, '', 'contains list of tracks as string, patter: title - artist;title - artist;title - artist;...', 'string'),
                 this.createOrDefault(playlistObject, 'stateString', `${prefix}.trackListStates`, '', 'contains list of tracks as string with position, pattern: 0:title - artist;1:title - artist;2:title - artist;...', 'string'),
-                this.createOrDefault(playlistObject, 'trackIdMap', `${prefix}.trackListIdMap`, '', 'contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...', 'string'),
-                this.createOrDefault(playlistObject, 'trackIds', `${prefix}.trackListIds`, '', 'contains list of track ids as string, pattern: id;id;id;...', 'string'),
+                this.createOrDefault(playlistObject, 'trackIdMap', `${prefix}.trackListIdMap`, '', 'contains list of track ids as string, pattern: id;id;id;...', 'string'),
+                this.createOrDefault(playlistObject, 'trackIds', `${prefix}.trackListIds`, '', 'contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...', 'string'),
                 this.createOrDefault(playlistObject, 'songs', `${prefix}.trackListArray`, '', 'contains list of tracks as array object, pattern:\n[{id: "id",\ntitle: "title",\nartistName: "artistName1, artistName2",\nartistArray: [{id: "artistId", name: "artistName"}, {id: "artistId", name: "artistName"}, ...],\nalbum: {id: "albumId", name: "albumName"},\ndurationMs: 253844,\nduration: 4:13,\naddedAt: 15395478261235,\naddedBy: "userId",\ndiscNumber: 1,\nepisode: false,\nexplicit: false,\npopularity: 56\n}, ...]', 'object'),
             ]);
         };
@@ -2153,11 +2153,14 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         if ((0, utils_1.isEmpty)(owner)) {
             owner = this.application.userId;
         }
+        // Called by state listeners that do not handle a rejection: an error here would stop the adapter
         if ((0, utils_1.isEmpty)(trackNo)) {
-            throw new Error('no track no');
+            this.log.warn(`could not start playlist ${playlist}: no track number`);
+            return;
         }
         if ((0, utils_1.isEmpty)(playlist)) {
-            throw new Error('no playlist no');
+            this.log.warn('could not start playlist: no playlist plays and no playlist id is given');
+            return;
         }
         if (keepTrack !== true) {
             keepTrack = false;
@@ -2550,13 +2553,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             return;
         }
         return this.startPlaylist(obj.state.val, ownerState.val, 0);
-    }
-    listenOnPlaylistOwner(obj) {
-        const PlayListIdState = this.cache.getValue('player.playlist.id');
-        if (!PlayListIdState) {
-            return;
-        }
-        return this.startPlaylist(PlayListIdState.val, obj.state.val, 0);
     }
     listenOnPlaylistTrackNo(obj) {
         const PlayListIdState = this.cache.getValue('player.playlist.id');

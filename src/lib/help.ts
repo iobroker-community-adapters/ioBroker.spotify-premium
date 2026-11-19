@@ -41,16 +41,17 @@ Play something (Spotify URIs; a link https://open.spotify.com/<kind>/<id> is the
   (number: plays the playlist from that track, 0-based). playlists.playlistList = "<playlist>" plays it too;
   playlists.playlistListIds / playlists.playlistListString list them (";"). getPlaylists (button): reads them again.
 - player.trackId = "<track id>": plays that one track. player.playlist.trackNo (1-based) or player.playlist.trackList
-  (0-based): plays that track of the playlist that plays. player.playlist.owner and player.playlist.id (each write
-  starts the playlist of both) are for vis: to play a playlist by its ID use player.playUri spotify:playlist:<id>.
+  (0-based): plays that track of the playlist that plays. player.playlist.id starts that playlist (write its owner to
+  player.playlist.owner first; the owner alone starts nothing). Both are for vis: to play a playlist by its ID use
+  player.playUri spotify:playlist:<id>.
   These, playThisList and playlistList send no device: they play on the active device, so choose the device first
   (useForPlayback) and wait until player.device.name shows it.
 Control (on the active device; play, pause, next and previous on the chosen one):
-- player.play / player.pause (buttons, true): resume / pause. player.state = true resumes (false does nothing).
+- player.play / player.pause (buttons, true): resume / pause. player.state = true resumes, false pauses.
 - player.skipPlus / player.skipMinus (buttons): next / previous track.
 - player.progressMs (ms) or player.progressPercentage (0-100): jump to that position.
-- player.shuffle = "on" / "off", or the buttons player.shuffleOn / player.shuffleOff; player.shuffleBool = true turns
-  it on (false does nothing).
+- player.shuffle = "on" / "off", or the buttons player.shuffleOn / player.shuffleOff, or player.shuffleBool = true /
+  false.
 - player.repeat = "off" / "context" (the playlist or album) / "track"; or player.repeatMode = 0 off, 1 all, 2 one;
   or the buttons player.repeatOff / player.repeatContext / player.repeatTrack.
 - player.volume (0-100 %): only while something plays; some devices (e.g. phones) do not allow it.

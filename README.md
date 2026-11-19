@@ -112,6 +112,12 @@ Click for the widget source.
 </details>
 
 ## Changelog
+### **WORK IN PROGRESS**
+- (GermanBluefox) Fixed: `player.state` = false pauses and `player.shuffleBool` = false turns shuffle off (false was ignored)
+- (GermanBluefox) Fixed: writing `player.playlist.owner` no longer restarts the current playlist (and no longer stops the adapter with an unhandled error when no playlist plays); the next write of `player.playlist.id` uses it
+- (GermanBluefox) Fixed: the descriptions of `trackListIdMap` and `trackListIds` were swapped
+- (GermanBluefox) Fixed: writing `player.playlist.trackNo` or `player.playlist.trackList` while no playlist plays (or starting a playlist without ID) stopped the adapter with an unhandled error "no playlist no"; now a warning is logged and nothing happens
+
 ### 3.2.0 (2026-11-19)
 - (copilot) Adapter requires node.js >= 22.19.0 now
 - (GermanBluefox) Added the message "help": a description of the states for AI agents (e.g. pi-agent), and common.supportedMessages.help

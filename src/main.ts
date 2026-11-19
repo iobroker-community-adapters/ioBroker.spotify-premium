@@ -625,11 +625,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                 this.cache.on('player.shuffleOn', () => this.listenOnShuffleOn());
                 this.cache.on('player.trackId', (obj: ListenerParameter) => this.listenOnTrackId(obj), true);
                 this.cache.on('player.playlist.id', (obj: ListenerParameter) => this.listenOnPlaylistId(obj), true);
-                this.cache.on(
-                    'player.playlist.owner',
-                    (obj: ListenerParameter) => this.listenOnPlaylistOwner(obj),
-                    true,
-                );
+                // player.playlist.owner starts nothing: the cache keeps it for the next write of player.playlist.id
                 this.cache.on(
                     'player.playlist.trackNo',
                     (obj: ListenerParameter) => this.listenOnPlaylistTrackNo(obj),
@@ -1918,7 +1914,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                     'trackIdMap',
                     `${prefix}.trackListIdMap`,
                     '',
-                    'contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...',
+                    'contains list of track ids as string, pattern: id;id;id;...',
                     'string',
                 ),
                 this.createOrDefault(
@@ -1926,7 +1922,7 @@ export class SpotifyPremiumAdapter extends Adapter {
                     'trackIds',
                     `${prefix}.trackListIds`,
                     '',
-                    'contains list of track ids as string, pattern: id;id;id;...',
+                    'contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...',
                     'string',
                 ),
                 this.createOrDefault(
@@ -2847,11 +2843,14 @@ export class SpotifyPremiumAdapter extends Adapter {
         if (isEmpty(owner)) {
             owner = this.application.userId;
         }
+        // Called by state listeners that do not handle a rejection: an error here would stop the adapter
         if (isEmpty(trackNo)) {
-            throw new Error('no track no');
+            this.log.warn(`could not start playlist ${playlist}: no track number`);
+            return;
         }
         if (isEmpty(playlist)) {
-            throw new Error('no playlist no');
+            this.log.warn('could not start playlist: no playlist plays and no playlist id is given');
+            return;
         }
         if (keepTrack !== true) {
             keepTrack = false;
@@ -3278,14 +3277,6 @@ export class SpotifyPremiumAdapter extends Adapter {
             return;
         }
         return this.startPlaylist(obj.state.val as string, ownerState.val as string, 0);
-    }
-
-    listenOnPlaylistOwner(obj: ListenerParameter): Promise<void> | undefined {
-        const PlayListIdState = this.cache.getValue('player.playlist.id');
-        if (!PlayListIdState) {
-            return;
-        }
-        return this.startPlaylist(PlayListIdState.val as string, obj.state.val as string, 0);
     }
 
     listenOnPlaylistTrackNo(obj: ListenerParameter): Promise<void> | undefined {

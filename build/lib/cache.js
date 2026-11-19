@@ -202,6 +202,10 @@ class Cache {
             if (value.ackIsFalse && state.ack) {
                 return;
             }
+            // false is a value for the commands that read it (player.state, player.shuffleBool), no press of a button
+            if (state.val === false && !value.ackIsFalse) {
+                return;
+            }
             if ((value.name instanceof RegExp && value.name.test(id)) || value.name === id) {
                 this.adapter.log.debug(`trigger: ${value.name} -> ${JSON.stringify(state)}`);
                 value.func({
@@ -212,11 +216,17 @@ class Cache {
         });
     }
     setExternal(id, state) {
-        if (state == null || (!state.val && typeof state.val !== 'number')) {
+        if (state == null) {
             return;
         }
         const name = (0, utils_1.removeNameSpace)(id);
         const path = this.getPath(name);
+        // false is a valid value of a boolean state (player.state, player.shuffleBool); other empty values are ignored
+        if (!state.val &&
+            typeof state.val !== 'number' &&
+            (state.val !== false || path.obj?.common?.type !== 'boolean')) {
+            return;
+        }
         if (path.state === undefined) {
             path.state = {
                 val: null,

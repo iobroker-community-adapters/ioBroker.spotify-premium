@@ -1061,7 +1061,7 @@
       "type": "state",
       "common": {
         "role": "text",
-        "name": "contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...",
+        "name": "contains list of track ids as string, pattern: id;id;id;...",
         "type": "string",
         "read": true,
         "write": false
@@ -1073,7 +1073,7 @@
       "type": "state",
       "common": {
         "role": "text",
-        "name": "contains list of track ids as string, pattern: id;id;id;...",
+        "name": "contains list of track ids as string with position, pattern: 0:id;1:id;2:id;...",
         "type": "string",
         "read": true,
         "write": false
