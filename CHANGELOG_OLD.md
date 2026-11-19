@@ -1,4 +1,8 @@
 # Older changes
+## 2.0.1 (2026-03-31)
+- (@GermanBluefox) Rewrite adapter to TypeScript
+- (@GermanBluefox) An Authorization process was changed and user must authenticate anew
+
 ## 1.6.0 (2026-02-28)
 - (mcm1957) Issues reported by repository checker have been fixed
 - (mightymurphy) stabilized token refresh and improved widget behavior

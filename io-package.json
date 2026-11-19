@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "spotify-premium",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "news": {
+      "3.2.0": {
+        "en": "* Adapter requires node.js >= 22.19.0 now\n* Added the message \"help\": a description of the states for AI agents (e.g. pi-agent), and common.supportedMessages.help\n<!--\n    Placeholder for the next version (at the beginning of the line):\n    ### **WORK IN PROGRESS**\n-->",
+        "de": "* Adapter benötigt jetzt node.js >= 22.19.0\n* Nachricht „help“ hinzugefügt: Statusbeschreibung für KI-Agenten (z. B. pi-agent) und common.supportedMessages.Help\n<!--\n    Platzhalter für die nächste Version (am Zeilenanfang):\n    ### **IN BEARBEITUNG**\n-->",
+        "ru": "* Теперь для адаптера требуется файл node.js >= 22.19.0\n* Добавлено сообщение «help»: описание состояний агентов искусственного интеллекта (например, pi-agent) и common.supportedMessages.help\n<!--\n    Заполнитель для следующей версии (в начале строки):\n    ### **РАБОТА**\n-->",
+        "pt": "* Agora o adaptador exige node.js >= 22.19.0\n* Adicionada a mensagem “help”: descrição dos estados dos agentes de IA (p. ex. pi-agent) e common.supportedMessages.help\n<!--\n    Espaço reservado para a próxima versão (no início da linha):\n    ### **EM CURSO**\n-->",
+        "nl": "* Voor de adapter is nu node.js >= 22.19.0 vereist\n* Het bericht „help” toegevoegd: een beschrijving van de statussen voor AI-agenten (bijv. pi-agent) en Common.SupportedMessages.help\n<!--\n    Tijdelijke aanduiding voor de volgende versie (aan het begin van de regel):\n    ### **WERK IN UITVOERING**\n-->",
+        "fr": "* L'adaptateur nécessite node.js >= 22.19.0\n* Ajout du message « help » : description de l'état des agents IA (p.ex. pi-agent) et common.supportedMessages.help\n<!--\n    Espace réservé pour la prochaine version (en début de ligne) :\n    ### **TRAVAIL EN COURS**\n-->",
+        "it": "* Adapter richiede node.js >= 22.19.0 ora\n* Aggiunto «help»: descrizione degli stati degli agenti AI (ad es. pi-agent) e common.supportedmessages.help\n<!--\n    Segnaposto per la prossima versione (a inizio riga):\n    ### **LAVORI IN CORSO**\n-->",
+        "es": "* El adaptador ahora necesita node.js >= 22.19.0\n* Se ha añadido el mensaje «help»: descripción de los estados de los agentes de IA (p. ej. pi-agent) y common.SupportedMessages.Help\n<!--\n    Marcador de posición para la próxima versión (al principio de la línea):\n    ### **TRABAJO EN CURSO**\n-->",
+        "pl": "* Adapter wymaga teraz node.js >= 22.19.0\n* Dodano komunikat „help”: opis stanów dla agentów AI (np. pi-agent) i common.supportedMessages.help\n<!--\n    Symbol zastępczy dla następnej wersji (na początku wiersza):\n    ### **PRACA W TOKU\n-->",
+        "uk": "* Адаптер вимагає node.js >= 22.19.0 зараз\n* Додано повідомлення «help»: опис станів для агентів AI (наприклад, pi-agent) та Common.supportedMessages.help\n<!--\n    Заповнювач для наступної версії (на початку рядка):\n    ### **НЕЗАВЕРШЕНА РОБОТА**\n-->",
+        "zh-cn": "* 适配器现在需要 node.js >= 22.19.0\n* 添加了 “帮助” 消息：对 AI 代理（例如 pi-agent）状态的描述，以及 common.supportedMessages.Help\n<!--\n    下一个版本的占位符（在行的开头）：\n    ### **工作进行中**\n-->"
+      },
       "3.1.0": {
         "en": "Use /playlists/{id}/items instead of the removed /tracks endpoint (Spotify API change Feb 2026); 403 on single playlists no longer sets the instance to error (#630)\nHandle expired/revoked refresh tokens (`invalid_grant`, Spotify limits refresh tokens to 6 months since July 2026): the token is discarded, polling stops and the user is asked to authorize again instead of retrying the refresh (#588)\nState roles corrected according to the ioBroker role definitions (e.g. `text`, `indicator`, `json` instead of `value`), existing objects are updated on start (#628)\nPodcast episodes are shown in the player states (episode as track, show as album, publisher as artist); `player.playUri` also accepts single track or episode URIs like `spotify:episode:...` (#260)\nTimers and waits use the adapter methods (`this.setTimeout`, `this.delay`), so they are cleaned up when the adapter stops",
         "de": "Benutze /playlists/ {id} /items statt des entfernten Endpunkts /tracks (Spotify API-Änderung Feb. 2026); 403 für einzelne Playlisten führt nicht mehr zum Fehler (#630)\nAbgelaufene/widerrufene Aktualisierungstoken behandeln (`invalid_grant`, Spotify begrenzt auf 6 Monate seit Juli 2026): Das Token wird verworfen, die Umfrage stoppt und der Nutzer muss ihn erneut autorisieren (#588)\nStatusrollen gemäß ioBroker-Rollendefinitionen korrigiert (z. B. `text`, `indicator`, `json` statt `value`), bestehende Objekte werden beim Start aktualisiert (#628)\nPodcast-Folgen werden in den Player-Status (Folge als Titel, Album, Verlag als Künstler) gezeigt; `Player.Playuri` akzeptiert auch einzelne Titel- oder Episoden-URIs wie `spotify:episode:... `(#260)\nTimer und Waits nutzen Adaptermethoden (`this.setTimeout`, `this.delay`), sie werden gelöscht, wenn der Adapter stoppt",
@@ -80,19 +93,6 @@
         "pl": "dev zależności aktualisiert",
         "uk": "субтитри",
         "zh-cn": "依赖关系"
-      },
-      "1.5.3": {
-        "en": "redirect URI changed [#429]",
-        "de": "umleitung URI geändert [#429]",
-        "ru": "перенаправление URI изменено [#429]",
-        "pt": "redirecionar URI mudou [#429]",
-        "nl": "redirect URI gewijzigd [#429]",
-        "fr": "rediriger URI changé [#429]",
-        "it": "redirect URI cambiato [#429]",
-        "es": "redirect URI changed [#429]",
-        "pl": "przekierowanie URI zmienione [# 429]",
-        "uk": "змінено [#429]",
-        "zh-cn": "重定向 URI 更改 [# 429]"
       }
     },
     "titleLang": {

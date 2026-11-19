@@ -112,14 +112,14 @@ Click for the widget source.
 </details>
 
 ## Changelog
-
-### **WORK IN PROGRESS**
+### 3.2.0 (2026-11-19)
 - (copilot) Adapter requires node.js >= 22.19.0 now
 - (GermanBluefox) Added the message "help": a description of the states for AI agents (e.g. pi-agent), and common.supportedMessages.help
 <!--
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+
 ### 3.1.0 (2026-10-26)
 * (GermanBluefox) Use /playlists/{id}/items instead of the removed /tracks endpoint (Spotify API change Feb 2026); 403 on single playlists no longer sets the instance to error (#630)
 * (GermanBluefox) Handle expired/revoked refresh tokens (`invalid_grant`, Spotify limits refresh tokens to 6 months since July 2026): the token is discarded, polling stops and the user is asked to authorize again instead of retrying the refresh (#588)
@@ -139,10 +139,6 @@ Click for the widget source.
 - (mcm1957) Adapter requires admin >= 7.8.9 now
 - (mcm1957) adapter requires js-controller >= 6.0.11 now
 - (mcm1957) Dependencies have been updated
-
-### 2.0.1 (2026-03-31)
-- (@GermanBluefox) Rewrite adapter to TypeScript
-- (@GermanBluefox) An Authorization process was changed and user must authenticate anew
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
