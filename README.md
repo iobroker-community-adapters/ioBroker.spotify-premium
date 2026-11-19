@@ -56,6 +56,11 @@ Spotify apps in Development Mode can only read playlists owned by the authorized
 ### States
 All states are described in admin.
 
+### Messages for scripts and AI agents
+`sendTo('spotify-premium.0', 'help', {})` answers `{ help, commands }`: a description of the states that choose the device, play
+playlists, albums, tracks or URIs and show what plays, for AI agents (e.g. ioBroker.pi-agent) and script authors.
+`commands` lists every message the instance answers with `write: true` for the ones that change something (`help` is the only one).
+
 ### VIS usage examples
 The adapter provides only 5 own VIS widgets (widget set `spotify-premium`): **Play/Pause**, **Previous**, **Next**, **Repeat** and **Shuffle**.
 All other examples below are built with the standard widgets of the `jqui` and `basic` widget sets (e.g. `tplJquiSelectList`, `tplJquiButtonState`, `tplValueStringImg`) and the states of this adapter.
@@ -110,6 +115,7 @@ Click for the widget source.
 
 ### **WORK IN PROGRESS**
 - (copilot) Adapter requires node.js >= 22.19.0 now
+- (GermanBluefox) Added the message "help": a description of the states for AI agents (e.g. pi-agent), and common.supportedMessages.help
 <!--
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**

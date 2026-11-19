@@ -7,6 +7,7 @@ import { Adapter, type AdapterOptions } from '@iobroker/adapter-core';
 
 import type { SpotifyPremiumAdapterConfig } from './types';
 import Cache, { type ListenerParameter } from './lib/cache';
+import { COMMANDS, HELP } from './lib/help';
 import { isEmpty, removeNameSpace } from './lib/utils';
 
 export interface AccessTokens {
@@ -584,6 +585,7 @@ export class SpotifyPremiumAdapter extends Adapter {
             stateChange: (id: string, state: ioBroker.State | null | undefined) => this.cache.setExternal(id, state),
             objectChange: (id: string, obj: ioBroker.Object | null | undefined) =>
                 this.cache.setExternalObj(id, obj as ioBroker.StateObject),
+            message: (obj: ioBroker.Message) => this.onMessage(obj),
             ready: () => {
                 this.cache.on('authorization.oauth2Tokens', (obj: ListenerParameter) => this.listenOnAuthorized(obj));
                 this.cache.on(/\.useForPlayback$/, (obj: ListenerParameter) => this.listenOnUseForPlayback(obj));
@@ -688,6 +690,20 @@ export class SpotifyPremiumAdapter extends Adapter {
                 ]).then(() => callback?.());
             },
         });
+    }
+
+    /**
+     * Only `help`: everything else is done by writing states
+     *
+     * @param obj the message
+     */
+    onMessage(obj: ioBroker.Message): void {
+        if (obj?.command === 'help') {
+            // A description of the adapter and its states for AI agents and script authors
+            if (obj.callback) {
+                this.sendTo(obj.from, obj.command, { help: HELP, commands: COMMANDS }, obj.callback);
+            }
+        }
     }
 
     async request(options: AxiosRequestConfig): Promise<any> {

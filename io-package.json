@@ -149,6 +149,9 @@
     "adminUI": {
       "config": "json"
     },
+    "supportedMessages": {
+      "help": true
+    },
     "tier": 2,
     "dependencies": [
       {

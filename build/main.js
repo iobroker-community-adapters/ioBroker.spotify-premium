@@ -11,6 +11,7 @@ const node_path_1 = require("node:path");
 const node_querystring_1 = __importDefault(require("node:querystring"));
 const adapter_core_1 = require("@iobroker/adapter-core");
 const cache_1 = __importDefault(require("./lib/cache"));
+const help_1 = require("./lib/help");
 const utils_1 = require("./lib/utils");
 // Request queue to prevent rate limiting (429 errors)
 class RequestQueue {
@@ -144,6 +145,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
             name: 'spotify-premium',
             stateChange: (id, state) => this.cache.setExternal(id, state),
             objectChange: (id, obj) => this.cache.setExternalObj(id, obj),
+            message: (obj) => this.onMessage(obj),
             ready: () => {
                 this.cache.on('authorization.oauth2Tokens', (obj) => this.listenOnAuthorized(obj));
                 this.cache.on(/\.useForPlayback$/, (obj) => this.listenOnUseForPlayback(obj));
@@ -219,6 +221,19 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 ]).then(() => callback?.());
             },
         });
+    }
+    /**
+     * Only `help`: everything else is done by writing states
+     *
+     * @param obj the message
+     */
+    onMessage(obj) {
+        if (obj?.command === 'help') {
+            // A description of the adapter and its states for AI agents and script authors
+            if (obj.callback) {
+                this.sendTo(obj.from, obj.command, { help: help_1.HELP, commands: help_1.COMMANDS }, obj.callback);
+            }
+        }
     }
     async request(options) {
         this.log.debug(`[HTTP Request] ${options.method} ${options.url}`);
