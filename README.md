@@ -148,7 +148,7 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 3.3.0 (2026-11-20)
 - (GermanBluefox) Added the messages `search` (Spotify catalog, at most 10 results since February 2026), `play` (a URI on a device given by name or id, with an answer and the reason of a failure), `getDevices` and `getPlaylists`, e.g. for ioBroker.assistant; `help` describes them, an unknown message answers with an error and the list of messages
 - (GermanBluefox) Fixed: a player command that Spotify refuses with a reason (e.g. pause while paused, `PREMIUM_REQUIRED`) set the instance to disconnected; an HTTP error of Spotify is no longer logged as "network request error"
 - (GermanBluefox) Fixed: `player.state` = false pauses and `player.shuffleBool` = false turns shuffle off (false was ignored)
@@ -174,11 +174,6 @@ Click for the widget source.
 ### 3.0.0 (2026-05-17)
 - (copilot) Adapter requires node.js >= 22 now
 - (@GermanBluefox) Updated packages
-
-### 2.0.3 (2026-04-06)
-- (mcm1957) Adapter requires admin >= 7.8.9 now
-- (mcm1957) adapter requires js-controller >= 6.0.11 now
-- (mcm1957) Dependencies have been updated
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
