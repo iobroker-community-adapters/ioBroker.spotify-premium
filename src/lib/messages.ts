@@ -490,15 +490,17 @@ export function normalizeDevices(data: any): DeviceInfo[] {
     const list = Array.isArray(data?.devices) ? data.devices : [];
     return list
         .filter((d: any) => d && typeof d === 'object' && d.id)
-        .map((d: any): DeviceInfo => ({
-            id: cleanDeviceId(String(d.id)),
-            name: text(d.name),
-            type: text(d.type),
-            isActive: !!d.is_active,
-            isRestricted: !!d.is_restricted,
-            volume: typeof d.volume_percent === 'number' ? d.volume_percent : null,
-            supportsVolume: d.supports_volume !== false,
-        }));
+        .map(
+            (d: any): DeviceInfo => ({
+                id: cleanDeviceId(String(d.id)),
+                name: text(d.name),
+                type: text(d.type),
+                isActive: !!d.is_active,
+                isRestricted: !!d.is_restricted,
+                volume: typeof d.volume_percent === 'number' ? d.volume_percent : null,
+                supportsVolume: d.supports_volume !== false,
+            }),
+        );
 }
 
 /**
