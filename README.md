@@ -148,7 +148,7 @@ Click for the widget source.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 3.3.1 (2026-11-20)
 - (GermanBluefox) Code formatting fixed: 3.3.0 failed the lint check and was not published, this version has the same changes
 
 ### 3.3.0 (2026-11-20)
@@ -173,10 +173,6 @@ Click for the widget source.
 ### 3.0.1 (2026-06-21)
 - (mcm1957) Linter issues fixed blocking release process
 - (mcm1957) Dependencies have been updated
-
-### 3.0.0 (2026-05-17)
-- (copilot) Adapter requires node.js >= 22 now
-- (@GermanBluefox) Updated packages
 
 [Older changelogs can be found there](CHANGELOG_OLD.md)
 
