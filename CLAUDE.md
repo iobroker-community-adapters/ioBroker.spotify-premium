@@ -26,6 +26,16 @@ No build step needed — `main.ts` runs directly.
 - **main.ts** (~2900 lines) — The entire adapter: Spotify API communication, OAuth2 authorization flow (via local HTTP server on redirect URI), state management, and 40+ ioBroker state change listeners (play, pause, skip, shuffle, volume, device transfer, etc.). Uses a global `adapter` variable.
 - **lib/cache.js** (~390 lines) — Tree-structured in-memory cache mirroring the ioBroker state hierarchy. Supports regex/string-based listeners and syncs state changes externally via `setExternal()`/`setExternalObj()`.
 - **lib/utils.js** (~40 lines) — Helper for safe state loading with defaults (`loadOrDefault`).
+- **src/lib/messages.ts** — pure helpers of the messages (sendTo) `search`/`play`/`getDevices`/`getPlaylists`: search query
+  (field filters, `limit` max 10 since Feb 2026), URI/open.spotify.com parsing, play body, device lookup by id/name,
+  `spotifyError()` (HTTP status stays the message — other code checks `includes('404')` — body goes to `reason`/`detail`)
+  and `messageError()` (answer `{error, reason, status}`). Handlers in `main.ts` `onMessage`/`searchCatalog`/
+  `playOnDevice` (404 on a named device → transfer playback, retry once)/`fetchDevices`/`knownPlaylists`.
+- **src/lib/help.ts** — `COMMANDS` + `HELP` (`helpText(ns)` puts in the namespace) = answer of the message `help` for AI
+  agents (`common.supportedMessages.help`, which also enables the messagebox). Keep in sync with `onMessage` and the
+  listeners; `test/testHelp.js` checks the commands of `onMessage` and the listened states, `test/testMessages.js` the
+  writable states.
+  Tests use the committed `build/` — run `npm run build` before `npm test`.
 
 ### Polling Architecture
 

@@ -10,10 +10,11 @@ const source = fs.readFileSync(path.join(__dirname, '../src/main.ts'), 'utf8');
 /** The commands onMessage of src/main.ts answers */
 function commandsOfMain() {
     const start = source.indexOf('onMessage(obj: ioBroker.Message)');
-    const end = source.indexOf('async request(');
+    // the end of the method: its closing brace is the first one at the indentation of the method
+    const end = source.indexOf('\n    }\n', start);
     expect(start).to.be.greaterThan(0);
     expect(end).to.be.greaterThan(start);
-    return [...source.slice(start, end).matchAll(/command === '([^']+)'/g)].map(m => m[1]);
+    return [...source.slice(start, end).matchAll(/(?:command === |case )'([^']+)'/g)].map(m => m[1]);
 }
 
 /** The states the adapter acts on when they are written (this.cache.on('<id>', ...)) */

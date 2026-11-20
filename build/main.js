@@ -11,8 +11,9 @@ const node_path_1 = require("node:path");
 const node_querystring_1 = __importDefault(require("node:querystring"));
 const adapter_core_1 = require("@iobroker/adapter-core");
 const cache_1 = __importDefault(require("./lib/cache"));
-const help_1 = require("./lib/help");
 const utils_1 = require("./lib/utils");
+const help_1 = require("./lib/help");
+const messages_1 = require("./lib/messages");
 // Request queue to prevent rate limiting (429 errors)
 class RequestQueue {
     adapter;
@@ -221,19 +222,6 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 ]).then(() => callback?.());
             },
         });
-    }
-    /**
-     * Only `help`: everything else is done by writing states
-     *
-     * @param obj the message
-     */
-    onMessage(obj) {
-        if (obj?.command === 'help') {
-            // A description of the adapter and its states for AI agents and script authors
-            if (obj.callback) {
-                this.sendTo(obj.from, obj.command, { help: help_1.HELP, commands: help_1.COMMANDS }, obj.callback);
-            }
-        }
     }
     async request(options) {
         this.log.debug(`[HTTP Request] ${options.method} ${options.url}`);
@@ -550,7 +538,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                 case 404: // Not Found
                 case 502:
                     // Bad Gateway
-                    throw new Error(statusCode.toString());
+                    throw (0, messages_1.spotifyError)(statusCode, parsedBody);
                 case 403:
                 case 401:
                     // Unauthorized or Forbidden
@@ -626,6 +614,15 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                         }
                         throw new Error(PLAYLIST_NOT_ACCESSIBLE);
                     }
+                    else if (statusCode === 403 &&
+                        parsedBody.error?.reason &&
+                        endpoint.startsWith('/v1/me/player') &&
+                        method !== 'GET') {
+                        // A player command that the device or the account refuses (e.g. PREMIUM_REQUIRED, or "Restriction
+                        // violated" for pause while paused): the token is fine, so the instance stays connected
+                        this.log.debug(`${endpoint}: ${parsedBody.error.message || 'player command failed'} (${parsedBody.error.reason})`);
+                        throw (0, messages_1.spotifyError)(statusCode, parsedBody);
+                    }
                     else {
                         if (statusCode === 401 && tokenRefreshAttempted) {
                             this.log.error(`Authentication failed (401) on endpoint: ${endpoint} - Token refresh did not resolve the issue`);
@@ -643,7 +640,7 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
                             this.cache.setValue('player.reachable', false),
                         ]);
                         this.log.error(`${statusCode} response: ${parsedBody.error?.message || 'unknown error'}`);
-                        throw new Error(statusCode.toString());
+                        throw (0, messages_1.spotifyError)(statusCode, parsedBody);
                     }
                     break;
                 case 429: {
@@ -687,6 +684,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         catch (error) {
             if (error.message === PLAYLIST_NOT_ACCESSIBLE) {
                 // Already logged once per playlist
+                throw error;
+            }
+            if (typeof error.status === 'number') {
+                // Spotify answered with an error status (thrown above): not a network error, the caller logs it
                 throw error;
             }
             // Network error (no response from server) - DNS, timeout, connection refused, etc.
@@ -1396,10 +1397,10 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
      * Strip Amazon Echo suffixes (_amzn_1, _amzn_2, etc.) from Spotify device IDs.
      * The Spotify API returns these suffixes for Echo devices but rejects them in playback commands.
      *
-     * @param id
+     * @param id device id as Spotify reports it
      */
     cleanDeviceId(id) {
-        return id.replace(/_amzn_\d+$/, '');
+        return (0, messages_1.cleanDeviceId)(id);
     }
     getSelectedDevice(deviceData) {
         if (deviceData.lastSelectDeviceId === '') {
@@ -2576,6 +2577,195 @@ class SpotifyPremiumAdapter extends adapter_core_1.Adapter {
         catch (error) {
             this.log.debug(error);
         }
+    }
+    /**
+     * Messages (sendTo) of scripts, other adapters (e.g. ioBroker.assistant) and AI agents. The commands and their
+     * answers are described in lib/help.ts.
+     *
+     * @param obj the message
+     */
+    onMessage(obj) {
+        if (!obj?.command) {
+            return;
+        }
+        const reply = (result) => {
+            if (obj.callback) {
+                this.sendTo(obj.from, obj.command, result, obj.callback);
+            }
+        };
+        const run = (job) => {
+            job()
+                .then(result => {
+                if (result.error) {
+                    this.log.info(`${obj.command} from ${obj.from}: ${result.error}`);
+                }
+                reply(result);
+            })
+                .catch(err => {
+                const result = (0, messages_1.messageError)(err);
+                this.log.info(`${obj.command} from ${obj.from} failed: ${result.error}`);
+                reply(result);
+            });
+        };
+        // a plain text is the query of search and the URI of play
+        const message = obj.message;
+        switch (obj.command) {
+            case 'help':
+                reply({ help: (0, help_1.helpText)(this.namespace), commands: help_1.COMMANDS });
+                break;
+            case 'search':
+                run(() => this.searchCatalog(typeof message === 'string' ? { query: message } : message));
+                break;
+            case 'play':
+                run(() => this.playOnDevice(typeof message === 'string' ? { uri: message } : message));
+                break;
+            case 'getDevices':
+                run(async () => ({ devices: await this.fetchDevices() }));
+                break;
+            case 'getPlaylists':
+                reply({ playlists: this.knownPlaylists(typeof message === 'string' ? message : message?.search) });
+                break;
+            default:
+                this.log.warn(`Unknown command: ${obj.command}`);
+                // the message itself as answer looked like success to a caller (e.g. an AI agent)
+                reply({ error: `Unknown command: ${obj.command}`, commands: help_1.COMMANDS.map(item => item.command) });
+                break;
+        }
+    }
+    /**
+     * Search the Spotify catalog (message `search`)
+     *
+     * @param req query, field filters, type, limit
+     */
+    async searchCatalog(req) {
+        const parsed = (0, messages_1.searchParams)(req);
+        if ('error' in parsed) {
+            return parsed;
+        }
+        const data = await this.sendRequest(`/v1/search?${node_querystring_1.default.stringify(parsed.params)}`, 'GET', '');
+        return { items: (0, messages_1.normalizeSearchResult)(data, parsed.types) };
+    }
+    /**
+     * The Spotify Connect devices, asked from Spotify now; the states are updated on the way.
+     */
+    async fetchDevices() {
+        const data = await this.sendRequest('/v1/me/player/devices', 'GET', '');
+        // before reloadDevices(): it changes the ids in data
+        const devices = (0, messages_1.normalizeDevices)(data);
+        this.reloadDevices(data).catch(e => this.log.debug(`Cannot update the device states: ${e}`));
+        return devices;
+    }
+    /**
+     * Start playback (message `play`): a URI on a device given by name or id, or on the active device.
+     *
+     * @param req uri, offset, positionMs, device
+     */
+    async playOnDevice(req) {
+        const parsed = (0, messages_1.playBody)(req);
+        if ('error' in parsed) {
+            return parsed;
+        }
+        const wanted = String(req?.device || req?.deviceId || req?.deviceName || '').trim();
+        let device = null;
+        if (wanted) {
+            const devices = await this.fetchDevices();
+            device = (0, messages_1.findDevice)(devices, wanted);
+            if (!device) {
+                const names = devices.map(d => d.name);
+                return {
+                    error: `Spotify does not know the device "${wanted}" now. Online: ${names.join(', ') || 'none'}`,
+                    reason: 'DEVICE_NOT_FOUND',
+                    devices: names,
+                };
+            }
+            if (device.isRestricted) {
+                return {
+                    error: `The device "${device.name}" cannot be controlled over the Spotify API`,
+                    reason: 'DEVICE_NOT_CONTROLLABLE',
+                };
+            }
+        }
+        const deviceId = device ? device.id : this.getSelectedDevice(this.deviceData);
+        const endpoint = `/v1/me/player/play${deviceId ? `?${node_querystring_1.default.stringify({ device_id: deviceId })}` : ''}`;
+        const body = Object.keys(parsed.body).length ? JSON.stringify(parsed.body) : '';
+        if (this.application.statusInternalTimer) {
+            this.clearTimeout(this.application.statusInternalTimer);
+            this.application.statusInternalTimer = undefined;
+        }
+        try {
+            await this.sendRequest(endpoint, 'PUT', body, true);
+        }
+        catch (err) {
+            if (!device || err?.status !== 404) {
+                throw err;
+            }
+            // A device that did not play for a while (e.g. an Echo) often refuses play with 404 until the playback
+            // is transferred to it
+            this.log.debug(`"${device.name}" refused to play (${err.detail || err.message}), transferring the playback first`);
+            await this.sendRequest('/v1/me/player', 'PUT', JSON.stringify({ device_ids: [device.id], play: false }), true);
+            await this.delay(1000);
+            await this.sendRequest(endpoint, 'PUT', body, true);
+        }
+        if (device) {
+            // the next play, pause, ... goes there too, like with devices.<key>.useForPlayback
+            this.deviceData.lastSelectDeviceId = device.id;
+        }
+        this.setTimeout(() => !this.stopped && this.pollStatusApi(), 1000);
+        return { ok: true, device: device ? { id: device.id, name: device.name } : this.knownDevice(deviceId) };
+    }
+    /**
+     * Id and name of a device from the states: the given one, or the active one
+     *
+     * @param deviceId id of the device, empty = the active one
+     */
+    knownDevice(deviceId) {
+        if (deviceId) {
+            const name = this.cache.getValue(`devices.${this.shrinkStateName(deviceId)}.name`)?.val;
+            return { id: deviceId, name: typeof name === 'string' ? name : '' };
+        }
+        const id = this.cache.getValue('player.device.id')?.val;
+        const name = this.cache.getValue('player.device.name')?.val;
+        return id ? { id: String(id), name: typeof name === 'string' ? name : '' } : null;
+    }
+    /**
+     * The playlists of the user from the states (message `getPlaylists`)
+     *
+     * @param search keep only playlists whose name contains this text
+     */
+    knownPlaylists(search) {
+        const filter = typeof search === 'string' ? (0, messages_1.fold)(search) : '';
+        const states = this.cache.getValues('playlists.*');
+        const result = [];
+        for (const key of Object.keys(states)) {
+            const id = (0, utils_1.removeNameSpace)(key);
+            // playlists.<key>.name
+            const match = id.match(/^playlists\.([^.]+)\.name$/);
+            if (!match || !states[key]) {
+                continue;
+            }
+            const prefix = `playlists.${match[1]}`;
+            const name = String(states[key].val ?? '');
+            if (filter && !(0, messages_1.fold)(name).includes(filter)) {
+                continue;
+            }
+            const playlistId = this.cache.getValue(`${prefix}.id`)?.val;
+            if (!playlistId) {
+                continue;
+            }
+            const image = this.cache.getValue(`${prefix}.imageUrl`)?.val;
+            const playlist = {
+                uri: `spotify:playlist:${String(playlistId)}`,
+                id: String(playlistId),
+                name,
+                ownerId: String(this.cache.getValue(`${prefix}.owner`)?.val ?? ''),
+                tracksTotal: Number(this.cache.getValue(`${prefix}.tracksTotal`)?.val) || 0,
+            };
+            if (typeof image === 'string' && image) {
+                playlist.image = image;
+            }
+            result.push(playlist);
+        }
+        return result.sort((a, b) => a.name.localeCompare(b.name));
     }
     clearCache() {
         this.artistImageUrlCache = {};

@@ -56,10 +56,42 @@ Spotify apps in Development Mode can only read playlists owned by the authorized
 ### States
 All states are described in admin.
 
-### Messages for scripts and AI agents
-`sendTo('spotify-premium.0', 'help', {})` answers `{ help, commands }`: a description of the states that choose the device, play
-playlists, albums, tracks or URIs and show what plays, for AI agents (e.g. ioBroker.pi-agent) and script authors.
-`commands` lists every message the instance answers with `write: true` for the ones that change something (`help` is the only one).
+### Messages (sendTo)
+Scripts, other adapters (e.g. ioBroker.assistant) and AI agents can search and play with messages. Every message
+answers; an error answers `{error, reason}`.
+
+| Message        | Data                                                                                | Answer                                                                          |
+|----------------|-------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| `search`       | `{query?, track?, artist?, album?, year?, genre?, type?, limit?, offset?}` or a text | `{items: [{type, uri, id, name, artists, album, ...}]}`                         |
+| `play`         | `{uri?, offset?, positionMs?, device?}` or a URI                                     | `{ok: true, device: {id, name}}`                                                |
+| `getDevices`   | -                                                                                   | `{devices: [{id, name, type, isActive, isRestricted, volume, supportsVolume}]}` |
+| `getPlaylists` | `{search?}`                                                                         | `{playlists: [{uri, id, name, ownerId, tracksTotal, image}]}`                   |
+| `help`         | -                                                                                   | `{help, commands}`: the states and messages described for an AI agent           |
+
+`help` is for AI agents (e.g. ioBroker.pi-agent) and script authors: it describes the states and the messages,
+`commands` lists every message the instance answers, `write: true` for the ones that change something.
+
+- `search`: `query` is free text, `track`, `artist`, `album`, `year` and `genre` narrow the search. `type` is `track`
+  (default), `album`, `artist`, `playlist`, `show`, `episode` or `audiobook`, several comma separated. Spotify gives at
+  most 10 results per request since February 2026 (`limit` 1-10, default 5), the best match first.
+- `play`: `uri` is a Spotify URI or an `open.spotify.com` link. A track or an episode plays alone, an album, an artist, a
+  playlist or a show as a whole; an array of track URIs plays these in a row. `offset` is the number of the track in it
+  (0 = first) or the URI of a track in it. `device` is the name or the id of a Spotify Connect device; without it the
+  active device plays. Without `uri` the playback resumes. If a device that did not play for a while refuses the
+  command, the playback is transferred to it first. `reason` of an error: `NO_ACTIVE_DEVICE`, `DEVICE_NOT_FOUND`,
+  `DEVICE_NOT_CONTROLLABLE`, `PREMIUM_REQUIRED`, `NOT_AUTHORIZED`, `RATE_LIMITED`, `BAD_REQUEST`, ...
+- `getDevices` asks Spotify now (and updates the states). A device is known only while it is online: a phone or a
+  computer while the Spotify app is open, a speaker while it is on.
+
+```js
+sendTo('spotify-premium.0', 'search', { track: 'Bohemian Rhapsody', artist: 'Queen', limit: 3 }, result => {
+    if (result.items?.length) {
+        sendTo('spotify-premium.0', 'play', { uri: result.items[0].uri, device: 'Kitchen' }, answer => {
+            log(answer.error ? `${answer.reason}: ${answer.error}` : `plays on ${answer.device.name}`);
+        });
+    }
+});
+```
 
 ### VIS usage examples
 The adapter provides only 5 own VIS widgets (widget set `spotify-premium`): **Play/Pause**, **Previous**, **Next**, **Repeat** and **Shuffle**.
@@ -112,7 +144,13 @@ Click for the widget source.
 </details>
 
 ## Changelog
+<!--
+    Placeholder for the next version (at the beginning of the line):
+    ### **WORK IN PROGRESS**
+-->
 ### **WORK IN PROGRESS**
+- (GermanBluefox) Added the messages `search` (Spotify catalog, at most 10 results since February 2026), `play` (a URI on a device given by name or id, with an answer and the reason of a failure), `getDevices` and `getPlaylists`, e.g. for ioBroker.assistant; `help` describes them, an unknown message answers with an error and the list of messages
+- (GermanBluefox) Fixed: a player command that Spotify refuses with a reason (e.g. pause while paused, `PREMIUM_REQUIRED`) set the instance to disconnected; an HTTP error of Spotify is no longer logged as "network request error"
 - (GermanBluefox) Fixed: `player.state` = false pauses and `player.shuffleBool` = false turns shuffle off (false was ignored)
 - (GermanBluefox) Fixed: writing `player.playlist.owner` no longer restarts the current playlist (and no longer stops the adapter with an unhandled error when no playlist plays); the next write of `player.playlist.id` uses it
 - (GermanBluefox) Fixed: the descriptions of `trackListIdMap` and `trackListIds` were swapped
@@ -121,10 +159,6 @@ Click for the widget source.
 ### 3.2.0 (2026-11-19)
 - (copilot) Adapter requires node.js >= 22.19.0 now
 - (GermanBluefox) Added the message "help": a description of the states for AI agents (e.g. pi-agent), and common.supportedMessages.help
-<!--
-    Placeholder for the next version (at the beginning of the line):
-    ### **WORK IN PROGRESS**
--->
 
 ### 3.1.0 (2026-10-26)
 * (GermanBluefox) Use /playlists/{id}/items instead of the removed /tracks endpoint (Spotify API change Feb 2026); 403 on single playlists no longer sets the instance to error (#630)

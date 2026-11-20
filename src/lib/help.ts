@@ -5,15 +5,40 @@
  */
 
 /** The commands `onMessage` answers. write: true if the command has an effect */
-export const COMMANDS: { command: string; write: boolean }[] = [{ command: 'help', write: false }];
+export const COMMANDS: { command: string; write: boolean }[] = [
+    { command: 'help', write: false },
+    { command: 'search', write: false },
+    { command: 'getDevices', write: false },
+    { command: 'getPlaylists', write: false },
+    { command: 'play', write: true },
+];
 
 export const HELP = `ioBroker.spotify-premium: controls the playback of a Spotify Premium account over the Spotify Web API (Spotify
 Connect): chooses the device that plays (phone, computer, speaker, TV, Echo...), plays playlists, albums, artists,
 tracks, podcast shows and episodes, pauses, skips, seeks, sets shuffle, repeat and volume, and shows what plays.
-All of that is done by writing states; the only message is help. The instance must be authorized in its settings.
+The messages search the Spotify catalog and play with an answer; everything else is done by writing states. The
+instance must be authorized in its settings.
 
-Commands (sendTo spotify-premium.0):
+Commands (sendTo spotify-premium.0; each answers, an error as {error, reason}):
 - help: this text; answer {help, commands: [{command, write}]}.
+- search {query?, track?, artist?, album?, year?, genre?, type?, limit?, offset?}: searches the Spotify catalog.
+  query is free text; track, artist, album, year and genre narrow the search; at least one is needed. type: "track"
+  (default), "album", "artist", "playlist", "show", "episode" or "audiobook", several comma separated. limit 1..10
+  (default 5; Spotify allows at most 10 since February 2026), offset for the next results. Answers {items: [{type,
+  uri, id, name, artists?, album?, durationMs?, explicit?, releaseDate?, totalTracks?, owner?, publisher?, image?}]},
+  each type in the order of Spotify (the best match first).
+- play {uri?, offset?, positionMs?, device?} (write): plays a URI or an open.spotify.com link. A track or an episode
+  plays alone, an album, artist, playlist or show as a whole; an array of track URIs plays these in a row. offset:
+  the number of the track in it (0 = first) or the URI of a track in it; positionMs: where to start. device: name or
+  id of a Spotify Connect device (see getDevices), without it the active one plays; a device that did not play for a
+  while gets the playback transferred first. Without uri it resumes. Answers {ok: true, device: {id, name}} or
+  {error, reason}: reason NO_ACTIVE_DEVICE (no device named and none active, or the device sleeps),
+  DEVICE_NOT_FOUND (with devices: the names), DEVICE_NOT_CONTROLLABLE, PREMIUM_REQUIRED, NOT_AUTHORIZED,
+  RATE_LIMITED, BAD_REQUEST, ...
+- getDevices: asks Spotify for the devices now (and updates devices.*), {devices: [{id, name, type, isActive,
+  isRestricted, volume, supportsVolume}]}.
+- getPlaylists {search?}: the playlists of the account the adapter knows (playlists.*), {playlists: [{uri, id, name,
+  ownerId, tracksTotal, image}]}; search keeps those whose name contains the text.
 
 States (spotify-premium.0.*): write the commands with ack false; they are not acknowledged and give no error back
 (errors go to the log). About 1 s after a command the adapter reads the playback into player.* (else it polls it
@@ -34,7 +59,7 @@ Play something (Spotify URIs; a link https://open.spotify.com/<kind>/<id> is the
   "context_uri": "spotify:album:<id>", "offset": {"position": 4}} (position 0-based), or {"device_id": "...",
   "uris": ["spotify:track:<id>", ...], "position_ms": 0}. It plays on the device_id of the JSON, else on the device
   last chosen with useForPlayback / deviceList since the instance started, else on the active device.
-  The surest way to play X on device Y: JSON with device_id and context_uri (or uris) in one write.
+  The surest way to play X on device Y is the message play {uri, device}: it answers whether it worked.
 - playlists.<playlist>: the playlists of the account (own and followed); <playlist> = <ownerId>-<playlistId>
   without special characters, common.name and the state name = its name. States: id, owner, tracksTotal, imageUrl,
   trackListStates ("0:title - artist;1:title - artist;..."), playThisList (button: plays the playlist), trackList
@@ -68,10 +93,21 @@ How to talk to the user:
 - Which device: if the user names none and more than one device is available, ask which one; do not guess and do
   not take the one of an earlier request. Name devices and playlists by their names, never by IDs. A device that is
   missing is off or not logged in: ask the user to open Spotify on it, then press getDevices.
-- What to play: the adapter cannot search. Take the user's playlists from playlists.* by name; for anything else
-  ask for a Spotify link or find the URI (e.g. with a web search) and say what you picked when you play it.
+- What to play: a song: search {track, artist} (as the user named them, type track) and play the uri of the best
+  item. "Music of <artist>": search type artist, play its uri. The user's playlists: getPlaylists (or playlists.*) by
+  name, else search type playlist. Say what you picked when you play it; if it was the wrong one, offer the next
+  items of the search.
 - Play, pause, skip and change the volume only on the user's request: it is the user's account (it also changes
   what plays on the phone). Loud (volume above about 50) only when asked.
 - After a command read player.* again (a few seconds later) before saying that it plays.
 - "What is playing": "<trackName> by <artistName> (<playlist or album>) on <device name>, playing, 1:23 of 3:45".
 - Not authorized: tell the user to authorize the instance in its settings (Get Spotify access); an agent cannot.`;
+
+/**
+ * The text of `help` for an instance: HELP names `spotify-premium.0`
+ *
+ * @param ns the namespace of the instance, e.g. `spotify-premium.1`
+ */
+export function helpText(ns: string): string {
+    return HELP.replace(/spotify-premium\.0/g, ns);
+}
